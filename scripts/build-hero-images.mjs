@@ -1,0 +1,146 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+let sharp;
+try {
+  sharp = (await import('sharp')).default;
+} catch (e) {
+  try {
+    sharp = require(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../frontend/node_modules/sharp'));
+  } catch (err) {
+    throw new Error('Could not find sharp module: ' + err.message);
+  }
+}
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Support execution from root or inside frontend/
+const projectRoot = fs.existsSync(path.resolve(__dirname, '../design'))
+  ? path.resolve(__dirname, '..')
+  : path.resolve(__dirname, '../..');
+
+const designDir = path.join(projectRoot, 'design', 'assets-originals');
+const publicHeroDir = path.join(projectRoot, 'frontend', 'public', 'images', 'hero');
+const srcHeroDir = path.join(projectRoot, 'frontend', 'images', 'hero');
+const distHeroDir = path.join(projectRoot, 'frontend', 'dist', 'images', 'hero');
+const lqipOutputFile = path.join(projectRoot, 'frontend', 'src', 'lib', 'hero-lqip.ts');
+
+async function buildHeroImages() {
+  console.log('--- Starting Hero Image Build ---');
+  
+  // 1. Pick source: hires if present, else PNG
+  const hiresSource = path.join(designDir, 'hero-referensi-hires.jpg');
+  const pngSource = path.join(designDir, 'hero-referensi.png');
+  
+  let sourcePath = '';
+  if (fs.existsSync(hiresSource)) {
+    sourcePath = hiresSource;
+    console.log(`Using Hi-Res Source: ${sourcePath}`);
+  } else if (fs.existsSync(pngSource)) {
+    sourcePath = pngSource;
+    console.log(`Using Standard Source: ${sourcePath}`);
+  } else {
+    throw new Error(`Neither ${hiresSource} nor ${pngSource} exists. Execution stopped.`);
+  }
+
+  // 2. Read metadata
+  const image = sharp(sourcePath);
+  const metadata = await image.metadata();
+  const sourceWidth = metadata.width || 720;
+  const sourceHeight = metadata.height || 480;
+  console.log(`Source dimensions: ${sourceWidth}x${sourceHeight}`);
+
+  // Ensure output directories exist
+  [publicHeroDir, srcHeroDir, distHeroDir].forEach(dir => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  });
+
+  // 3. Determine target widths <= sourceWidth
+  const requestedWidths = [640, 960, 1440, 1920, 2560];
+  const validWidths = requestedWidths.filter(w => w <= sourceWidth);
+  if (!validWidths.includes(sourceWidth)) {
+    validWidths.push(sourceWidth);
+  }
+  validWidths.sort((a, b) => a - b);
+  console.log(`Generating variants for widths: ${validWidths.join(', ')}`);
+
+  const generatedFiles = [];
+
+  for (const width of validWidths) {
+    const resized = sharp(sourcePath)
+      .resize({ width, withoutEnlargement: true });
+
+    // AVIF (quality 60)
+    const avifName = `hero-${width}.avif`;
+    const avifPath = path.join(publicHeroDir, avifName);
+    await resized.clone().avif({ quality: 60 }).toFile(avifPath);
+    [srcHeroDir, distHeroDir].forEach(d => fs.copyFileSync(avifPath, path.join(d, avifName)));
+    const avifSize = fs.statSync(avifPath).size;
+    generatedFiles.push({ file: avifName, size: avifSize });
+
+    // WebP (quality 82)
+    const webpName = `hero-${width}.webp`;
+    const webpPath = path.join(publicHeroDir, webpName);
+    await resized.clone().webp({ quality: 82 }).toFile(webpPath);
+    [srcHeroDir, distHeroDir].forEach(d => fs.copyFileSync(webpPath, path.join(d, webpName)));
+    const webpSize = fs.statSync(webpPath).size;
+    generatedFiles.push({ file: webpName, size: webpSize });
+
+    // JPG (quality 85, progressive)
+    const jpgName = `hero-${width}.jpg`;
+    const jpgPath = path.join(publicHeroDir, jpgName);
+    await resized.clone().jpeg({ quality: 85, progressive: true }).toFile(jpgPath);
+    [srcHeroDir, distHeroDir].forEach(d => fs.copyFileSync(jpgPath, path.join(d, jpgName)));
+    const jpgSize = fs.statSync(jpgPath).size;
+    generatedFiles.push({ file: jpgName, size: jpgSize });
+  }
+
+  console.log('\nGenerated files in public/images/hero/:');
+  generatedFiles.forEach(f => {
+    console.log(` - ${f.file}: ${(f.size / 1024).toFixed(1)} KB`);
+  });
+
+  // 4. Calculate dominant color and 24px blurred LQIP
+  const stats = await sharp(sourcePath).stats();
+  const domR = stats.dominant.r;
+  const domG = stats.dominant.g;
+  const domB = stats.dominant.b;
+  const dominantHex = `#${((1 << 24) + (domR << 16) + (domG << 8) + domB).toString(16).slice(1)}`;
+
+  const lqipBuffer = await sharp(sourcePath)
+    .resize(24)
+    .blur(1.5)
+    .webp({ quality: 40 })
+    .toBuffer();
+  const lqipBase64 = `data:image/webp;base64,${lqipBuffer.toString('base64')}`;
+
+  // 5. Write src/lib/hero-lqip.ts
+  const lqipDir = path.dirname(lqipOutputFile);
+  if (!fs.existsSync(lqipDir)) {
+    fs.mkdirSync(lqipDir, { recursive: true });
+  }
+
+  const lqipContent = `// Auto-generated by scripts/build-hero-images.mjs - DO NOT EDIT MANUALLY
+export const heroDominantColor = "${dominantHex}";
+export const heroLqip = "${lqipBase64}";
+export const heroSourceWidth = ${sourceWidth};
+export const heroSourceHeight = ${sourceHeight};
+export const heroAvailableWidths = ${JSON.stringify(validWidths)};
+export const heroMaxWidth = ${validWidths[validWidths.length - 1]};
+`;
+
+  fs.writeFileSync(lqipOutputFile, lqipContent, 'utf-8');
+  console.log(`\nUpdated ${lqipOutputFile}`);
+  console.log(`Dominant color: ${dominantHex}`);
+  console.log(`LQIP length: ${lqipBase64.length} chars`);
+  console.log('--- Hero Image Build Complete ---');
+}
+
+buildHeroImages().catch((err) => {
+  console.error('Build hero images failed:', err);
+  process.exit(1);
+});
