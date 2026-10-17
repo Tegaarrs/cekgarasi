@@ -37,6 +37,8 @@ export function formatInstallmentMillion(priceRp: number): string {
   return inMillion.toFixed(2).replace('.', ',') + ' jt';
 }
 
+export const formatInstallment = formatInstallmentMillion;
+
 /**
  * Returns the standardized estimate string: "Estimasi cicilan ≈ Rp X jt/bln".
  */

@@ -2,17 +2,20 @@ import React from 'react';
 
 interface CarPlaceholderProps {
   segmentId?: number | null;
+  klaster?: number | null;
   namaMobil?: string;
   className?: string;
   aspectRatio?: '16/10' | '4/3' | '16/9';
 }
 
 export const CarPlaceholder: React.FC<CarPlaceholderProps> = ({
-  segmentId = 0,
+  segmentId,
+  klaster,
   namaMobil = 'Mobil CekGarasi',
   className = '',
   aspectRatio = '16/10',
 }) => {
+  const effectiveSegment = klaster !== undefined && klaster !== null ? klaster : (segmentId ?? 0);
   // Theme accents by segment
   const segmentThemes: Record<number, { bgFrom: string; bgTo: string; carFill: string; accent: string }> = {
     0: {
@@ -35,7 +38,7 @@ export const CarPlaceholder: React.FC<CarPlaceholderProps> = ({
     },
   };
 
-  const theme = segmentThemes[segmentId ?? 0] || segmentThemes[0];
+  const theme = segmentThemes[effectiveSegment] || segmentThemes[0];
 
   const aspectClass = {
     '16/10': 'aspect-[16/10]',
