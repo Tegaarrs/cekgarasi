@@ -1,9 +1,11 @@
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
+import { MobileTopBar } from './components/layout/MobileTopBar';
+import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { PageTransition } from './components/motion/PageTransition';
 
-// Buyer Pages B1 - B7
+// Buyer Pages B1 - B7 & Mobile Additions
 import { MasukPage } from './pages/buyer/MasukPage';
 import { DaftarPage } from './pages/buyer/DaftarPage';
 import { BerandaPage } from './pages/buyer/BerandaPage';
@@ -12,6 +14,8 @@ import { DetailMobilPage } from './pages/buyer/DetailMobilPage';
 import { BookingPage } from './pages/buyer/BookingPage';
 import { BookingSuccessPage } from './pages/buyer/BookingSuccessPage';
 import { PreferensiPage } from './pages/buyer/PreferensiPage';
+import { SegmenPage } from './pages/buyer/SegmenPage';
+import { PlaceholderPage } from './pages/buyer/PlaceholderPage';
 
 // Admin Pages A1 - A5 & Database
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
@@ -25,21 +29,33 @@ import { DatabaseExplorerPage } from './pages/admin/DatabaseExplorerPage';
 export default function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin') && location.pathname !== '/admin/login';
+  const isMobileTopBarRoute = ['/', '/cari', '/segmen', '/favorit', '/akun'].includes(location.pathname);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
-      {!isAdminRoute && <Navbar />}
-      <main className="flex-1">
+      {!isAdminRoute && (
+        <>
+          <div className="hidden md:block">
+            <Navbar />
+          </div>
+          {isMobileTopBarRoute && <MobileTopBar />}
+        </>
+      )}
+      <main className="flex-1 pb-20 md:pb-0">
         <PageTransition>
           <Routes location={location}>
             {/* Buyer Screens B1 - B7 */}
             <Route path="/" element={<BerandaPage />} />
             <Route path="/welcome" element={<MasukPage />} />
             <Route path="/login" element={<MasukPage />} />
+            <Route path="/masuk" element={<MasukPage />} />
             <Route path="/daftar" element={<DaftarPage />} />
             <Route path="/preferensi" element={<PreferensiPage />} />
             <Route path="/preferensi-pembeli" element={<PreferensiPage />} />
             <Route path="/cari" element={<CariPage />} />
+            <Route path="/segmen" element={<SegmenPage />} />
+            <Route path="/favorit" element={<PlaceholderPage title="Mobil Favorit Kamu" />} />
+            <Route path="/akun" element={<PlaceholderPage title="Profil & Akun Kamu" />} />
             <Route path="/mobil/:id" element={<DetailMobilPage />} />
             <Route path="/booking" element={<BookingPage />} />
             <Route path="/booking-sukses" element={<BookingSuccessPage />} />
@@ -60,7 +76,14 @@ export default function App() {
           </Routes>
         </PageTransition>
       </main>
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && (
+        <>
+          <div className="hidden md:block">
+            <Footer />
+          </div>
+          <MobileBottomNav />
+        </>
+      )}
     </div>
   );
 }

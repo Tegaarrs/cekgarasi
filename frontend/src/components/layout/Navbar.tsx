@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User as UserIcon, LogOut } from 'lucide-react';
 import { getUser, removeToken } from '@/services/api';
+import { Logo } from '@/components/common/Logo';
 
 interface UserProfile {
   id: number;
@@ -37,19 +38,7 @@ export function Navbar() {
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/90">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link to="/" className="flex items-center gap-2.5 group">
-          <img
-            src="/images/logo.png"
-            alt="CekGarasi Logo"
-            className="h-10 w-10 object-contain rounded-full shadow-sm ring-1 ring-amber-400/30 group-hover:scale-105 transition-transform"
-          />
-          <div className="flex flex-col">
-            <span className="font-display text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
-              Cek<span className="text-blue-600">Garasi</span>
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mt-0.5">
-              Beli Mobil
-            </span>
-          </div>
+          <Logo size="md" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">

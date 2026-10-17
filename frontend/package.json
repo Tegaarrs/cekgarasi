@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@fontsource/plus-jakarta-sans": "^5.3.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.477.0",
     "motion": "^12.4.7",

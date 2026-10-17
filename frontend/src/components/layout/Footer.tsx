@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Award } from 'lucide-react';
+import { Layers, Calendar, Calculator } from 'lucide-react';
+import { Logo } from '@/components/common/Logo';
+import { content } from '@/content/id';
 
 export function Footer() {
   return (
@@ -10,22 +12,10 @@ export function Footer() {
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-4">
             <Link to="/" className="flex items-center gap-3 group">
-              <img
-                src="/images/logo.png"
-                alt="CekGarasi Logo"
-                className="h-12 w-12 object-contain rounded-full shadow-md ring-1 ring-amber-400/30 group-hover:scale-105 transition-transform"
-              />
-              <div>
-                <span className="font-display text-xl font-extrabold text-slate-900 dark:text-white leading-none">
-                  Cek<span className="text-blue-600">Garasi</span>
-                </span>
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mt-0.5">
-                  Beli Mobil Bekas Cerdas
-                </span>
-              </div>
+              <Logo size="md" />
             </Link>
             <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
-              Platform pasar mobil bekas pintar dengan segmentasi K-Means berbasis machine learning nyata. Transparan, terverifikasi inspeksi 160 titik, dan garansi resmi.
+              {content.brand.description}
             </p>
           </div>
 
@@ -37,24 +27,29 @@ export function Footer() {
             <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
               <li><Link to="/" className="hover:text-blue-600 transition-colors">Beranda</Link></li>
               <li><Link to="/cari" className="hover:text-blue-600 transition-colors">Katalog Mobil</Link></li>
+              <li><Link to="/segmen" className="hover:text-blue-600 transition-colors">Segmen Pasar</Link></li>
               <li><Link to="/welcome" className="hover:text-blue-600 transition-colors">Portal Masuk</Link></li>
               <li><Link to="/admin/dashboard" className="hover:text-blue-600 transition-colors">Portal Dealer & Admin</Link></li>
             </ul>
           </div>
 
-          {/* Guarantee */}
+          {/* Fitur Utama */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-3">
-              Jaminan CekGarasi
+              Fitur CekGarasi
             </h4>
             <div className="space-y-2.5 text-xs text-slate-600 dark:text-slate-400">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                <span>100% Lolos Inspeksi 160 Titik</span>
+                <Layers className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                <span>Segmentasi K-Means Otomatis</span>
               </div>
               <div className="flex items-center gap-2">
-                <Award className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                <span>Garansi Mesin & Transmisi 1 Tahun</span>
+                <Calculator className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                <span>Simulasi Cicilan Transparan</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-indigo-500 flex-shrink-0" />
+                <span>Jadwal Test Drive Online</span>
               </div>
             </div>
           </div>
