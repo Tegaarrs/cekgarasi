@@ -135,6 +135,8 @@ def get_segments(db: Session = Depends(get_db)):
             "fitur_rata_rata": round(float(st.get("mean_total_fitur", 0)), 1),
             "mean_total_fitur": float(st.get("mean_total_fitur", 0)),
             "model_teratas": model_teratas,
+            "top_3_model": model_teratas,
+            "klaster": s.id,
             "terbesar": (s.id == max_seg_id),
             "stats": st
         }
@@ -142,6 +144,7 @@ def get_segments(db: Session = Depends(get_db)):
 
     global_data = {
         "total": total_cars,
+        "total_mobil": total_cars,
         "harga_min": harga_min,
         "harga_max": harga_max,
         "harga_median": harga_median,
@@ -153,6 +156,7 @@ def get_segments(db: Session = Depends(get_db)):
         "items": segment_items,
         "global": global_data,
         "total": total_cars,
+        "total_mobil": total_cars,
         "harga_min": harga_min,
         "harga_max": harga_max,
         "harga_median": harga_median,

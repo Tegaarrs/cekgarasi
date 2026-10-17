@@ -18,3 +18,5 @@ Thumbs.db
 # Build artifacts
 frontend/dist/
 frontend/build/
+frontend/test-results/
+frontend/playwright-report/

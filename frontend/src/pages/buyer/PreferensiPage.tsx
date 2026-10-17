@@ -28,7 +28,7 @@ export function PreferensiPage() {
     setCriteria((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Live Machine Learning Classification Logic (Engine v2.4 simulation):
+  // Machine Learning Classification Logic (K-Means):
   // Segment 0: Premium (#2557D6)
   // Segment 1: Keluarga Muda (#0CA678)
   // Segment 2: Ekonomis & Efisien (#AE3EC9)
@@ -214,7 +214,7 @@ export function PreferensiPage() {
             <span className="font-semibold text-white">3 Klaster Terverifikasi • 609 Data Mobil Terkalibrasi</span>
           </div>
           <div className="font-mono text-[11px] text-[#B1C5FF]">
-            MODEL: K-MEANS v2.4 (ID-WIB)
+            MODEL: K-MEANS (k=3)
           </div>
         </div>
       </div>
@@ -304,7 +304,7 @@ export function PreferensiPage() {
                 className="w-full h-10 px-3.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
                 <option value="2018">2018 ke atas (Mobil usia &lt; 6 tahun)</option>
-                <option value="2020">2020 ke atas (Mobil usia &lt; 4 tahun - Garansi Aktif)</option>
+                <option value="2020">2020 ke atas (Mobil usia &lt; 4 tahun)</option>
                 <option value="2022">2022 ke atas (Mobil usia &lt; 2 tahun - Like New)</option>
                 <option value="2015">2015 ke atas (Opsi Ekonomis)</option>
                 <option value="0">Semua Tahun Perakitan</option>

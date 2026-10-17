@@ -121,7 +121,7 @@ export function AdminInventoriPage() {
   const [editGalleryPhotos, setEditGalleryPhotos] = useState<PhotoItem[]>([]);
   const editFileInputRef = useRef<HTMLInputElement>(null);
 
-  // 11 Checklist Features State (Engine v2.4 K-Means Input) for Tambah Unit
+  // 11 Checklist Features State (K-Means Input) for Tambah Unit
   const [features, setFeatures] = useState<{ [key: string]: boolean }>({
     rear_camera: true,
     sun_roof: true,
@@ -2128,7 +2128,7 @@ export function AdminInventoriPage() {
                     <div className="flex items-center gap-1.5">
                       <Sparkles className="h-4 w-4 text-[#FE6A2B]" />
                       <span className="text-[11px] uppercase font-extrabold text-[#001540]">
-                        Algoritma K-Means (Engine v2.4)
+                        Algoritma K-Means (k=3)
                       </span>
                     </div>
                     {scenarioPred && (

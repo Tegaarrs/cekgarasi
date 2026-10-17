@@ -68,12 +68,21 @@ export function SegmenPage() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      apiFetch<SegmenApiResponse>('/segmen'),
+      apiFetch<any>('/segmen'),
       apiFetch<SebaranCarPoint[]>('/segmen/sebaran'),
     ])
       .then(([segRes, sebaranRes]) => {
-        if (segRes && Array.isArray(segRes.segmen)) {
-          setSegmenData(segRes);
+        if (segRes) {
+          if (Array.isArray(segRes.segmen)) {
+            setSegmenData(segRes);
+          } else if (Array.isArray(segRes)) {
+            setSegmenData({
+              segmen: segRes,
+              total_mobil: 609,
+              silhouette_k3: 0.3061,
+              fitur_list: [],
+            });
+          }
         }
         if (Array.isArray(sebaranRes)) {
           setSebaran(sebaranRes);
@@ -168,7 +177,7 @@ export function SegmenPage() {
                 <span className="text-xs text-slate-400 font-medium">Memuat data sebaran 609 mobil...</span>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={280}>
                 <ScatterChart margin={{ top: 10, right: 10, bottom: 20, left: 0 }}>
                   <XAxis
                     type="number"
@@ -383,7 +392,11 @@ export function SegmenPage() {
                   <span>Rata-rata KM</span>
                 </div>
                 <div className="text-sm font-bold text-slate-900">
-                  {activeSegment.mean_km.toFixed(1)} rb km
+                  {typeof activeSegment.mean_km === 'number'
+                    ? activeSegment.mean_km.toFixed(1)
+                    : typeof (activeSegment as any).km_rata_rata_ribu === 'number'
+                    ? (activeSegment as any).km_rata_rata_ribu.toFixed(1)
+                    : '0'} rb km
                 </div>
               </div>
 
@@ -393,7 +406,11 @@ export function SegmenPage() {
                   <span>Kelengkapan Fitur</span>
                 </div>
                 <div className="text-sm font-bold text-slate-900">
-                  {activeSegment.mean_total_fitur.toFixed(1)} dari 11 fitur
+                  {typeof activeSegment.mean_total_fitur === 'number'
+                    ? activeSegment.mean_total_fitur.toFixed(1)
+                    : typeof (activeSegment as any).fitur_rata_rata === 'number'
+                    ? (activeSegment as any).fitur_rata_rata.toFixed(1)
+                    : '0'} dari 11 fitur
                 </div>
               </div>
             </div>
@@ -404,7 +421,7 @@ export function SegmenPage() {
                 Model Paling Banyak di Segmen Ini
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {activeSegment.top_3_model.map((m, idx) => (
+                {(activeSegment.top_3_model || (activeSegment as any).model_teratas || []).map((m: any, idx: number) => (
                   <div
                     key={m.model}
                     className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/60"

@@ -138,7 +138,7 @@ export function AlgorithmScenarioTester({
                 Uji Coba Algoritma & Sandingkan Skenario
               </h3>
               <p className="text-xs text-slate-600">
-                Menyandingkan Skenario A [Harga, Tipe, Tahun] vs Skenario B [Harga, Jarak Tempuh, Fitur] &mdash; Evaluasi Akurasi Segmentasi
+                Menyandingkan Skenario A [Harga, Tipe, Tahun] vs Skenario B [Harga, Jarak Tempuh, Fitur] &mdash; Evaluasi Keselarasan Segmentasi
               </p>
             </div>
           </div>
@@ -391,7 +391,7 @@ export function AlgorithmScenarioTester({
         </div>
       </div>
 
-      {/* Evaluasi Akurasi & Keselarasan Antar Algoritma */}
+      {/* Evaluasi Keselarasan Antar Algoritma */}
       <div className={`p-4 rounded-xl border ${
         result?.evaluasi.apakah_akurat
           ? 'bg-emerald-50/80 border-emerald-300 text-emerald-950'
@@ -411,7 +411,7 @@ export function AlgorithmScenarioTester({
           <div className="space-y-1 flex-1">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <span>Evaluasi Akurasi & Keselarasan:</span>
+                <span>Evaluasi Keselarasan:</span>
                 <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                   result?.evaluasi.apakah_akurat
                     ? 'bg-emerald-200/90 text-emerald-900'

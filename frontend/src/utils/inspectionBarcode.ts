@@ -71,7 +71,7 @@ export async function generateInspectionBarcodeJpg(car: BarcodeCarData): Promise
 
   ctx.fillStyle = '#38BDF8';
   ctx.font = '600 11px "Inter", sans-serif';
-  ctx.fillText('TERVERIFIKASI 160 TITIK UJI • GRADE A PRIMA • BEBAS BANJIR & TABRAK', width - 45, 72);
+  ctx.fillText('TERVERIFIKASI SISTEM CEKGARASI • DATA LISTING RESMI', width - 45, 72);
   ctx.textAlign = 'left';
 
   // 3. Left Section - Car Image & Specs Box
@@ -317,7 +317,7 @@ export async function generateInspectionBarcodeJpg(car: BarcodeCarData): Promise
 
   ctx.fillStyle = '#059669';
   ctx.font = 'bold 11px "Inter", sans-serif';
-  ctx.fillText('✓ Lulus 160 Titik Uji CekGarasi', qrX + qrSize + 18, qrBoxY + 95);
+  ctx.fillText('✓ Data Terverifikasi CekGarasi', qrX + qrSize + 18, qrBoxY + 95);
 
   // OFFICIAL INSPECTION STAMP (Circular Seal)
   const stampCenterX = rightX + (rightW / 2);

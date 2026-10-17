@@ -511,7 +511,7 @@ export function DetailMobilPage() {
             </a>
 
             <div className="pt-2 text-center text-[11px] text-slate-400">
-              🛡️ Garansi Mesin 1 Tahun & Dokumen Legal Terjamin
+              🛡️ Kelengkapan Data & Dokumen Terverifikasi
             </div>
           </div>
         </div>

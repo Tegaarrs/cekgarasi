@@ -50,7 +50,7 @@ export function MobileTopBar({ currentLocation, onLocationChange }: MobileTopBar
           <button
             onClick={() => setIsLocationOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/80 active:scale-95 transition-all max-w-[170px] border border-slate-200/60"
-            aria-label="Pilih lokasi mobil"
+            aria-label={`Lokasi: ${selectedLoc}`}
           >
             <MapPin className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
             <span className="text-xs font-semibold text-slate-700 truncate">

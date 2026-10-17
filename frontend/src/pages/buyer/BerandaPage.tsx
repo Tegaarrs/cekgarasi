@@ -55,10 +55,19 @@ export function BerandaPage() {
 
     // 2. Rekomendasi Beranda (B6)
     setLoadingRecs(true);
-    apiFetch<{ items: CarCardData[] }>('/rekomendasi/beranda')
+    apiFetch<any>('/rekomendasi/beranda')
       .then((res) => {
         if (res && Array.isArray(res.items)) {
           setRecommendations(res.items);
+        } else if (res && typeof res === 'object') {
+          const combined = [
+            ...(Array.isArray(res['0']) ? res['0'] : []),
+            ...(Array.isArray(res['1']) ? res['1'] : []),
+            ...(Array.isArray(res['2']) ? res['2'] : []),
+          ];
+          if (combined.length > 0) {
+            setRecommendations(combined);
+          }
         }
       })
       .catch(() => {
