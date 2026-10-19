@@ -27,10 +27,11 @@ export function CompareTray() {
   const [cars, setCars] = useState<MiniCar[]>([]);
   const [isMinimized, setIsMinimized] = useState<boolean>(false);
 
-  // Hide on admin routes or if already on /bandingkan page
+  // Hide on admin routes, /bandingkan page, or /favorit page (where comparison is embedded directly)
   const shouldHide =
     location.pathname.startsWith('/admin') ||
     location.pathname === '/bandingkan' ||
+    location.pathname === '/favorit' ||
     compareIds.length === 0;
 
   useEffect(() => {

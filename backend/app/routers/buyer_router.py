@@ -937,7 +937,7 @@ def get_favorite_ids(
 
 @router.get("/favorit")
 def get_favorites(
-    urut: str = Query("terbaru", pattern="^(terbaru|harga_asc|harga_desc|tahun_desc|km_asc)$"),
+    urut: str = Query("terbaru", pattern="^(terbaru|terbaru_disimpan|harga_asc|harga_desc|tahun_desc|km_asc)$"),
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -952,7 +952,7 @@ def get_favorites(
         query = query.order_by(models.Car.tahun.desc())
     elif urut == "km_asc":
         query = query.order_by(models.Car.jarak_tempuh_ribu_km.asc())
-    else:  # terbaru
+    else:  # terbaru or terbaru_disimpan
         query = query.order_by(models.Favorite.created_at.desc())
 
     favs = query.all()

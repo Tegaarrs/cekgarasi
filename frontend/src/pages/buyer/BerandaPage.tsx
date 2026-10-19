@@ -15,6 +15,12 @@ import {
   HelpCircle, ArrowRight, Sparkles, ChevronRight, Calculator, Calendar
 } from 'lucide-react';
 import { BuyerKmeansTester } from '@/components/algo/BuyerKmeansTester';
+import {
+  fetchFavoriteIds,
+  getFavoriteIds,
+  subscribeFavorites,
+  toggleFavorite,
+} from '@/services/favoriteStore';
 
 interface SegmentSummary {
   klaster: number;
@@ -86,39 +92,22 @@ export function BerandaPage() {
       });
 
     // 3. Favorites if logged in
-    if (token) {
-      apiFetch<{ items: Array<{ id: number }> }>('/favorit')
-        .then((res) => {
-          if (res && Array.isArray(res.items)) {
-            setFavoriteIds(res.items.map((c) => c.id));
-          }
-        })
-        .catch(() => {});
-    }
+    fetchFavoriteIds().then((ids) => {
+      if (Array.isArray(ids)) {
+        setFavoriteIds(ids);
+      }
+    });
   }, [token]);
 
-  const handleFavoriteToggle = async (carId: number) => {
-    if (!token) {
-      setShowGuestSheet(true);
-      return;
-    }
+  useEffect(() => {
+    const unsub = subscribeFavorites(() => {
+      setFavoriteIds(getFavoriteIds());
+    });
+    return unsub;
+  }, []);
 
-    const isFav = favoriteIds.includes(carId);
-    try {
-      if (isFav) {
-        await apiFetch(`/favorit/${carId}`, { method: 'DELETE' });
-        setFavoriteIds((prev) => prev.filter((id) => id !== carId));
-      } else {
-        await apiFetch('/favorit', {
-          method: 'POST',
-          body: JSON.stringify({ car_id: carId }),
-        });
-        setFavoriteIds((prev) => [...prev, carId]);
-      }
-      window.dispatchEvent(new CustomEvent('cekgarasi:favorite_changed'));
-    } catch (err) {
-      console.error('Failed to toggle favorite:', err);
-    }
+  const handleFavoriteToggle = async (carId: number) => {
+    await toggleFavorite(carId);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
