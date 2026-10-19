@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'motion/react';
 import { fadeUp, spring } from '@/lib/motion';
 import { Spinner } from '@/components/motion/Spinner';
 import { apiFetch, setToken, setUser } from '@/services/api';
+import { getPendingFavorite, processPendingFavorite, sanitizeInternalPath } from '@/services/favoriteStore';
 import { ArrowRight } from 'lucide-react';
 
 export function MasukPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const shouldReduce = useReducedMotion();
+
+  const searchParams = new URLSearchParams(location.search);
+  const nextParam = searchParams.get('next');
+  const isFavoritRedirect = nextParam === '/favorit';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,9 +41,17 @@ export function MasukPage() {
 
       if (data.user.role === 'admin') {
         navigate('/admin/dashboard');
-      } else {
-        navigate('/');
+        return;
       }
+
+      const pending = getPendingFavorite();
+      if (pending) {
+        await processPendingFavorite(navigate);
+        return;
+      }
+
+      const safeNext = sanitizeInternalPath(nextParam, '/');
+      navigate(safeNext);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Kredensial tidak valid.';
       setErrorMessage(msg);
@@ -88,9 +102,16 @@ export function MasukPage() {
             </div>
             <h1 className="font-display text-2xl font-bold tracking-tight">Masuk ke CekGarasi</h1>
             <p className="mt-1 text-sm text-slate-400">
-              Akses rekomendasi mobil berbasis segmentasi K-Means
+              Akses rekomendasi mobil dan simpan mobil pilihan kamu
             </p>
           </div>
+
+          {/* Favorit Redirect Notice */}
+          {isFavoritRedirect && (
+            <div className="mb-5 overflow-hidden rounded-xl border border-blue-500/30 bg-blue-500/15 p-3.5 text-xs text-blue-300 text-center font-medium">
+              Masuk untuk melihat favorit kamu
+            </div>
+          )}
 
           {/* Error Banner with Slide Down */}
           {errorMessage && (

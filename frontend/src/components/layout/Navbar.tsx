@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { User as UserIcon, LogOut } from 'lucide-react';
+import { User as UserIcon, LogOut, Heart } from 'lucide-react';
 import { getUser, removeToken } from '@/services/api';
 import { Logo } from '@/components/common/Logo';
+import { subscribeFavorites, fetchFavoriteIds, getFavoriteCount } from '@/services/favoriteStore';
 
 interface UserProfile {
   id: number;
@@ -15,10 +16,23 @@ export function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [user, setUserState] = useState<UserProfile | null>(getUser());
+  const [favCount, setFavCount] = useState<number>(getFavoriteCount());
 
   useEffect(() => {
     setUserState(getUser());
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (user) {
+      fetchFavoriteIds().then(() => {
+        setFavCount(getFavoriteCount());
+      });
+    }
+    const unsub = subscribeFavorites(() => {
+      setFavCount(getFavoriteCount());
+    });
+    return unsub;
+  }, [user]);
 
   const handleLogout = () => {
     removeToken();
@@ -62,7 +76,31 @@ export function Navbar() {
 
         <div className="flex items-center gap-3">
           {user ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
+              <Link
+                to="/favorit"
+                aria-label={favCount > 0 ? `Favorit saya, ${favCount} mobil` : 'Favorit saya, kosong'}
+                className={`relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  location.pathname === '/favorit'
+                    ? 'bg-rose-50 text-rose-600 ring-1 ring-rose-200 dark:bg-rose-950/40 dark:text-rose-400'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+                }`}
+              >
+                <Heart
+                  className={`h-4 w-4 transition-colors ${
+                    location.pathname === '/favorit' || favCount > 0
+                      ? 'fill-rose-500 text-rose-500'
+                      : 'text-slate-500'
+                  }`}
+                />
+                <span>Favorit saya</span>
+                {favCount > 0 && (
+                  <span className="ml-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-none text-white shadow-xs">
+                    {favCount > 99 ? '99+' : favCount}
+                  </span>
+                )}
+              </Link>
+
               <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                 <UserIcon className="h-3.5 w-3.5 text-blue-600" />
                 <span>{user.nama || user.email}</span>

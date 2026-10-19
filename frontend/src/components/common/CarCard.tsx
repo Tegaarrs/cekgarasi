@@ -1,10 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Gauge, MapPin, Heart } from 'lucide-react';
 import { CarPlaceholder } from './CarPlaceholder';
 import { getCarPhoto } from '@/utils/carPhoto';
 import { formatInstallment } from '@/lib/finance';
 import { content } from '@/content/id';
+import {
+  isFavorite as checkIsFavorite,
+  toggleFavorite,
+  subscribeFavorites,
+} from '@/services/favoriteStore';
 
 export interface CarCardData {
   id: number;
@@ -29,12 +34,24 @@ interface CarCardProps {
 
 export function CarCard({
   car,
-  isFavorite = false,
+  isFavorite: isFavoriteProp,
   onFavoriteClick,
   className = '',
 }: CarCardProps) {
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
+  const [storeFavorite, setStoreFavorite] = useState<boolean>(() => checkIsFavorite(car.id));
+
+  useEffect(() => {
+    if (isFavoriteProp !== undefined) return;
+    setStoreFavorite(checkIsFavorite(car.id));
+    const unsub = subscribeFavorites(() => {
+      setStoreFavorite(checkIsFavorite(car.id));
+    });
+    return unsub;
+  }, [car.id, isFavoriteProp]);
+
+  const isFav = isFavoriteProp !== undefined ? isFavoriteProp : storeFavorite;
 
   const segmentName = car.nama_segmen || content.segments.names[car.klaster] || `Segmen ${car.klaster}`;
   const segmentColor = car.warna_segmen || content.segments.colors[car.klaster] || '#2563EB';
@@ -49,6 +66,8 @@ export function CarCard({
     e.stopPropagation();
     if (onFavoriteClick) {
       onFavoriteClick(car.id, e);
+    } else {
+      toggleFavorite(car.id);
     }
   };
 
@@ -87,12 +106,12 @@ export function CarCard({
         <button
           type="button"
           onClick={handleHeartClick}
-          aria-label={isFavorite ? 'Hapus dari favorit' : 'Simpan ke favorit'}
-          className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm shadow-xs flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-white active:scale-90 transition-all"
+          aria-label={isFav ? 'Hapus dari favorit' : 'Simpan ke favorit'}
+          className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm shadow-xs flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-white active:scale-90 transition-all cursor-pointer"
         >
           <Heart
             className={`w-4 h-4 transition-colors ${
-              isFavorite ? 'fill-rose-500 text-rose-500' : 'text-slate-500'
+              isFav ? 'fill-rose-500 text-rose-500' : 'text-slate-500'
             }`}
           />
         </button>

@@ -9,6 +9,10 @@ interface ToastProps {
   onClose?: () => void;
   className?: string;
   icon?: React.ReactNode;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 export function Toast({
@@ -18,6 +22,7 @@ export function Toast({
   onClose,
   className = '',
   icon,
+  action,
 }: ToastProps) {
   const shouldReduce = useReducedMotion();
 
@@ -41,6 +46,15 @@ export function Toast({
         >
           {icon}
           <span className="text-sm font-medium">{message}</span>
+          {action && (
+            <button
+              type="button"
+              onClick={action.onClick}
+              className="ml-2 rounded-lg bg-white/20 hover:bg-white/30 px-2.5 py-1 text-xs font-bold text-white transition-colors cursor-pointer"
+            >
+              {action.label}
+            </button>
+          )}
           {onClose && (
             <button
               onClick={onClose}

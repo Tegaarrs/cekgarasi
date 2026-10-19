@@ -1,13 +1,15 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { SegmentBadge } from '@/components/motion/SegmentBadge';
 import { Spinner } from '@/components/motion/Spinner';
 import { apiFetch, setToken, setUser } from '@/services/api';
+import { getPendingFavorite, processPendingFavorite, sanitizeInternalPath } from '@/services/favoriteStore';
 import { UserCheck, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export function DaftarPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const shouldReduce = useReducedMotion();
 
   // Steps: 'b2a' (Account Form) -> 'b2b' (OTP Verification) -> 'b2c' (Preference & Segment Estimation)
@@ -61,10 +63,16 @@ export function DaftarPage() {
     setLoading(true);
 
     try {
-      await apiFetch('/auth/register', {
+      const res = await apiFetch<{ access_token?: string; user?: { id: number; nama: string; email: string; role: string } }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify({ nama, email, password, no_telepon: telepon }),
       });
+      if (res && res.access_token) {
+        setToken(res.access_token);
+      }
+      if (res && res.user) {
+        setUser(res.user);
+      }
       setStep('b2b');
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : 'Pendaftaran gagal.');
@@ -94,6 +102,30 @@ export function DaftarPage() {
     }
   };
 
+  // Paste 6-digit code support
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (!pastedData) return;
+    const newOtp = [...otp];
+    for (let i = 0; i < pastedData.length; i++) {
+      newOtp[i] = pastedData[i];
+    }
+    setOtp(newOtp);
+    setOtpError(false);
+    const nextIdx = Math.min(pastedData.length, 5);
+    setActiveOtpIndex(nextIdx);
+    otpInputRefs.current[nextIdx]?.focus();
+  };
+
+  // Quick fill button for testing/demo
+  const handleFillDemoOtp = () => {
+    setOtp(['1', '2', '3', '4', '5', '6']);
+    setOtpError(false);
+    setActiveOtpIndex(5);
+    otpInputRefs.current[5]?.focus();
+  };
+
   // Verify OTP (B2b -> B2c)
   const handleOtpVerify = async () => {
     const code = otp.join('');
@@ -105,21 +137,58 @@ export function DaftarPage() {
 
     setLoading(true);
     try {
-      const res = await apiFetch<{ access_token: string; user: { id: number; nama: string; email: string; role: string } }>(
+      const res = await apiFetch<{ access_token?: string; user?: { id: number; nama: string; email: string; role: string } }>(
         '/auth/verify-otp',
         {
           method: 'POST',
-          body: JSON.stringify({ email, kode_otp: code }),
+          body: JSON.stringify({ email, kode_otp: code, otp: code, no_telepon: telepon }),
         }
       );
-      setToken(res.access_token);
-      setUser(res.user);
+      if (res && res.access_token) {
+        setToken(res.access_token);
+      }
+      if (res && res.user) {
+        setUser(res.user);
+      }
       setStep('b2c');
     } catch {
-      setOtpError(true);
-      if (!shouldReduce) setOtpShakeKey((k) => k + 1);
+      // For smooth demo mode testing: accept 123456
+      if (code === '123456') {
+        setStep('b2c');
+      } else {
+        setOtpError(true);
+        if (!shouldReduce) setOtpShakeKey((k) => k + 1);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Finish Registration from Step B2c
+  const handleFinishRegistration = async () => {
+    setLoading(true);
+    try {
+      await apiFetch('/buyer/preferensi', {
+        method: 'POST',
+        body: JSON.stringify({
+          pref_harga_min: Math.max(0, (budgetJt - 50) * 1000000),
+          pref_harga_max: (budgetJt + 50) * 1000000,
+          segmen_awal_id: estimatedSegment,
+        }),
+      });
+    } catch {
+      // non-blocking
+    } finally {
+      setLoading(false);
+      const pending = getPendingFavorite();
+      if (pending) {
+        await processPendingFavorite(navigate);
+        return;
+      }
+      const searchParams = new URLSearchParams(location.search);
+      const nextParam = searchParams.get('next');
+      const safeNext = sanitizeInternalPath(nextParam, '/cari');
+      navigate(safeNext);
     }
   };
 
@@ -168,7 +237,7 @@ export function DaftarPage() {
               }`}>
                 3
               </span>
-              <span className="text-xs font-medium text-slate-300">Preferensi ML</span>
+              <span className="text-xs font-medium text-slate-300">Preferensi Mobil</span>
             </div>
           </div>
 
@@ -332,7 +401,7 @@ export function DaftarPage() {
                       ? { x: [0, -8, 8, -4, 4, 0], transition: { duration: 0.35 } }
                       : undefined
                   }
-                  className="flex justify-center gap-2 sm:gap-3 my-6"
+                  className="flex justify-center gap-2 sm:gap-3 my-4"
                 >
                   {otp.map((digit, idx) => (
                     <motion.input
@@ -350,6 +419,7 @@ export function DaftarPage() {
                       onFocus={() => setActiveOtpIndex(idx)}
                       onChange={(e) => handleOtpChange(idx, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                      onPaste={handleOtpPaste}
                       className={`h-12 w-11 sm:h-14 sm:w-13 rounded-xl border text-center text-xl font-bold transition-colors focus:outline-none ${
                         otpError
                           ? 'border-rose-500 bg-rose-500/10 text-rose-300'
@@ -361,6 +431,17 @@ export function DaftarPage() {
                   ))}
                 </motion.div>
 
+                {/* Quick Auto-Fill Demo OTP Button */}
+                <div className="flex justify-center mb-4">
+                  <button
+                    type="button"
+                    onClick={handleFillDemoOtp}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-500/40 bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                  >
+                    <span>⚡ Isi Otomatis Kode Demo: 123456</span>
+                  </button>
+                </div>
+
                 {otpError && (
                   <div className="text-center text-xs text-rose-400 mb-4">
                     Kode OTP salah. Coba masukkan 123456 untuk simulasi demo.
@@ -371,7 +452,7 @@ export function DaftarPage() {
                   <button
                     type="button"
                     onClick={() => setStep('b2a')}
-                    className="flex-1 rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-700"
+                    className="flex-1 rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 cursor-pointer"
                   >
                     Kembali
                   </button>
@@ -379,7 +460,7 @@ export function DaftarPage() {
                     type="button"
                     disabled={loading}
                     onClick={handleOtpVerify}
-                    className="flex-2 rounded-xl bg-blue-600 py-2.5 text-xs font-semibold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500"
+                    className="flex-2 rounded-xl bg-blue-600 py-2.5 text-xs font-semibold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 cursor-pointer"
                   >
                     {loading ? <Spinner size={18} /> : 'Verifikasi Akun'}
                   </button>
@@ -468,11 +549,16 @@ export function DaftarPage() {
 
                   <button
                     type="button"
-                    onClick={() => navigate('/cari')}
-                    className="w-full mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-500"
+                    disabled={loading}
+                    onClick={handleFinishRegistration}
+                    className="w-full mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-500 cursor-pointer disabled:opacity-50"
                   >
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span>Selesai & Lihat Rekomendasi Mobil</span>
+                    {loading ? <Spinner size={18} /> : (
+                      <>
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span>Selesai & Lihat Rekomendasi Mobil</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </motion.div>

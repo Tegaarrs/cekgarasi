@@ -12,8 +12,14 @@ import { apiFetch } from '@/services/api';
 import { getCarPhoto, getCarGallery } from '@/utils/carPhoto';
 import { 
   Calendar, Gauge, MapPin, Check, 
-  ArrowLeft, ShieldCheck, ChevronRight
+  ArrowLeft, ShieldCheck, ChevronRight, Heart
 } from 'lucide-react';
+import {
+  isFavorite as checkIsFavorite,
+  toggleFavorite,
+  subscribeFavorites,
+  fetchFavoriteIds,
+} from '@/services/favoriteStore';
 
 interface FeatureItem {
   id: number;
@@ -77,17 +83,38 @@ export function DetailMobilPage() {
   const [dpPercent, setDpPercent] = useState(20);
   const [tenorTahun, setTenorTahun] = useState(4);
 
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    fetchFavoriteIds();
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     apiFetch<CarDetail>(`/mobil/${id}`)
       .then((data) => {
         setCar(data);
+        if (data) {
+          setIsFav(checkIsFavorite(data.id));
+        }
       })
       .catch(() => {})
       .finally(() => {
         setLoading(false);
       });
   }, [id]);
+
+  useEffect(() => {
+    if (car) {
+      setIsFav(checkIsFavorite(car.id));
+    }
+    const unsub = subscribeFavorites(() => {
+      if (car) {
+        setIsFav(checkIsFavorite(car.id));
+      }
+    });
+    return unsub;
+  }, [car]);
 
   if (loading) {
     return (
@@ -165,6 +192,16 @@ export function DetailMobilPage() {
               </AnimatePresence>
               <div className="absolute top-4 left-4">
                 <SegmentBadge klaster={car.klaster} nama={car.nama_segmen || car.segmen_nama || 'Segmen Terpilih'} size="md" />
+              </div>
+              <div className="absolute top-4 right-4 z-10">
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(car.id, { returnTo: `/mobil/${car.id}` })}
+                  aria-label={isFav ? 'Hapus dari favorit' : 'Simpan ke favorit'}
+                  className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-md shadow-md flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                >
+                  <Heart className={`w-5 h-5 transition-colors ${isFav ? 'fill-rose-500 text-rose-500' : 'text-slate-600'}`} />
+                </button>
               </div>
               <div className="absolute bottom-4 right-4 rounded-lg bg-slate-950/70 backdrop-blur-md px-3 py-1 text-xs text-white">
                 {galleryImages[activeImageIndex].label}
@@ -499,6 +536,20 @@ export function DetailMobilPage() {
               className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-colors"
             >
               <span>Jadwalkan Test Drive Gratis</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => toggleFavorite(car.id, { returnTo: `/mobil/${car.id}` })}
+              aria-label={isFav ? 'Hapus dari favorit' : 'Simpan ke favorit'}
+              className={`w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all border cursor-pointer ${
+                isFav
+                  ? 'border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/40 dark:border-rose-900/40 dark:text-rose-400'
+                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200'
+              }`}
+            >
+              <Heart className={`h-4 w-4 ${isFav ? 'fill-rose-500 text-rose-500' : 'text-slate-500'}`} />
+              <span>{isFav ? 'Tersimpan di Favorit' : 'Simpan ke Favorit'}</span>
             </button>
 
             <a

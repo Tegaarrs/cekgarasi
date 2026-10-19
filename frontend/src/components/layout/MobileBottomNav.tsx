@@ -1,12 +1,18 @@
 import { useEffect, useState, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Search, Layers, Heart, User } from 'lucide-react';
-import { getToken, apiFetch } from '@/services/api';
+import { getToken } from '@/services/api';
+import {
+  subscribeFavorites,
+  fetchFavoriteIds,
+  getFavoriteCount,
+  requestLoginPrompt,
+} from '@/services/favoriteStore';
 
 export function MobileBottomNav() {
   const location = useLocation();
-  const [favoriteCount, setFavoriteCount] = useState<number>(0);
   const token = getToken();
+  const [favoriteCount, setFavoriteCount] = useState<number>(getFavoriteCount());
 
   // Hide nav on detail, booking, auth routes
   const hideRoutes = [
@@ -28,26 +34,19 @@ export function MobileBottomNav() {
       setFavoriteCount(0);
       return;
     }
-    apiFetch<{ items: unknown[] }>('/favorit')
-      .then((res) => {
-        if (res && Array.isArray(res.items)) {
-          setFavoriteCount(res.items.length);
-        }
-      })
-      .catch(() => {
-        // ignore errors
-      });
+    fetchFavoriteIds().then(() => {
+      setFavoriteCount(getFavoriteCount());
+    });
   }, [token]);
 
   useEffect(() => {
     refreshFavoriteCount();
 
-    const handleFavChange = () => refreshFavoriteCount();
-    window.addEventListener('cekgarasi:favorite_changed', handleFavChange);
-    return () => {
-      window.removeEventListener('cekgarasi:favorite_changed', handleFavChange);
-    };
-  }, [refreshFavoriteCount, location.pathname]);
+    const unsub = subscribeFavorites(() => {
+      setFavoriteCount(token ? getFavoriteCount() : 0);
+    });
+    return unsub;
+  }, [refreshFavoriteCount, token]);
 
   if (shouldHide) {
     return null;
@@ -78,6 +77,15 @@ export function MobileBottomNav() {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={(e) => {
+                if (item.to === '/favorit' && !token) {
+                  e.preventDefault();
+                  requestLoginPrompt({
+                    title: 'Masuk untuk melihat favorit kamu',
+                    description: 'Simpan mobil yang kamu taksir, bandingkan, dan lihat rekomendasi yang mirip.',
+                  });
+                }
+              }}
               className={`flex flex-col items-center justify-center py-1 transition-colors relative ${
                 isActive ? 'text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-800'
               }`}
