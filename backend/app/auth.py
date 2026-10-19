@@ -62,22 +62,42 @@ def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
 ) -> models.User:
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Autentikasi diperlukan. Silakan masuk terlebih dahulu.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     user = get_current_user_optional(credentials, db)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Autentikasi diperlukan. Silakan masuk terlebih dahulu.",
+            detail="Token tidak valid atau kedaluwarsa.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user
 
 
 def get_current_admin(
-    current_user: models.User = Depends(get_current_user)
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: Session = Depends(get_db)
 ) -> models.User:
-    if current_user.role != "admin":
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Autentikasi diperlukan. Silakan masuk terlebih dahulu.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    user = get_current_user_optional(credentials, db)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token tidak valid atau kedaluwarsa.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Akses ditolak: Hanya admin dealer yang memiliki hak akses."
+            detail="Akses khusus administrator dealer.",
         )
-    return current_user
+    return user

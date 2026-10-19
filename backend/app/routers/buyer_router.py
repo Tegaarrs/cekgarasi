@@ -1,6 +1,7 @@
 import math
 import json
 import statistics
+import numpy as np
 import pandas as pd
 from typing import Optional, List, Dict, Any
 from datetime import datetime
@@ -855,7 +856,7 @@ def get_homepage_recommendations(
     if current_user:
         last_view = db.query(models.ViewHistory).filter(
             models.ViewHistory.user_id == current_user.id
-        ).order_by(models.ViewHistory.viewed_at.desc()).first()
+        ).order_by(models.ViewHistory.dilihat_pada.desc()).first()
 
         if last_view and last_view.car:
             last_car = last_view.car
@@ -925,18 +926,80 @@ def get_homepage_recommendations(
     }
 
 
-@router.get("/favorit")
-def get_favorites(
+@router.get("/favorit/ids")
+def get_favorite_ids(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(get_db)
 ):
-    favs = db.query(models.Favorite).filter(models.Favorite.user_id == current_user.id).order_by(models.Favorite.created_at.desc()).all()
+    favs = db.query(models.Favorite.car_id).filter(models.Favorite.user_id == current_user.id).all()
+    return [f[0] for f in favs]
+
+
+@router.get("/favorit")
+def get_favorites(
+    urut: str = Query("terbaru", pattern="^(terbaru|harga_asc|harga_desc|tahun_desc|km_asc)$"),
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.Favorite).join(models.Car, models.Favorite.car_id == models.Car.id).filter(
+        models.Favorite.user_id == current_user.id
+    )
+    if urut == "harga_asc":
+        query = query.order_by(models.Car.harga_rp.asc())
+    elif urut == "harga_desc":
+        query = query.order_by(models.Car.harga_rp.desc())
+    elif urut == "tahun_desc":
+        query = query.order_by(models.Car.tahun.desc())
+    elif urut == "km_asc":
+        query = query.order_by(models.Car.jarak_tempuh_ribu_km.asc())
+    else:  # terbaru
+        query = query.order_by(models.Favorite.created_at.desc())
+
+    favs = query.all()
     segments = {s.id: {"nama_lengkap": s.nama_lengkap, "nama_pendek": s.nama_pendek, "warna_hex": s.warna_hex} for s in db.query(models.Segment).all()}
-    items = [_format_car_list_item(f.car, segments) for f in favs if f.car]
-    return {
-        "items": items,
-        "count": len(items)
-    }
+
+    items = []
+    for f in favs:
+        if not f.car:
+            continue
+        car_dict = _format_car_list_item(f.car, segments)
+        posisi = ml_service.posisi_harga(f.car, db)
+        items.append({
+            "car": car_dict,
+            "catatan": f.catatan,
+            "disimpan_pada": f.created_at.isoformat() if f.created_at else None,
+            "posisi_harga": posisi,
+            "id": f.car.id,
+            "nama_mobil": f.car.nama_mobil,
+            "harga_rp": f.car.harga_rp,
+            "tahun": f.car.tahun,
+            "jarak_tempuh_ribu_km": float(f.car.jarak_tempuh_ribu_km),
+            "klaster": f.car.klaster,
+            "total_fitur": f.car.total_fitur
+        })
+    return items
+
+
+@router.put("/favorit/{car_id}/catatan")
+def update_favorite_note(
+    car_id: int,
+    payload: schemas.FavoriteNoteUpdate,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    fav = db.query(models.Favorite).filter(
+        models.Favorite.user_id == current_user.id,
+        models.Favorite.car_id == car_id
+    ).first()
+    if not fav:
+        raise HTTPException(status_code=404, detail="Mobil tidak ditemukan di daftar favorit kamu.")
+
+    if payload.catatan and len(payload.catatan) > 500:
+        raise HTTPException(status_code=422, detail="Catatan maksimal 500 karakter.")
+
+    fav.catatan = payload.catatan
+    db.commit()
+    return {"status": "success", "car_id": car_id, "catatan": fav.catatan}
 
 
 @router.post("/favorit")
@@ -978,6 +1041,366 @@ def remove_favorite(
         db.commit()
 
     return {"status": "success", "favorited": False, "car_id": car_id}
+
+
+@router.get("/favorit/ringkasan")
+def get_favorites_summary(
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    favs = db.query(models.Favorite).join(models.Car, models.Favorite.car_id == models.Car.id).filter(
+        models.Favorite.user_id == current_user.id,
+        models.Car.status == "tayang"
+    ).all()
+
+    fav_cars = [f.car for f in favs if f.car]
+    jumlah = len(fav_cars)
+
+    if jumlah == 0:
+        return {
+            "jumlah": 0,
+            "harga_min": 0,
+            "harga_max": 0,
+            "harga_median": 0,
+            "tahun_median": 0,
+            "km_rata_rata_ribu": 0.0,
+            "sebaran_segmen": [],
+            "segmen_dominan": None,
+            "sesuai_budget": None,
+            "selisih_budget_rp": None
+        }
+
+    prices = [c.harga_rp for c in fav_cars]
+    harga_min = min(prices)
+    harga_max = max(prices)
+    harga_median = int(pd.Series(prices).median())
+    tahun_median = int(pd.Series([c.tahun for c in fav_cars]).median())
+    km_rata_rata_ribu = round(float(pd.Series([float(c.jarak_tempuh_ribu_km) for c in fav_cars]).mean()), 1)
+
+    seg_names = {0: "Premium", 1: "Keluarga Muda", 2: "Ekonomis"}
+    for s in db.query(models.Segment).all():
+        seg_names[s.id] = s.nama_pendek or seg_names.get(s.id, f"Segmen {s.id}")
+
+    counts = {s_id: 0 for s_id in seg_names.keys()}
+    for c in fav_cars:
+        if c.klaster in counts:
+            counts[c.klaster] += 1
+
+    sebaran_segmen = []
+    for s_id, s_name in sorted(seg_names.items()):
+        cnt = counts.get(s_id, 0)
+        pct = round((cnt / jumlah) * 100.0, 1)
+        sebaran_segmen.append({
+            "id": s_id,
+            "nama": s_name,
+            "jumlah": cnt,
+            "persen": pct
+        })
+
+    max_c = max(counts.values()) if counts else 0
+    tied = [s_id for s_id, cnt in counts.items() if cnt == max_c]
+    if len(tied) == 1:
+        dom_id = tied[0]
+    else:
+        mean_z = np.mean([ml_service.vektor_z(c) for c in fav_cars], axis=0).reshape(1, -1)
+        dom_id = int(ml_service.kmeans.predict(mean_z)[0])
+
+    dom_cnt = counts.get(dom_id, 0)
+    dom_pct = round((dom_cnt / jumlah) * 100.0, 1)
+    segmen_dominan = {
+        "id": dom_id,
+        "nama": seg_names.get(dom_id, "Segmen"),
+        "persen": dom_pct
+    }
+
+    sesuai_budget = None
+    selisih_budget_rp = None
+    if current_user.pref_harga_max and current_user.pref_harga_max > 0:
+        if harga_median <= current_user.pref_harga_max:
+            sesuai_budget = True
+            selisih_budget_rp = int(current_user.pref_harga_max - harga_median)
+        else:
+            sesuai_budget = False
+            selisih_budget_rp = int(harga_median - current_user.pref_harga_max)
+
+    return {
+        "jumlah": jumlah,
+        "harga_min": harga_min,
+        "harga_max": harga_max,
+        "harga_median": harga_median,
+        "tahun_median": tahun_median,
+        "km_rata_rata_ribu": km_rata_rata_ribu,
+        "sebaran_segmen": sebaran_segmen,
+        "segmen_dominan": segmen_dominan,
+        "sesuai_budget": sesuai_budget,
+        "selisih_budget_rp": selisih_budget_rp
+    }
+
+
+@router.get("/favorit/rekomendasi")
+def get_favorites_recommendations(
+    n: int = Query(8, ge=1, le=20),
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    favs = db.query(models.Favorite).join(models.Car, models.Favorite.car_id == models.Car.id).filter(
+        models.Favorite.user_id == current_user.id,
+        models.Car.status == "tayang"
+    ).all()
+
+    fav_cars = [f.car for f in favs if f.car]
+    if not fav_cars:
+        raise HTTPException(status_code=404, detail="belum_ada_favorit")
+
+    fav_ids = {c.id for c in fav_cars}
+    pref_vec = np.mean([ml_service.vektor_z(c) for c in fav_cars], axis=0)
+
+    counts = {}
+    for c in fav_cars:
+        counts[c.klaster] = counts.get(c.klaster, 0) + 1
+    max_c = max(counts.values())
+    tied = [s_id for s_id, cnt in counts.items() if cnt == max_c]
+    if len(tied) == 1:
+        dom_id = tied[0]
+    else:
+        dom_id = int(ml_service.kmeans.predict(pref_vec.reshape(1, -1))[0])
+
+    candidates = db.query(models.Car).filter(
+        models.Car.status == "tayang",
+        ~models.Car.id.in_(fav_ids)
+    ).all()
+
+    cand_dists = []
+    for c in candidates:
+        d = ml_service.jarak2(ml_service.vektor_z(c), pref_vec)
+        cand_dists.append((c, d))
+
+    dom_cands = [item for item in cand_dists if item[0].klaster == dom_id]
+    other_cands = [item for item in cand_dists if item[0].klaster != dom_id]
+    dom_cands.sort(key=lambda x: x[1])
+    other_cands.sort(key=lambda x: x[1])
+
+    ranked = (dom_cands + other_cands)[:n]
+    segments = {s.id: {"nama_lengkap": s.nama_lengkap, "nama_pendek": s.nama_pendek, "warna_hex": s.warna_hex} for s in db.query(models.Segment).all()}
+
+    results = []
+    for c, dist in ranked:
+        nearest_fav = min(fav_cars, key=lambda f: ml_service.jarak2(ml_service.vektor_z(f), ml_service.vektor_z(c)))
+
+        reasons = []
+        diff_harga = nearest_fav.harga_rp - c.harga_rp
+        if diff_harga >= 5_000_000:
+            reasons.append({
+                "kode": "lebih_murah",
+                "nilai": int(diff_harga),
+                "mobil_acuan_id": nearest_fav.id,
+                "rel": diff_harga / float(nearest_fav.harga_rp)
+            })
+
+        diff_tahun = c.tahun - nearest_fav.tahun
+        if diff_tahun >= 1:
+            reasons.append({
+                "kode": "lebih_baru",
+                "nilai": int(diff_tahun),
+                "mobil_acuan_id": nearest_fav.id,
+                "rel": diff_tahun / 5.0
+            })
+
+        diff_km = float(nearest_fav.jarak_tempuh_ribu_km) - float(c.jarak_tempuh_ribu_km)
+        if diff_km >= 5.0:
+            reasons.append({
+                "kode": "km_lebih_rendah",
+                "nilai": round(diff_km, 1),
+                "mobil_acuan_id": nearest_fav.id,
+                "rel": diff_km / max(10.0, float(nearest_fav.jarak_tempuh_ribu_km))
+            })
+
+        diff_fitur = c.total_fitur - nearest_fav.total_fitur
+        if diff_fitur >= 1:
+            reasons.append({
+                "kode": "fitur_lebih_banyak",
+                "nilai": int(diff_fitur),
+                "mobil_acuan_id": nearest_fav.id,
+                "rel": diff_fitur / 5.0
+            })
+
+        reasons.sort(key=lambda r: r["rel"], reverse=True)
+        alasan = [{
+            "kode": r["kode"],
+            "nilai": r["nilai"],
+            "mobil_acuan_id": r["mobil_acuan_id"]
+        } for r in reasons[:2]]
+
+        results.append({
+            "mobil": _format_car_list_item(c, segments),
+            "alasan": alasan,
+            "jarak": round(dist, 4)
+        })
+
+    return results
+
+
+@router.get("/mobil/{id}/alternatif-hemat")
+def get_cheaper_alternatives(
+    id: int,
+    n: int = Query(3, ge=1, le=10),
+    db: Session = Depends(get_db)
+):
+    car = db.query(models.Car).filter(models.Car.id == id, models.Car.status == "tayang").first()
+    if not car:
+        raise HTTPException(status_code=404, detail="Mobil tidak ditemukan.")
+
+    cutoff = 0.95 * car.harga_rp
+    eligible = db.query(models.Car).filter(
+        models.Car.status == "tayang",
+        models.Car.klaster == car.klaster,
+        models.Car.harga_rp < cutoff,
+        models.Car.tahun >= car.tahun - 1,
+        models.Car.tahun <= car.tahun + 1,
+        models.Car.id != car.id
+    ).all()
+
+    if not eligible:
+        return []
+
+    SCALE = ml_service.SCALE
+    def dist_3(c):
+        d_th = ((c.tahun - car.tahun) / SCALE[0]) ** 2
+        d_km = ((float(c.jarak_tempuh_ribu_km) - float(car.jarak_tempuh_ribu_km)) / SCALE[1]) ** 2
+        d_ft = ((c.total_fitur - car.total_fitur) / SCALE[3]) ** 2
+        return d_th + d_km + d_ft
+
+    eligible_sorted = sorted(eligible, key=lambda c: (dist_3(c), c.harga_rp))
+    segments = {s.id: {"nama_lengkap": s.nama_lengkap, "nama_pendek": s.nama_pendek, "warna_hex": s.warna_hex} for s in db.query(models.Segment).all()}
+
+    results = []
+    for c in eligible_sorted[:n]:
+        results.append({
+            "mobil": _format_car_list_item(c, segments),
+            "hemat_rp": int(car.harga_rp - c.harga_rp)
+        })
+    return results
+
+
+@router.get("/mobil/{id}/serupa")
+def get_similar_cars_endpoint(
+    id: int,
+    n: int = Query(6, ge=1, le=20),
+    exclude: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    car = db.query(models.Car).filter(models.Car.id == id, models.Car.status == "tayang").first()
+    if not car:
+        raise HTTPException(status_code=404, detail="Mobil tidak ditemukan.")
+
+    exclude_ids = {car.id}
+    if exclude:
+        for x in exclude.split(","):
+            if x.strip().isdigit():
+                exclude_ids.add(int(x.strip()))
+
+    pool = db.query(models.Car).filter(
+        models.Car.status == "tayang",
+        models.Car.klaster == car.klaster,
+        ~models.Car.id.in_(exclude_ids)
+    ).all()
+
+    car_z = ml_service.vektor_z(car)
+    ranked = sorted(pool, key=lambda c: ml_service.jarak2(ml_service.vektor_z(c), car_z))
+    segments = {s.id: {"nama_lengkap": s.nama_lengkap, "nama_pendek": s.nama_pendek, "warna_hex": s.warna_hex} for s in db.query(models.Segment).all()}
+
+    return [_format_car_list_item(c, segments) for c in ranked[:n]]
+
+
+@router.get("/bandingkan")
+def compare_cars(
+    ids: str = Query(...),
+    db: Session = Depends(get_db)
+):
+    if not ids:
+        raise HTTPException(status_code=400, detail="minimal_2_maksimal_4_mobil")
+
+    id_list = []
+    for x in ids.split(","):
+        x = x.strip()
+        if x.isdigit():
+            id_list.append(int(x))
+
+    if len(id_list) < 2 or len(id_list) > 4:
+        raise HTTPException(status_code=400, detail="minimal_2_maksimal_4_mobil")
+
+    cars = []
+    for cid in id_list:
+        c = db.query(models.Car).filter(models.Car.id == cid, models.Car.status == "tayang").first()
+        if not c:
+            raise HTTPException(status_code=400, detail=f"mobil_id_{cid}_tidak_ditemukan")
+        cars.append(c)
+
+    all_features = db.query(models.Feature).order_by(models.Feature.id).all()
+    segments = {s.id: {"nama_lengkap": s.nama_lengkap, "nama_pendek": s.nama_pendek, "warna_hex": s.warna_hex} for s in db.query(models.Segment).all()}
+
+    first_car = cars[0]
+    car_results = []
+    for c in cars:
+        c_feat_ids = {cf.feature_id for cf in c.features}
+        feat_list = []
+        for f in all_features:
+            feat_list.append({
+                "id": f.id,
+                "kode": f.kode,
+                "nama": f.nama_id,
+                "tersedia": f.id in c_feat_ids
+            })
+
+        posisi = ml_service.posisi_harga(c, db)
+        diff_first = c.harga_rp - first_car.harga_rp
+        car_results.append({
+            "mobil": _format_car_list_item(c, segments),
+            "segmen": segments.get(c.klaster, {}),
+            "posisi_harga": posisi,
+            "fitur": feat_list,
+            "selisih_harga_pertama": diff_first,
+            "selisih_harga_pertama_label": (
+                "-" if diff_first == 0 else
+                f"Rp {abs(diff_first) // 1_000_000} jt lebih murah" if diff_first < 0 else
+                f"Rp {diff_first // 1_000_000} jt lebih mahal"
+            )
+        })
+
+    prices = [c.harga_rp for c in cars]
+    sorotan_harga = [] if len(set(prices)) <= 1 else [c.id for c in cars if c.harga_rp == min(prices)]
+
+    years = [c.tahun for c in cars]
+    sorotan_tahun = [] if len(set(years)) <= 1 else [c.id for c in cars if c.tahun == max(years)]
+
+    kms = [float(c.jarak_tempuh_ribu_km) for c in cars]
+    sorotan_km = [] if len(set(kms)) <= 1 else [c.id for c in cars if float(c.jarak_tempuh_ribu_km) == min(kms)]
+
+    fiturs = [c.total_fitur for c in cars]
+    sorotan_fitur = [] if len(set(fiturs)) <= 1 else [c.id for c in cars if c.total_fitur == max(fiturs)]
+
+    sorotan = {
+        "harga": sorotan_harga,
+        "tahun": sorotan_tahun,
+        "km": sorotan_km,
+        "fitur": sorotan_fitur
+    }
+
+    seg_names = {0: "Premium", 1: "Keluarga Muda", 2: "Ekonomis"}
+    distinct_seg_ids = list(dict.fromkeys([c.klaster for c in cars]))
+    if len(distinct_seg_ids) == 1:
+        hubungan_segmen = f"Semua mobil ini satu segmen: {seg_names.get(distinct_seg_ids[0])}"
+    else:
+        daftar_seg = ", ".join([seg_names.get(sid, f"Segmen {sid}") for sid in distinct_seg_ids])
+        hubungan_segmen = f"Mobil ini berasal dari segmen berbeda: {daftar_seg}"
+
+    return {
+        "cars": car_results,
+        "sorotan": sorotan,
+        "hubungan_segmen": hubungan_segmen,
+        "fitur_daftar": [{"id": f.id, "kode": f.kode, "nama": f.nama_id} for f in all_features]
+    }
+
 
 
 @router.post("/preferensi")
@@ -1106,3 +1529,27 @@ def get_test_drive_by_code(kode: str, db: Session = Depends(get_db)):
         },
         "mobil_serupa": similar
     }
+
+
+@router.post("/preferensi")
+def save_buyer_preference(
+    payload: schemas.BuyerPreference,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(auth.security),
+    db: Session = Depends(get_db)
+):
+    user = auth.get_current_user_optional(credentials, db)
+    if not user:
+        user = db.query(models.User).filter(models.User.role == "pembeli").order_by(models.User.id.desc()).first()
+
+    if user:
+        if payload.segmen_awal_id is not None:
+            user.segmen_awal_id = payload.segmen_awal_id
+        if payload.pref_harga_min is not None:
+            user.pref_harga_min = payload.pref_harga_min
+        if payload.pref_harga_max is not None:
+            user.pref_harga_max = payload.pref_harga_max
+        db.commit()
+        db.refresh(user)
+
+    return {"status": "success", "message": "Preferensi berhasil disimpan."}
+

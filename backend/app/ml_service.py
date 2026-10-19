@@ -34,6 +34,31 @@ def invalidate_stats_cache():
 def _z(v):
     return (np.asarray(v, float) - MEAN) / SCALE
 
+def vektor_z(car_or_features: Any) -> np.ndarray:
+    """Extract and standardize 4 features [tahun, km_ribu, harga_rp, total_fitur]."""
+    if hasattr(car_or_features, "tahun"):
+        tahun = float(car_or_features.tahun)
+        km = float(car_or_features.jarak_tempuh_ribu_km)
+        harga = float(car_or_features.harga_rp)
+        total_fitur = float(getattr(car_or_features, "total_fitur", 0))
+    elif isinstance(car_or_features, dict):
+        tahun = float(car_or_features.get("tahun", 0))
+        km = float(car_or_features.get("jarak_tempuh_ribu_km", car_or_features.get("km", 0)))
+        harga = float(car_or_features.get("harga_rp", car_or_features.get("harga", 0)))
+        total_fitur = float(car_or_features.get("total_fitur", 0))
+    else:
+        v = list(car_or_features)
+        tahun, km, harga, total_fitur = float(v[0]), float(v[1]), float(v[2]), float(v[3])
+    
+    vec = np.array([tahun, km, harga, total_fitur], dtype=float)
+    return (vec - MEAN) / SCALE
+
+def jarak2(a: Any, b: Any) -> float:
+    """Squared Euclidean distance between two z-vectors (or objects convertible via vektor_z)."""
+    za = a if isinstance(a, np.ndarray) and a.shape == (4,) else (a if isinstance(a, np.ndarray) else vektor_z(a))
+    zb = b if isinstance(b, np.ndarray) and b.shape == (4,) else (b if isinstance(b, np.ndarray) else vektor_z(b))
+    return float(np.sum((np.asarray(za, dtype=float) - np.asarray(zb, dtype=float)) ** 2))
+
 def prediksi_segmen(tahun: float, km_ribu: float, harga_rp: float, total_fitur: float) -> int:
     z_val = _z([tahun, km_ribu, harga_rp, total_fitur]).reshape(1, -1)
     return int(kmeans.predict(z_val)[0])

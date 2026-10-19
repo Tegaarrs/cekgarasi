@@ -24,7 +24,15 @@ class GoogleLogin(BaseModel):
 class VerifyOtp(BaseModel):
     no_hp: Optional[str] = None
     no_telepon: Optional[str] = None
-    otp: str
+    email: Optional[str] = None
+    otp: Optional[str] = None
+    kode_otp: Optional[str] = None
+
+
+class BuyerPreference(BaseModel):
+    pref_harga_min: Optional[int] = None
+    pref_harga_max: Optional[int] = None
+    segmen_awal_id: Optional[int] = None
 
 
 class UserOut(BaseModel):
@@ -314,5 +322,9 @@ class UjiKomparasiSkenarioRequest(BaseModel):
 
 class FavoriteIn(BaseModel):
     car_id: int
+
+
+class FavoriteNoteUpdate(BaseModel):
+    catatan: Optional[str] = Field(None, max_length=500)
 
 

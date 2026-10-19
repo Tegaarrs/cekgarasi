@@ -178,7 +178,12 @@ class Favorite(Base):
 
     user_id = Column(Integer().with_variant(MYSQL_INTEGER(unsigned=True), "mysql"), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     car_id = Column(Integer().with_variant(MYSQL_INTEGER(unsigned=True), "mysql"), ForeignKey("cars.id", ondelete="CASCADE"), primary_key=True)
+    catatan = Column(String(500), nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow, server_default=text("CURRENT_TIMESTAMP"))
+
+    __table_args__ = (
+        Index("idx_fav_user_created", "user_id", "created_at"),
+    )
 
     user = relationship("User", back_populates="favorites")
     car = relationship("Car", back_populates="favorites")

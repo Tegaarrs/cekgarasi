@@ -273,10 +273,14 @@ def test_b7_favorit_flow(buyer_token):
     """B7: GET, POST, DELETE /api/favorit with authentication."""
     headers = {"Authorization": f"Bearer {buyer_token}"}
 
+    # Ensure clean state for car 1
+    client.delete("/api/favorit/1", headers=headers)
+
     # 1. Initially get favorites
     res_init = client.get("/api/favorit", headers=headers)
     assert res_init.status_code == 200
-    init_count = res_init.json()["count"]
+    data_init = res_init.json()
+    init_count = data_init["count"] if isinstance(data_init, dict) else len(data_init)
 
     # 2. Add car 1 to favorites
     res_add = client.post("/api/favorit", json={"car_id": 1}, headers=headers)
@@ -286,8 +290,11 @@ def test_b7_favorit_flow(buyer_token):
     # 3. Check favorites list incremented
     res_after = client.get("/api/favorit", headers=headers)
     assert res_after.status_code == 200
-    assert res_after.json()["count"] == init_count + 1
-    assert any(c["id"] == 1 for c in res_after.json()["items"])
+    data_after = res_after.json()
+    count_after = data_after["count"] if isinstance(data_after, dict) else len(data_after)
+    assert count_after == init_count + 1
+    items = data_after["items"] if isinstance(data_after, dict) else [c.get("car", c) for c in data_after]
+    assert any(c["id"] == 1 for c in items)
 
     # 4. Remove car 1 from favorites
     res_del = client.delete("/api/favorit/1", headers=headers)
@@ -297,4 +304,7 @@ def test_b7_favorit_flow(buyer_token):
     # 5. Check count restored
     res_final = client.get("/api/favorit", headers=headers)
     assert res_final.status_code == 200
-    assert res_final.json()["count"] == init_count
+    data_final = res_final.json()
+    final_count = data_final["count"] if isinstance(data_final, dict) else len(data_final)
+    assert final_count == init_count
+
