@@ -20,6 +20,7 @@ import { BookingSuccessPage } from './pages/buyer/BookingSuccessPage';
 import { PreferensiPage } from './pages/buyer/PreferensiPage';
 import { SegmenPage } from './pages/buyer/SegmenPage';
 import { PlaceholderPage } from './pages/buyer/PlaceholderPage';
+import { FavoritPage } from './pages/buyer/FavoritPage';
 
 // Admin Pages A1 - A5 & Database
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
@@ -102,7 +103,7 @@ export default function App() {
             <Route path="/preferensi-pembeli" element={<PreferensiPage />} />
             <Route path="/cari" element={<CariPage />} />
             <Route path="/segmen" element={<SegmenPage />} />
-            <Route path="/favorit" element={<PlaceholderPage title="Mobil Favorit Kamu" />} />
+            <Route path="/favorit" element={<FavoritPage />} />
             <Route path="/akun" element={<PlaceholderPage title="Profil & Akun Kamu" />} />
             <Route path="/mobil/:id" element={<DetailMobilPage />} />
             <Route path="/booking" element={<BookingPage />} />
