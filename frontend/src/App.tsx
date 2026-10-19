@@ -21,6 +21,8 @@ import { PreferensiPage } from './pages/buyer/PreferensiPage';
 import { SegmenPage } from './pages/buyer/SegmenPage';
 import { PlaceholderPage } from './pages/buyer/PlaceholderPage';
 import { FavoritPage } from './pages/buyer/FavoritPage';
+import { BandingkanPage } from './pages/buyer/BandingkanPage';
+import { CompareTray } from './components/common/CompareTray';
 
 // Admin Pages A1 - A5 & Database
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
@@ -104,6 +106,7 @@ export default function App() {
             <Route path="/cari" element={<CariPage />} />
             <Route path="/segmen" element={<SegmenPage />} />
             <Route path="/favorit" element={<FavoritPage />} />
+            <Route path="/bandingkan" element={<BandingkanPage />} />
             <Route path="/akun" element={<PlaceholderPage title="Profil & Akun Kamu" />} />
             <Route path="/mobil/:id" element={<DetailMobilPage />} />
             <Route path="/booking" element={<BookingPage />} />
@@ -131,6 +134,7 @@ export default function App() {
             <Footer />
           </div>
           <MobileBottomNav />
+          <CompareTray />
         </>
       )}
 

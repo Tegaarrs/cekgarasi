@@ -12,7 +12,7 @@ import { apiFetch } from '@/services/api';
 import { getCarPhoto, getCarGallery } from '@/utils/carPhoto';
 import { 
   Calendar, Gauge, MapPin, Check, 
-  ArrowLeft, ShieldCheck, ChevronRight, Heart
+  ArrowLeft, ShieldCheck, ChevronRight, Heart, Scale
 } from 'lucide-react';
 import {
   isFavorite as checkIsFavorite,
@@ -20,6 +20,11 @@ import {
   subscribeFavorites,
   fetchFavoriteIds,
 } from '@/services/favoriteStore';
+import {
+  isCompared,
+  toggleCompare,
+  subscribeCompare,
+} from '@/services/compareStore';
 
 interface FeatureItem {
   id: number;
@@ -111,6 +116,20 @@ export function DetailMobilPage() {
     const unsub = subscribeFavorites(() => {
       if (car) {
         setIsFav(checkIsFavorite(car.id));
+      }
+    });
+    return unsub;
+  }, [car]);
+
+  const [compared, setCompared] = useState(false);
+
+  useEffect(() => {
+    if (car) {
+      setCompared(isCompared(car.id));
+    }
+    const unsub = subscribeCompare(() => {
+      if (car) {
+        setCompared(isCompared(car.id));
       }
     });
     return unsub;
@@ -550,6 +569,19 @@ export function DetailMobilPage() {
             >
               <Heart className={`h-4 w-4 ${isFav ? 'fill-rose-500 text-rose-500' : 'text-slate-500'}`} />
               <span>{isFav ? 'Tersimpan di Favorit' : 'Simpan ke Favorit'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => toggleCompare(car.id)}
+              className={`w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-semibold transition-all border cursor-pointer ${
+                compared
+                  ? 'border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/40 dark:border-blue-900/40 dark:text-blue-300'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200'
+              }`}
+            >
+              <Scale className={`h-4 w-4 ${compared ? 'text-blue-600' : 'text-slate-400'}`} />
+              <span>{compared ? 'Terpilih di Perbandingan' : 'Bandingkan dengan Unit Lain'}</span>
             </button>
 
             <a
