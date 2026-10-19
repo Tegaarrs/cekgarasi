@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { slideInRight, spring } from '@/lib/motion';
 import { SegmentBadge } from '@/components/motion/SegmentBadge';
@@ -69,14 +70,16 @@ export function AdminInventoriPage() {
   });
 
   // Search & filter states
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterSegmen, setFilterSegmen] = useState('');
-  const [filterTipeBodi, setFilterTipeBodi] = useState('');
-  const [filterMerek, setFilterMerek] = useState('');
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
+  const [filterSegmen, setFilterSegmen] = useState(() => searchParams.get('klaster') || '');
+  const [filterTipeBodi, setFilterTipeBodi] = useState(() => searchParams.get('tipe_bodi') || '');
+  const [filterMerek, setFilterMerek] = useState(() => searchParams.get('merek') || '');
+  const [sortOption, setSortOption] = useState(() => searchParams.get('sort') || '');
   const [showAlgoTester, setShowAlgoTester] = useState(false);
 
   // Bulk selection
-  const [selectedIds, setSelectedIds] = useState<number[]>([1, 2, 3]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   // Modal dialog states
   const [isBulkStatusModalOpen, setIsBulkStatusModalOpen] = useState(false);
@@ -198,16 +201,21 @@ export function AdminInventoriPage() {
     if (searchQuery) url += `&q=${encodeURIComponent(searchQuery)}`;
     if (filterSegmen !== '') url += `&klaster=${filterSegmen}`;
     if (filterTipeBodi) url += `&tipe_bodi=${encodeURIComponent(filterTipeBodi)}`;
-    if (filterMerek) url += `&q=${encodeURIComponent(filterMerek)}`;
+    if (filterMerek) url += `&merek=${encodeURIComponent(filterMerek)}`;
+    if (sortOption) url += `&sort=${encodeURIComponent(sortOption)}`;
     if (statusTab !== 'semua') url += `&status=${statusTab}`;
 
     apiFetch<{ total: number; page: number; items: CarItem[] }>(url)
       .then((res) => {
         setCars(res.items || []);
-        setTotal(res.total || 0);
+        setTotal(res.total ?? 0);
         setPage(res.page || 1);
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.error('Gagal memuat inventori mobil:', err);
+        setCars([]);
+        setTotal(0);
+      })
       .finally(() => setLoading(false));
 
     // Also refresh KPI counts from backend
@@ -230,7 +238,12 @@ export function AdminInventoriPage() {
       loadCars(1);
     }, 200);
     return () => clearTimeout(timer);
-  }, [searchQuery, filterSegmen, filterTipeBodi, filterMerek, statusTab]);
+  }, [searchQuery, filterSegmen, filterTipeBodi, filterMerek, sortOption, statusTab]);
+
+  // Reset bulk selection whenever filter/search or status changes
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [searchQuery, filterSegmen, filterTipeBodi, filterMerek, sortOption, statusTab, page]);
 
   // Update live prediction for Tambah Unit
   useEffect(() => {
@@ -534,6 +547,7 @@ export function AdminInventoriPage() {
   const handleApplyBulkStatus = async (targetStatus: 'tayang' | 'draft') => {
     if (selectedIds.length === 0) return;
     try {
+      const count = selectedIds.length;
       await apiFetch('/admin/mobil/status-massal', {
         method: 'POST',
         body: JSON.stringify({
@@ -542,7 +556,8 @@ export function AdminInventoriPage() {
         }),
       });
       setIsBulkStatusModalOpen(false);
-      setToastMsg(`Status ${selectedIds.length} unit berhasil diubah menjadi ${targetStatus === 'tayang' ? 'Tayang' : 'Draft'}!`);
+      setSelectedIds([]);
+      setToastMsg(`Status ${count} unit berhasil diubah menjadi ${targetStatus === 'tayang' ? 'Tayang' : 'Draft'}!`);
       loadCars(page);
     } catch {
       alert('Gagal mengubah status unit massal.');
@@ -553,6 +568,7 @@ export function AdminInventoriPage() {
   const handleApplyBulkDelete = async () => {
     if (selectedIds.length === 0) return;
     try {
+      const count = selectedIds.length;
       await apiFetch('/admin/mobil/hapus-massal', {
         method: 'POST',
         body: JSON.stringify({
@@ -561,7 +577,7 @@ export function AdminInventoriPage() {
       });
       setIsBulkDeleteModalOpen(false);
       setSelectedIds([]);
-      setToastMsg(`${selectedIds.length} unit mobil terpilih berhasil dihapus.`);
+      setToastMsg(`${count} unit mobil terpilih berhasil dihapus.`);
       loadCars(1);
     } catch {
       alert('Gagal menghapus unit massal.');
@@ -656,19 +672,25 @@ export function AdminInventoriPage() {
     }
   };
 
+  const selectedCars = cars.filter((c) => selectedIds.includes(c.id));
+  const isAllCurrentPageSelected = cars.length > 0 && cars.every((c) => selectedIds.includes(c.id));
+  const isSomeCurrentPageSelected = cars.some((c) => selectedIds.includes(c.id)) && !isAllCurrentPageSelected;
+
   const toggleSelectAll = () => {
-    if (selectedIds.length === cars.length) {
-      setSelectedIds([]);
+    if (isAllCurrentPageSelected) {
+      const pageCarIds = new Set(cars.map((c) => c.id));
+      setSelectedIds((prev) => prev.filter((id) => !pageCarIds.has(id)));
     } else {
-      setSelectedIds(cars.map((c) => c.id));
+      const pageCarIds = cars.map((c) => c.id);
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...pageCarIds])));
     }
   };
 
   const toggleSelectOne = (id: number) => {
     if (selectedIds.includes(id)) {
-      setSelectedIds(selectedIds.filter((x) => x !== id));
+      setSelectedIds((prev) => prev.filter((x) => x !== id));
     } else {
-      setSelectedIds([...selectedIds, id]);
+      setSelectedIds((prev) => [...prev, id]);
     }
   };
 
@@ -805,7 +827,7 @@ export function AdminInventoriPage() {
 
       {/* Filter Bar Container */}
       <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-r from-sky-100/60 via-blue-100/60 to-indigo-100/60 backdrop-blur-sm p-4 shadow-sm space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-3">
           
           {/* Search Input Bar */}
           <div className="lg:col-span-2 relative">
@@ -869,6 +891,21 @@ export function AdminInventoriPage() {
             </select>
           </div>
 
+          {/* Sort / Urutkan */}
+          <div>
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl bg-white/90 border border-blue-200/80 text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
+            >
+              <option value="">Urutan: Default</option>
+              <option value="harga_asc">Harga: Rendah ke Tinggi</option>
+              <option value="harga_desc">Harga: Tinggi ke Rendah</option>
+              <option value="tahun_desc">Tahun: Terbaru</option>
+              <option value="km_asc">KM: Paling Rendah</option>
+            </select>
+          </div>
+
           {/* Uji Algoritma Button */}
           <div className="flex items-center gap-2">
             <button
@@ -881,14 +918,14 @@ export function AdminInventoriPage() {
               }`}
             >
               <Sparkles className="h-3.5 w-3.5" />
-              <span>{showAlgoTester ? 'Tutup Uji' : 'Uji Coba Algoritma'}</span>
+              <span>{showAlgoTester ? 'Tutup Uji' : 'Uji Algoritma'}</span>
             </button>
           </div>
 
         </div>
 
         {/* Active Filter Chips */}
-        {(searchQuery || filterSegmen !== '' || filterTipeBodi || filterMerek) && (
+        {(searchQuery || filterSegmen !== '' || filterTipeBodi || filterMerek || sortOption) && (
           <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-blue-200/40 text-xs">
             <span className="text-[11px] font-semibold text-slate-500">Filter Aktif:</span>
             {searchQuery && (
@@ -911,8 +948,14 @@ export function AdminInventoriPage() {
             )}
             {filterSegmen !== '' && (
               <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[11px] font-medium text-blue-700">
-                Segmen: {filterSegmen}
+                Segmen: {filterSegmen === '0' ? '0 (Premium)' : filterSegmen === '1' ? '1 (Keluarga Muda)' : '2 (Ekonomis)'}
                 <button onClick={() => setFilterSegmen('')} className="hover:text-blue-900 ml-0.5"><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {sortOption && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-300 px-2.5 py-0.5 text-[11px] font-medium text-slate-700">
+                Sort: {sortOption === 'harga_asc' ? 'Harga Terendah' : sortOption === 'harga_desc' ? 'Harga Tertinggi' : sortOption === 'tahun_desc' ? 'Tahun Terbaru' : 'KM Rendah'}
+                <button onClick={() => setSortOption('')} className="hover:text-slate-900 ml-0.5"><X className="h-3 w-3" /></button>
               </span>
             )}
             <button
@@ -922,8 +965,9 @@ export function AdminInventoriPage() {
                 setFilterSegmen('');
                 setFilterTipeBodi('');
                 setFilterMerek('');
+                setSortOption('');
               }}
-              className="text-[11px] font-bold text-red-600 hover:underline ml-1"
+              className="text-[11px] font-bold text-red-600 hover:underline ml-1 cursor-pointer"
             >
               Reset Semua
             </button>
@@ -1008,7 +1052,10 @@ export function AdminInventoriPage() {
                 <th className="py-3.5 px-4 w-12 text-center">
                   <input
                     type="checkbox"
-                    checked={cars.length > 0 && selectedIds.length === cars.length}
+                    checked={isAllCurrentPageSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = isSomeCurrentPageSelected;
+                    }}
                     onChange={toggleSelectAll}
                     className="rounded border-slate-300 text-blue-600 focus:ring-0 cursor-pointer"
                   />
@@ -1261,6 +1308,24 @@ export function AdminInventoriPage() {
                 Pilih status tayang bursa untuk seluruh unit yang sedang Anda pilih. Perubahan akan segera aktif di platform CekGarasi.
               </p>
 
+              {/* Selected units preview list */}
+              {selectedCars.length > 0 && (
+                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1.5 max-h-36 overflow-y-auto">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unit Terpilih:</div>
+                  {selectedCars.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between text-xs text-slate-700 bg-white p-1.5 rounded-lg border border-slate-100">
+                      <span className="font-semibold truncate max-w-[240px]">{c.nama_mobil}</span>
+                      <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">ID #{c.id}</span>
+                    </div>
+                  ))}
+                  {selectedIds.length > selectedCars.length && (
+                    <div className="text-[10px] text-slate-400 italic text-center pt-1">
+                      + {selectedIds.length - selectedCars.length} unit lainnya
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <button
                   type="button"
@@ -1374,6 +1439,21 @@ export function AdminInventoriPage() {
                   Semua unit yang Anda centang akan dihapus dari inventori dealer.
                 </p>
               </div>
+
+              {selectedCars.length > 0 && (
+                <div className="bg-rose-50/60 p-2.5 rounded-xl border border-rose-200 space-y-1 max-h-32 overflow-y-auto text-left">
+                  {selectedCars.map((c) => (
+                    <div key={c.id} className="text-[11px] font-semibold text-rose-900 truncate">
+                      • {c.nama_mobil} <span className="text-[10px] text-rose-500 font-mono">(ID #{c.id})</span>
+                    </div>
+                  ))}
+                  {selectedIds.length > selectedCars.length && (
+                    <div className="text-[10px] text-slate-400 italic">
+                      + {selectedIds.length - selectedCars.length} unit lainnya
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex items-center justify-center gap-3 pt-2">
                 <button

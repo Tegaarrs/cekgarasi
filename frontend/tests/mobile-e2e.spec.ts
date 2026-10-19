@@ -140,9 +140,9 @@ test.describe('CekGarasi Mobile Screens (M1, M2, M2b, M2c, M3)', () => {
     await expect(methodBtn).toBeVisible();
     await methodBtn.click();
 
-    // Verify truthful disclosure (K-Means 609 mobil, silhouette 0.3061)
-    await expect(page.getByText(/silhouette 0\.3061/i)).toBeVisible();
-    await expect(page.getByText(/609 mobil/i).first()).toBeVisible();
+    // Verify truthful disclosure (K-Means 609 mobil, silhouette 0.3061) -> neutral buyer copy
+    await expect(page.getByText(/dikelompokkan ke dalam 3 segmen pasar/i)).toBeVisible();
+    await expect(page.getByText(/609 unit mobil/i).first()).toBeVisible();
   });
 
   test('Check 10: Accessibility (Axe) and metadata validation without forbidden claims', async ({ page }) => {

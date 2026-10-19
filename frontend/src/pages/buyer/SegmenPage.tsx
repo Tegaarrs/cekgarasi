@@ -128,7 +128,6 @@ export function SegmenPage() {
   }, [sebaran]);
 
   const totalMobil = segmenData?.total_mobil || 609;
-  const silhouetteK3 = segmenData?.silhouette_k3 || 0.3061;
 
   return (
     <div className="min-h-screen bg-slate-50 py-4 sm:py-8">
@@ -144,7 +143,7 @@ export function SegmenPage() {
             Segmentasi Pasar Mobil Bekas
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-xl leading-relaxed">
-            Mobil dikelompokkan otomatis ke dalam 3 segmen berbasis K-Means machine learning nyata untuk mempermudah perbandingan harga dan fitur yang sebanding.
+            Mobil dikelompokkan secara otomatis ke dalam 3 segmen pasar utama berdasarkan kesamaan harga, tahun pembuatan, odometer, dan kelengkapan fitur agar perbandingan lebih adil.
           </p>
         </div>
 
@@ -473,7 +472,7 @@ export function SegmenPage() {
           {showMethodology && (
             <div className="mt-3.5 pt-3.5 border-t border-slate-100 text-xs text-slate-600 space-y-3 leading-relaxed">
               <p>
-                {content.segments.methodologyBody(totalMobil, silhouetteK3)}
+                {content.segments.methodologyBody(totalMobil)}
               </p>
               
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60 space-y-1.5">

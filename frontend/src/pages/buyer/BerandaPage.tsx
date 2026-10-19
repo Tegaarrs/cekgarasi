@@ -14,6 +14,7 @@ import {
   Search, ShieldCheck, CheckCircle2, Award, Zap, 
   HelpCircle, ArrowRight, Sparkles, ChevronRight, Calculator, Calendar
 } from 'lucide-react';
+import { BuyerKmeansTester } from '@/components/algo/BuyerKmeansTester';
 
 interface SegmentSummary {
   klaster: number;
@@ -262,6 +263,22 @@ export function BerandaPage() {
           </div>
         </section>
 
+        {/* Mobile Interactive K-Means Tester (Publik / Tanpa Login) */}
+        <section className="px-4 pb-4">
+          <BuyerKmeansTester
+            compact
+            title="Simulasi Segmen Pasar"
+            subtitle="Uji coba langsung bagaimana segmen pasar mengelompokkan mobil impianmu secara objektif."
+            onApplyFilters={(applied) => {
+              const params = new URLSearchParams();
+              if (applied.segmen) params.set('segmen', applied.segmen);
+              if (applied.hargaMax) params.set('harga_max', String(applied.hargaMax));
+              if (applied.tahunMin) params.set('tahun_min', String(applied.tahunMin));
+              navigate(`/cari?${params.toString()}`);
+            }}
+          />
+        </section>
+
         {/* Rekomendasi Pilihan Unit (B6) */}
         <section className="px-4 py-2">
           <div className="flex items-center justify-between mb-3.5">
@@ -444,14 +461,14 @@ export function BerandaPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-display text-2xl font-bold text-slate-900">
-                  Segmentasi Pasar Cerdas (K-Means)
+                  Klasterisasi Pasar Cerdas (Smart Market Clustering)
                 </h2>
                 <div className="relative">
                   <button
                     type="button"
                     onClick={() => setActiveMlPopover(!activeMlPopover)}
                     className="rounded-full p-1 text-slate-400 hover:text-blue-600 transition-colors"
-                    aria-label="Info segmentasi ML"
+                    aria-label="Info pengelompokan segmen pasar"
                   >
                     <HelpCircle className="h-4 w-4" />
                   </button>
@@ -464,9 +481,9 @@ export function BerandaPage() {
                         exit="hidden"
                         className="absolute left-0 top-full mt-2 z-30 w-80 rounded-xl border border-slate-200 bg-white p-4 shadow-xl text-xs text-slate-600"
                       >
-                        <div className="font-bold text-slate-900 mb-1">Bagaimana K-Means Bekerja?</div>
+                        <div className="font-bold text-slate-900 mb-1">Dikelompokkan Otomatis (Objektif)</div>
                         <p>
-                          Algoritma scikit-learn K-Means (k=3) mengelompokkan 609 mobil berdasarkan 4 variabel: tahun pembuatan, jarak tempuh, harga pasar (listing), dan total kelengkapan fitur dari 11 fitur tercatat.
+                          Di balik layar, sistem CekGarasi melakukan pengelompokan objektif pada seluruh unit mobil berdasarkan 4 parameter utama: harga penawaran listing, tahun pembuatan, jarak tempuh pemakaian, dan kelengkapan 11 fitur kendaraan.
                         </p>
                       </motion.div>
                     )}
@@ -474,7 +491,7 @@ export function BerandaPage() {
                 </div>
               </div>
               <p className="mt-1 text-sm text-slate-500">
-                Pengelompokan objektif non-asumtif untuk memudahkan kamu menemukan mobil paling rasional
+                Pengelompokan segmen pasar objektif berbasis kesamaan data (harga, tahun, jarak tempuh, dan fitur) untuk memudahkan kamu menemukan mobil paling rasional
               </p>
             </div>
             <Link
@@ -549,6 +566,21 @@ export function BerandaPage() {
               );
             })}
           </Stagger>
+        </section>
+
+        {/* Interactive Public Model Tester (Publik / Tanpa Login) */}
+        <section className="pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <BuyerKmeansTester
+            title="Simulasi & Eksplorasi Segmen Pasar (Publik & Tanpa Login)"
+            subtitle="Coba langsung simulasi penentuan segmen CekGarasi: sesuaikan budget, usia, jarak tempuh, dan fitur mobil impianmu untuk melihat estimasi segmen dan langsung menelusuri unitnya di katalog."
+            onApplyFilters={(applied) => {
+              const params = new URLSearchParams();
+              if (applied.segmen) params.set('segmen', applied.segmen);
+              if (applied.hargaMax) params.set('harga_max', String(applied.hargaMax));
+              if (applied.tahunMin) params.set('tahun_min', String(applied.tahunMin));
+              navigate(`/cari?${params.toString()}`);
+            }}
+          />
         </section>
 
         {/* 3. Recommendation Showcase */}

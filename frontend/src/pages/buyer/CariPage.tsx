@@ -11,6 +11,7 @@ import {
   Search, SlidersHorizontal, ArrowUpDown, Sparkles, 
   ChevronDown, RotateCcw, X
 } from 'lucide-react';
+import { BuyerKmeansTester } from '@/components/algo/BuyerKmeansTester';
 
 interface SearchResponse {
   total: number;
@@ -34,6 +35,7 @@ export function CariPage() {
 
   // URL Query Params
   const q = searchParams.get('q') || '';
+  const merk = searchParams.get('merk') || searchParams.get('merek') || '';
   const segmen = searchParams.get('segmen') || '';
   const lokasi = searchParams.get('lokasi') || '';
   const hargaMin = searchParams.get('harga_min') || '';
@@ -53,6 +55,7 @@ export function CariPage() {
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const [searchInput, setSearchInput] = useState<string>(q);
   const [showMlExplainer, setShowMlExplainer] = useState<boolean>(false);
+  const [showKmeansTester, setShowKmeansTester] = useState<boolean>(false);
 
   // Sync search input with URL q
   useEffect(() => {
@@ -77,6 +80,7 @@ export function CariPage() {
     setLoading(true);
     const params = new URLSearchParams();
     if (q) params.set('q', q);
+    if (merk) params.set('merk', merk);
     if (segmen) params.set('segmen', segmen);
     if (lokasi && lokasi !== 'Semua' && lokasi !== 'Semua lokasi') params.set('lokasi', lokasi);
     if (hargaMin) params.set('harga_min', hargaMin);
@@ -100,7 +104,7 @@ export function CariPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [q, segmen, lokasi, hargaMin, hargaMax, tahunMin, tahunMax, transmisi, model, urut, halaman]);
+  }, [q, merk, segmen, lokasi, hargaMin, hargaMax, tahunMin, tahunMax, transmisi, model, urut, halaman]);
 
   useEffect(() => {
     fetchCars();
@@ -109,6 +113,7 @@ export function CariPage() {
   // Count active filters (excluding default sort and page)
   const activeFilterCount = useMemo(() => {
     let count = 0;
+    if (merk) count++;
     if (segmen) count++;
     if (lokasi && lokasi !== 'Semua') count++;
     if (hargaMin || hargaMax) count++;
@@ -116,7 +121,7 @@ export function CariPage() {
     if (transmisi && transmisi !== 'Semua') count++;
     if (model) count++;
     return count;
-  }, [segmen, lokasi, hargaMin, hargaMax, tahunMin, tahunMax, transmisi, model]);
+  }, [merk, segmen, lokasi, hargaMin, hargaMax, tahunMin, tahunMax, transmisi, model]);
 
   // Toggle Favorite Handler
   const handleFavoriteToggle = async (carId: number) => {
@@ -179,6 +184,7 @@ export function CariPage() {
   // Apply filters from Bottom Sheet
   const handleApplyFilterSheet = (draft: FilterState) => {
     const newParams = new URLSearchParams(searchParams);
+    if (draft.merk) newParams.set('merk', draft.merk); else { newParams.delete('merk'); newParams.delete('merek'); }
     if (draft.segmen) newParams.set('segmen', draft.segmen); else newParams.delete('segmen');
     if (draft.harga_min) newParams.set('harga_min', String(draft.harga_min)); else newParams.delete('harga_min');
     if (draft.harga_max) newParams.set('harga_max', String(draft.harga_max)); else newParams.delete('harga_max');
@@ -217,6 +223,7 @@ export function CariPage() {
 
   const currentFiltersForSheet: FilterState = {
     q,
+    merk,
     segmen,
     lokasi,
     harga_min: hargaMin,
@@ -331,6 +338,102 @@ export function CariPage() {
         {/* Content Area */}
         <div className="px-4 py-4 space-y-4">
           
+          {/* Mobile Segmen Tester Toggle Banner */}
+          <div className="rounded-2xl border border-blue-200/90 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600 p-3.5 text-white shadow-xs">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 font-bold text-xs">
+                <Sparkles className="w-4 h-4 text-amber-300 flex-shrink-0" />
+                <span>Simulasi Segmen Pasar Cerdas</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowKmeansTester(!showKmeansTester)}
+                className="px-2.5 py-1 rounded-lg bg-white text-blue-700 font-bold text-[11px] shadow-2xs whitespace-nowrap active:scale-95 transition-all cursor-pointer"
+              >
+                {showKmeansTester ? 'Tutup' : 'Coba Tanpa Login'}
+              </button>
+            </div>
+            {showKmeansTester && (
+              <div className="mt-3 text-slate-900">
+                <BuyerKmeansTester
+                  compact
+                  title="Simulasi Segmen Pasar"
+                  subtitle="Geser slider untuk melihat kecocokan segmen secara langsung."
+                  onApplyFilters={(applied) => {
+                    const newParams = new URLSearchParams(searchParams);
+                    if (applied.segmen) newParams.set('segmen', applied.segmen);
+                    if (applied.hargaMax) newParams.set('harga_max', String(applied.hargaMax));
+                    if (applied.tahunMin) newParams.set('tahun_min', String(applied.tahunMin));
+                    newParams.set('halaman', '1');
+                    setSearchParams(newParams);
+                    setShowKmeansTester(false);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Active Filter Chips */}
+          {(merk || segmen || hargaMin || hargaMax || tahunMin || tahunMax || transmisi) && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              {merk && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold">
+                  <span>Merek: {merk}</span>
+                  <button
+                    onClick={() => {
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.delete('merk');
+                      newParams.delete('merek');
+                      newParams.set('halaman', '1');
+                      setSearchParams(newParams);
+                    }}
+                    className="hover:text-blue-950 p-0.5"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {segmen && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 text-[11px] font-bold">
+                  <span>Klaster: {content.segments.names[segmen === 'premium' ? 0 : segmen === 'keluarga-muda' ? 1 : 2] || segmen}</span>
+                  <button
+                    onClick={() => {
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.delete('segmen');
+                      newParams.set('halaman', '1');
+                      setSearchParams(newParams);
+                    }}
+                    className="hover:text-purple-950 p-0.5"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {transmisi && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                  <span>{transmisi}</span>
+                  <button
+                    onClick={() => {
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.delete('transmisi');
+                      newParams.set('halaman', '1');
+                      setSearchParams(newParams);
+                    }}
+                    className="hover:text-emerald-950 p-0.5"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              <button
+                onClick={handleResetAll}
+                className="text-[11px] text-rose-600 font-semibold hover:underline ml-1"
+              >
+                Reset
+              </button>
+            </div>
+          )}
+
           {/* Results Summary & ML Insight Banner */}
           {data && (
             <div className="flex items-center justify-between text-xs text-slate-500">
@@ -467,10 +570,10 @@ export function CariPage() {
                 )}
               </div>
 
-              {/* Segmen K-Means */}
+              {/* Segmen Klaster Pasar Mobil */}
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-2.5">
-                  Segmen K-Means
+                  Klaster Pasar Mobil
                 </span>
                 <div className="space-y-1.5">
                   {[
@@ -492,6 +595,49 @@ export function CariPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Merek Mobil */}
+              <div>
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Merek Mobil
+                  </span>
+                  {merk && (
+                    <button
+                      onClick={() => {
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.delete('merk');
+                        newParams.delete('merek');
+                        newParams.set('halaman', '1');
+                        setSearchParams(newParams);
+                      }}
+                      className="text-xs text-blue-600 font-semibold hover:underline"
+                    >
+                      Hapus
+                    </button>
+                  )}
+                </div>
+                <select
+                  value={merk}
+                  onChange={(e) => {
+                    const newParams = new URLSearchParams(searchParams);
+                    if (e.target.value) {
+                      newParams.set('merk', e.target.value);
+                    } else {
+                      newParams.delete('merk');
+                      newParams.delete('merek');
+                    }
+                    newParams.set('halaman', '1');
+                    setSearchParams(newParams);
+                  }}
+                  className="w-full rounded-xl border border-slate-200 bg-white py-2 px-3 text-xs font-medium text-slate-800 focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="">Semua Merek</option>
+                  {['Toyota', 'Honda', 'Daihatsu', 'Mitsubishi', 'Suzuki', 'Nissan', 'Mazda', 'Wuling', 'Hyundai', 'BMW', 'Chevrolet', 'Ford', 'Datsun'].map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Transmisi */}
@@ -525,12 +671,123 @@ export function CariPage() {
                 </div>
               </div>
 
+              {/* Shortcut Simulation Tester */}
+              <div className="pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowKmeansTester(!showKmeansTester)}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>{showKmeansTester ? 'Tutup Simulasi' : '✨ Simulasi Segmen Pasar'}</span>
+                </button>
+              </div>
+
             </div>
           </div>
 
           {/* Desktop Right Main Catalog */}
           <div className="md:col-span-3 space-y-6">
             
+            {/* Desktop Simulation Model Tester Banner & Component */}
+            <div className="rounded-2xl border border-blue-200/90 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600 p-4 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-1.5 font-bold text-sm">
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>Simulasi Segmen Pasar (Publik & Tanpa Login)</span>
+                </div>
+                <p className="text-xs text-blue-100 mt-0.5">
+                  Simulasikan harga, tahun, odometer, dan fitur untuk mengetahui segmen pasarnya secara objektif serta langsung memfilter katalog.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowKmeansTester(!showKmeansTester)}
+                className="self-start sm:self-auto px-4 py-2 rounded-xl bg-white text-blue-700 font-bold text-xs hover:bg-blue-50 transition-all shadow-xs whitespace-nowrap cursor-pointer"
+              >
+                {showKmeansTester ? 'Tutup Simulasi' : '✨ Mulai Simulasi Segmen'}
+              </button>
+            </div>
+
+            {showKmeansTester && (
+              <BuyerKmeansTester
+                onApplyFilters={(applied) => {
+                  const newParams = new URLSearchParams(searchParams);
+                  if (applied.segmen) newParams.set('segmen', applied.segmen);
+                  if (applied.hargaMax) newParams.set('harga_max', String(applied.hargaMax));
+                  if (applied.tahunMin) newParams.set('tahun_min', String(applied.tahunMin));
+                  newParams.set('halaman', '1');
+                  setSearchParams(newParams);
+                  setShowKmeansTester(false);
+                }}
+              />
+            )}
+
+            {/* Desktop Active Filter Chips */}
+            {(merk || segmen || hargaMin || hargaMax || tahunMin || tahunMax || transmisi) && (
+              <div className="flex flex-wrap items-center gap-2 py-1">
+                <span className="text-xs text-slate-400 font-medium">Filter Aktif:</span>
+                {merk && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">
+                    <span>Merek: {merk}</span>
+                    <button
+                      onClick={() => {
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.delete('merk');
+                        newParams.delete('merek');
+                        newParams.set('halaman', '1');
+                        setSearchParams(newParams);
+                      }}
+                      className="hover:text-blue-950 p-0.5"
+                      aria-label="Hapus filter merek"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+                {segmen && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-semibold">
+                    <span>Klaster: {content.segments.names[segmen === 'premium' ? 0 : segmen === 'keluarga-muda' ? 1 : 2] || segmen}</span>
+                    <button
+                      onClick={() => {
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.delete('segmen');
+                        newParams.set('halaman', '1');
+                        setSearchParams(newParams);
+                      }}
+                      className="hover:text-purple-950 p-0.5"
+                      aria-label="Hapus filter klaster"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+                {transmisi && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">
+                    <span>Transmisi: {transmisi}</span>
+                    <button
+                      onClick={() => {
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.delete('transmisi');
+                        newParams.set('halaman', '1');
+                        setSearchParams(newParams);
+                      }}
+                      className="hover:text-emerald-950 p-0.5"
+                      aria-label="Hapus filter transmisi"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+                <button
+                  onClick={handleResetAll}
+                  className="text-xs text-rose-600 hover:text-rose-700 font-semibold hover:underline ml-1"
+                >
+                  Reset Semua Filter
+                </button>
+              </div>
+            )}
+
             {/* Desktop Search & Sort Bar */}
             <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center justify-between gap-4">
               <form onSubmit={handleSearchSubmit} className="relative flex-1">

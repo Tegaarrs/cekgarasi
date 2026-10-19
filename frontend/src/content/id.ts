@@ -25,11 +25,11 @@ export const content = {
       1: '#0CA678',
       2: '#AE3EC9',
     } as Record<number, string>,
-    chipLabel: 'Segmen otomatis (K-Means)',
+    chipLabel: 'Pengelompokan Segmen Pasar',
     chipPopover: 'Mobil dikelompokkan otomatis berdasarkan harga, tahun, jarak tempuh, dan jumlah fitur.',
     methodologyTitle: 'Bagaimana segmen ini dibuat?',
-    methodologyBody: (total: number | string, silhouetteK3: number | string) =>
-      `K-Means (3 segmen) dijalankan sekali pada ${total} mobil, dengan 4 variabel yang sudah diskalakan: harga listing (harga yang ditawarkan, bukan harga transaksi), tahun pembuatan, jarak tempuh (data listing, belum diverifikasi), dan jumlah fitur dari 11 fitur yang tercatat (kamera belakang, sunroof, spion lipat otomatis, rem parkir elektrik, navigasi, kontrol stabilitas, keyless start, mode sport, kamera 360, pintu geser elektrik, cruise control). Segmen tidak diperbarui otomatis. Pemisahan antar segmen sedang (silhouette ${silhouetteK3}), jadi mobil di perbatasan bisa masuk segmen sebelahnya. Segmen menunjukkan kemiripan, bukan penilaian kualitas.`,
+    methodologyBody: (total: number | string) =>
+      `Mobil dikelompokkan ke dalam 3 segmen pasar pada ${total} unit mobil berdasarkan 4 variabel utama: harga penawaran listing, tahun pembuatan, jarak tempuh pemakaian, dan kelengkapan 11 fitur penting (kamera belakang, sunroof, spion lipat otomatis, rem parkir elektrik, navigasi, kontrol stabilitas, keyless start, mode sport, kamera 360, pintu geser elektrik, cruise control). Pengelompokan ini menunjukkan kemiripan karakteristik unit untuk memudahkan perbandingan adil, bukan penilaian kualitas mutlak.`,
   },
 
   trustStrip: [

@@ -6,6 +6,7 @@ import { RotateCcw, Check, Sparkles } from 'lucide-react';
 
 export interface FilterState {
   q?: string;
+  merk?: string;
   segmen?: string;
   lokasi?: string;
   harga_min?: number | string;
@@ -51,6 +52,7 @@ export function FilterSheet({
     const timer = setTimeout(() => {
       const params = new URLSearchParams();
       if (draft.q) params.set('q', draft.q);
+      if (draft.merk) params.set('merk', draft.merk);
       if (draft.segmen) params.set('segmen', draft.segmen);
       if (draft.lokasi && draft.lokasi !== 'Semua') params.set('lokasi', draft.lokasi);
       if (draft.harga_min) params.set('harga_min', String(draft.harga_min));
@@ -139,7 +141,7 @@ export function FilterSheet({
           <div className="flex items-center justify-between mb-2.5">
             <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              <span>Segmen Mobil (K-Means)</span>
+              <span>Segmen Pasar Mobil</span>
             </label>
             {draft.segmen && (
               <button
@@ -171,6 +173,33 @@ export function FilterSheet({
               );
             })}
           </div>
+        </div>
+
+        {/* Merek Mobil */}
+        <div>
+          <div className="flex items-center justify-between mb-2.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+              Merek Mobil
+            </label>
+            {draft.merk && (
+              <button
+                onClick={() => setDraft((prev) => ({ ...prev, merk: '' }))}
+                className="text-xs text-blue-600 font-medium hover:underline"
+              >
+                Hapus
+              </button>
+            )}
+          </div>
+          <select
+            value={draft.merk || ''}
+            onChange={(e) => setDraft((prev) => ({ ...prev, merk: e.target.value }))}
+            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs font-medium text-slate-800 focus:border-blue-500 focus:outline-none"
+          >
+            <option value="">Semua Merek</option>
+            {['Toyota', 'Honda', 'Daihatsu', 'Mitsubishi', 'Suzuki', 'Nissan', 'Mazda', 'Wuling', 'Hyundai', 'BMW', 'Chevrolet', 'Ford', 'Datsun'].map((b) => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
         </div>
 
         {/* 2. Rentang Harga */}

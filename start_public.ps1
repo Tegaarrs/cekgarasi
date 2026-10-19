@@ -15,7 +15,8 @@ if (-not (Test-Path "frontend\dist\index.html")) {
     & npm run build
     Pop-Location
     Write-Host "[OK] Frontend build selesai!" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "[1/3] Build frontend siap!" -ForegroundColor Green
 }
 
@@ -25,7 +26,8 @@ $backendOk = $false
 try {
     $res = Invoke-WebRequest -Uri "http://localhost:8000/api/health" -TimeoutSec 2 -UseBasicParsing
     if ($res.StatusCode -eq 200) { $backendOk = $true }
-} catch {}
+}
+catch {}
 
 if (-not $backendOk) {
     Write-Host "[INFO] Menjalankan backend server..." -ForegroundColor Yellow
@@ -44,15 +46,18 @@ if (-not $backendOk) {
         try {
             $res = Invoke-WebRequest -Uri "http://localhost:8000/api/health" -TimeoutSec 2 -UseBasicParsing
             if ($res.StatusCode -eq 200) { $backendOk = $true }
-        } catch {}
+        }
+        catch {}
     }
     Write-Host ""
     if ($backendOk) {
         Write-Host "[OK] Server backend aktif dan siap!" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "[!] Server memerlukan waktu inisialisasi lebih lama." -ForegroundColor Yellow
     }
-} else {
+}
+else {
     Write-Host "[OK] Server backend sudah aktif!" -ForegroundColor Green
 }
 
@@ -116,7 +121,8 @@ if ($tunnelUrl) {
         $l = $proc.StandardError.ReadLine()
         # silently drain buffer
     }
-} else {
+}
+else {
     Write-Host "[!] Gagal mendeteksi link Cloudflare Tunnel. Menjalankan cloudflared langsung:" -ForegroundColor Red
     & "C:\Program Files (x86)\cloudflared\cloudflared.exe" tunnel --url http://localhost:8000
 }

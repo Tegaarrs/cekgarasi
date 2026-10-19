@@ -9,7 +9,7 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File, Response
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 import pandas as pd
 import numpy as np
 
@@ -56,6 +56,12 @@ def get_admin_summary(admin: models.User = Depends(auth.get_current_admin), db: 
                     "q3_segmen": int(q3),
                     "tipe_anomali": "Di Bawah Q1" if c.harga_rp < q1 else "Di Atas Q3"
                 })
+
+    anomali_above = [a for a in anomali_list if a["tipe_anomali"] == "Di Atas Q3"]
+    anomali_below = [a for a in anomali_list if a["tipe_anomali"] == "Di Bawah Q1"]
+    anomali_above.sort(key=lambda x: (x["harga_rp"] - x["q3_segmen"]), reverse=True)
+    anomali_below.sort(key=lambda x: (x["q1_segmen"] - x["harga_rp"]), reverse=True)
+    anomali_curated = anomali_above[:14] + anomali_below[:7]
 
     # Auto insights
     k0_share = seg_stats.get(0, {}).get("share", 0) * 100
@@ -120,12 +126,33 @@ def get_admin_summary(admin: models.User = Depends(auth.get_current_admin), db: 
             "nama_segmen": s_obj.nama_pendek if s_obj else f"K{c.klaster}"
         })
 
+    # Registered buyers
+    total_pembeli = db.query(models.User).filter(models.User.role == "pembeli").count()
+    recent_buyers = db.query(models.User).filter(models.User.role == "pembeli").order_by(models.User.created_at.desc(), models.User.id.desc()).limit(10).all()
+    pembeli_terbaru = [
+        {
+            "id": u.id,
+            "nama": u.nama,
+            "email": u.email,
+            "no_hp": u.no_hp or "-",
+            "hp_terverifikasi": bool(u.hp_terverifikasi),
+            "segmen_awal_id": u.segmen_awal_id,
+            "nama_segmen": segments_map[u.segmen_awal_id].nama_pendek if u.segmen_awal_id in segments_map else "Belum Ditentukan",
+            "warna_segmen": segments_map[u.segmen_awal_id].warna_hex if u.segmen_awal_id in segments_map else "#64748B",
+            "pref_harga_min": u.pref_harga_min,
+            "pref_harga_max": u.pref_harga_max,
+            "created_at": str(u.created_at)
+        }
+        for u in recent_buyers
+    ]
+
     return {
         "kpi": {
             "total_mobil": total_cars,
             "total_tayang": total_tayang,
             "total_draft": total_draft,
             "total_merek": total_brands,
+            "total_pembeli": total_pembeli,
             "median_harga": int(overall_median),
             "median_harga_keseluruhan": int(overall_median),
             "total_test_drive": total_test_drives,
@@ -137,8 +164,10 @@ def get_admin_summary(admin: models.User = Depends(auth.get_current_admin), db: 
         "segmen_stats": seg_stats,
         "scatter": scatter_points,
         "mobil_terbaru": mobil_terbaru,
-        "anomali_harga": anomali_list[:15],
-        "total_anomali": len(anomali_list),
+        "pembeli_terbaru": pembeli_terbaru,
+        "total_pembeli": total_pembeli,
+        "anomali_harga": anomali_curated,
+        "total_anomali": len(anomali_curated),
         "narasi_insight": insights
     }
 
@@ -281,9 +310,12 @@ def predict_segment(
 @router.get("/mobil")
 def get_admin_cars(
     q: Optional[str] = None,
+    merek: Optional[str] = None,
+    merk: Optional[str] = None,
     klaster: Optional[int] = None,
     tipe_bodi: Optional[str] = None,
     status: Optional[str] = None,
+    sort: Optional[str] = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     admin: models.User = Depends(auth.get_current_admin),
@@ -291,17 +323,42 @@ def get_admin_cars(
 ):
     query = db.query(models.Car).join(models.CarModel).join(models.Brand)
 
-    if q:
-        query = query.filter(models.Car.nama_mobil.ilike(f"%{q.strip()}%"))
+    effective_merek = (merek or merk or "").strip()
+    if effective_merek:
+        query = query.filter(models.Brand.nama.ilike(f"%{effective_merek}%"))
+
+    if q and q.strip():
+        tokens = q.strip().split()
+        for token in tokens:
+            term = f"%{token}%"
+            query = query.filter(
+                or_(
+                    models.Car.nama_mobil.ilike(term),
+                    models.Brand.nama.ilike(term),
+                    models.CarModel.nama.ilike(term)
+                )
+            )
+
     if klaster is not None:
         query = query.filter(models.Car.klaster == klaster)
-    if tipe_bodi:
-        query = query.filter(models.CarModel.tipe_bodi == tipe_bodi)
-    if status:
-        query = query.filter(models.Car.status == status)
+    if tipe_bodi and tipe_bodi.strip():
+        query = query.filter(models.CarModel.tipe_bodi.ilike(f"%{tipe_bodi.strip()}%"))
+    if status and status.strip():
+        query = query.filter(models.Car.status.ilike(status.strip()))
 
     total = query.count()
-    items = query.order_by(models.Car.id.desc()).offset((page - 1) * limit).limit(limit).all()
+    if sort == "harga_asc":
+        query = query.order_by(models.Car.harga_rp.asc())
+    elif sort == "harga_desc":
+        query = query.order_by(models.Car.harga_rp.desc())
+    elif sort == "tahun_desc":
+        query = query.order_by(models.Car.tahun.desc())
+    elif sort == "km_asc":
+        query = query.order_by(models.Car.jarak_tempuh_ribu_km.asc())
+    else:
+        query = query.order_by(models.Car.id.desc())
+
+    items = query.offset((page - 1) * limit).limit(limit).all()
 
     segments = {s.id: {"nama_lengkap": s.nama_lengkap, "nama_pendek": s.nama_pendek, "warna_hex": s.warna_hex} for s in db.query(models.Segment).all()}
 
@@ -692,3 +749,48 @@ def update_lead_status(
     lead.status = "menunggu" if payload.status == "menunggu_konfirmasi" else payload.status
     db.commit()
     return {"status": "success", "message": f"Status lead diperbarui menjadi {payload.status}."}
+
+
+@router.get("/pembeli")
+def get_admin_buyers(
+    q: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.User).filter(models.User.role == "pembeli")
+    if q and q.strip():
+        term = f"%{q.strip()}%"
+        query = query.filter(
+            or_(
+                models.User.nama.ilike(term),
+                models.User.email.ilike(term),
+                models.User.no_hp.ilike(term)
+            )
+        )
+    total = query.count()
+    items = query.order_by(models.User.created_at.desc(), models.User.id.desc()).offset((page - 1) * limit).limit(limit).all()
+    segments = {s.id: s for s in db.query(models.Segment).all()}
+
+    return {
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "items": [
+            {
+                "id": u.id,
+                "nama": u.nama,
+                "email": u.email,
+                "no_hp": u.no_hp or "-",
+                "hp_terverifikasi": bool(u.hp_terverifikasi),
+                "segmen_awal_id": u.segmen_awal_id,
+                "nama_segmen": segments[u.segmen_awal_id].nama_pendek if u.segmen_awal_id in segments else "Belum Ditentukan",
+                "warna_segmen": segments[u.segmen_awal_id].warna_hex if u.segmen_awal_id in segments else "#64748B",
+                "pref_harga_min": u.pref_harga_min,
+                "pref_harga_max": u.pref_harga_max,
+                "created_at": str(u.created_at)
+            }
+            for u in items
+        ]
+    }

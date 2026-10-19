@@ -129,7 +129,7 @@ export function PreferensiPage() {
         <div className="relative z-10 my-auto py-8 max-w-lg">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-[#B1C5FF] text-xs font-semibold mb-4">
             <BrainCircuit className="h-3.5 w-3.5" />
-            <span>Didukung K-Means Clustering Model</span>
+            <span>Pengelompokan Otomatis CekGarasi</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight mb-3">
@@ -137,7 +137,7 @@ export function PreferensiPage() {
           </h1>
 
           <p className="text-sm text-[#7D93CE] leading-relaxed mb-6">
-            Model Machine Learning CekGarasi memproses parameter riil dari 609 unit mobil terinspeksi, mengelompokkannya secara matematis berdasarkan kesesuaian anggaran, depresiasi usia, dan preferensi mobilitas harian Anda.
+            Sistem CekGarasi memproses parameter riil dari 609 unit mobil terinspeksi, mengelompokkannya secara objektif berdasarkan kesesuaian anggaran, depresiasi usia, dan preferensi mobilitas harian Anda.
           </p>
 
           {/* 3 Segmen Pasar Overview Cards */}
@@ -159,7 +159,7 @@ export function PreferensiPage() {
                 </div>
               </div>
               <span className="text-[10px] text-[#B1C5FF] px-2 py-0.5 rounded bg-[#0F2A5F] font-mono font-bold shrink-0">
-                Klaster 01
+                Segmen 01
               </span>
             </div>
 
@@ -180,7 +180,7 @@ export function PreferensiPage() {
                 </div>
               </div>
               <span className="text-[10px] text-[#0CA678] px-2 py-0.5 rounded bg-[#0CA678]/20 font-mono font-bold shrink-0">
-                Klaster 02
+                Segmen 02
               </span>
             </div>
 
@@ -201,7 +201,7 @@ export function PreferensiPage() {
                 </div>
               </div>
               <span className="text-[10px] text-[#B1C5FF] px-2 py-0.5 rounded bg-[#0F2A5F] font-mono font-bold shrink-0">
-                Klaster 03
+                Segmen 03
               </span>
             </div>
           </div>
@@ -211,10 +211,10 @@ export function PreferensiPage() {
         <div className="relative z-10 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-[#7D93CE]">
           <div className="flex items-center gap-2">
             <Database className="h-4 w-4 text-[#FE6A2B]" />
-            <span className="font-semibold text-white">3 Klaster Terverifikasi • 609 Data Mobil Terkalibrasi</span>
+            <span className="font-semibold text-white">3 Segmen Pasar • 609 Data Mobil Terverifikasi</span>
           </div>
           <div className="font-mono text-[11px] text-[#B1C5FF]">
-            MODEL: K-MEANS (k=3)
+            3 SEGMEN PASAR OTOMATIS
           </div>
         </div>
       </div>
@@ -317,7 +317,7 @@ export function PreferensiPage() {
                 Kriteria Utama (Pilih yang Anda utamakan)
               </label>
               <p className="text-[11px] text-slate-500">
-                Algoritma K-Means memberi bobot kecocokan lebih tinggi pada tag aktif.
+                Pilihan ini memberi bobot kecocokan lebih tinggi saat menentukan segmen mobil yang paling pas.
               </p>
               
               <div className="flex flex-wrap gap-2 pt-1">
@@ -392,7 +392,7 @@ export function PreferensiPage() {
               {/* Tooltip ML Chip */}
               <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-[#0CA678] text-[10px] font-bold shadow-2xs border border-[#0CA678]/20">
                 <BrainCircuit className="h-3 w-3" />
-                <span>K-Means Auto</span>
+                <span>Segmen Otomatis</span>
                 <Info className="h-3 w-3 text-slate-400" />
               </div>
             </div>

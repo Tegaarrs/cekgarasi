@@ -89,38 +89,54 @@ export function AdminLayout() {
             ))}
           </nav>
         </div>
-
-        <div className="p-4 border-t border-slate-800 space-y-2">
-          <div className="flex items-center gap-2.5 px-2 py-1 text-xs text-slate-400">
-            <div className="h-2 w-2 rounded-full bg-emerald-400" />
-            <span className="truncate">{user.nama}</span>
-          </div>
-
-          <button
-            onClick={() => navigate('/')}
-            className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Kembali ke Website</span>
-          </button>
-
-          <button
-            onClick={() => {
-              removeToken();
-              localStorage.removeItem('cekgarasi_user');
-              navigate('/admin/login');
-            }}
-            className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-rose-400 hover:bg-rose-500/10 transition-colors"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            <span>Keluar Akun Admin</span>
-          </button>
-        </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
-        <Outlet />
+      {/* Main Content Area with Sticky Top Navigation Bar */}
+      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+        {/* Top Bar Header */}
+        <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-3.5 bg-white border-b border-slate-200/80 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200/60 text-xs font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+              Dealer Portal Hub
+            </span>
+          </div>
+
+          {/* Bar Atas Pojok Kanan (Moved from Sidebar as requested) */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs">
+              <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50" />
+              <span className="truncate max-w-[160px] sm:max-w-none">{user.nama}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#001540] text-xs font-bold transition-all shadow-2xs cursor-pointer"
+            >
+              <ArrowLeft className="h-3.5 w-3.5 text-blue-600" />
+              <span>Kembali ke Website</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                removeToken();
+                localStorage.removeItem('cekgarasi_user');
+                navigate('/admin/login');
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span>Keluar Akun Admin</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

@@ -41,7 +41,7 @@ export function Footer() {
             <div className="space-y-2.5 text-xs text-slate-600 dark:text-slate-400">
               <div className="flex items-center gap-2">
                 <Layers className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                <span>Segmentasi K-Means Otomatis</span>
+                <span>Pengelompokan Segmen Otomatis</span>
               </div>
               <div className="flex items-center gap-2">
                 <Calculator className="h-4 w-4 text-emerald-500 flex-shrink-0" />
@@ -59,7 +59,7 @@ export function Footer() {
         <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>&copy; {new Date().getFullYear()} CekGarasi. Hak cipta dilindungi undang-undang.</span>
           <span className="text-[11px] text-slate-400">
-            Ditenagai oleh Machine Learning K-Means Scikit-Learn
+            Platform Analisis Pasar Mobil Bekas Terpercaya
           </span>
         </div>
       </div>

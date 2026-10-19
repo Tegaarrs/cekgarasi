@@ -254,7 +254,7 @@ export function DaftarPage() {
                 <div className="text-center mb-6">
                   <h1 className="font-display text-2xl font-bold">Daftar Akun Pembeli</h1>
                   <p className="mt-1 text-xs text-slate-400">
-                    Dapatkan rekomendasi mobil terpersonalisasi dengan segmentasi K-Means
+                    Dapatkan rekomendasi mobil terpersonalisasi dengan segmentasi pasar cerdas
                   </p>
                 </div>
 
@@ -482,7 +482,7 @@ export function DaftarPage() {
                   </div>
                   <h2 className="font-display text-xl font-bold">Preferensi Pembelian Anda</h2>
                   <p className="mt-1 text-xs text-slate-400">
-                    Sesuaikan kriteria agar model K-Means merekomendasikan segmen yang pas
+                    Sesuaikan kriteria agar sistem dapat merekomendasikan segmen mobil yang paling pas
                   </p>
                 </div>
 
