@@ -34,35 +34,429 @@
 
 <body class="bg-[#F6F8FB] dark:bg-[#0B0F19] text-[#0F172A] dark:text-[#E5E7EB] transition-colors duration-200">
   <div id="root">
-    <div
-      style="min-height: 100vh; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0B192C; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #ffffff;">
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="CekGarasi">
-          <rect width="40" height="40" rx="10" fill="#2563EB"/>
-          <path d="M10 24L14.5 13.5C14.8 12.8 15.5 12.3 16.3 12.3H23.7C24.5 12.3 25.2 12.8 25.5 13.5L30 24V27C30 27.6 29.6 28 29 28H28C27.4 28 27 27.6 27 27V26H13V27C13 27.6 12.6 28 12 28H11C10.4 28 10 27.6 10 27V24Z" fill="white"/>
-          <circle cx="14.5" cy="22.5" r="2.5" fill="#2563EB"/>
-          <circle cx="25.5" cy="22.5" r="2.5" fill="#2563EB"/>
-          <path d="M15 15H25L26.5 20H13.5L15 15Z" fill="#93C5FD"/>
-        </svg>
-        <span style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Cek<span
-            style="color: #60a5fa;">Garasi</span></span>
+    <div class="cg-loader-root">
+      <!-- Ambient Background Lights & Grid -->
+      <div class="cg-bg-mesh">
+        <div class="cg-glow cg-glow-1"></div>
+        <div class="cg-glow cg-glow-2"></div>
+        <div class="cg-glow cg-glow-3"></div>
+        <div class="cg-cyber-grid"></div>
+        <div class="cg-particle-field">
+          <span class="cg-pt cg-pt-1"></span>
+          <span class="cg-pt cg-pt-2"></span>
+          <span class="cg-pt cg-pt-3"></span>
+          <span class="cg-pt cg-pt-4"></span>
+          <span class="cg-pt cg-pt-5"></span>
+        </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 10px; color: #94a3b8; font-size: 14px; font-weight: 500;">
-        <svg style="animation: cgSpin 0.9s linear infinite; width: 20px; height: 20px; color: #3b82f6;"
-          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <circle cx="12" cy="12" r="10" stroke-opacity="0.2"></circle>
-          <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
-        </svg>
-        <span>Memuat CekGarasi Intelligence...</span>
+
+      <!-- Core Glassmorphism Innovation Card -->
+      <div class="cg-loader-card">
+        <!-- Logo Container with Glowing Hologram Ring -->
+        <div class="cg-logo-orbit">
+          <div class="cg-orbit-ring cg-ring-outer"></div>
+          <div class="cg-orbit-ring cg-ring-inner"></div>
+          <div class="cg-logo-wrapper">
+            <img src="/images/logo.png" alt="CekGarasi" class="cg-logo-img" onerror="if(!this.src.endsWith('/logo.png'))this.src='/logo.png';" />
+          </div>
+          <div class="cg-energy-pulse"></div>
+        </div>
+
+        <!-- Brand Name with Liquid Gradient -->
+        <div class="cg-brand-badge">
+          <h1 class="cg-brand-title">Cek<span>Garasi</span></h1>
+          <div class="cg-badge-pill">
+            <span class="cg-status-dot"></span>
+            <span>Intelligent Car Market</span>
+          </div>
+        </div>
+
+        <!-- Futuristic Cyber Progress Bar -->
+        <div class="cg-progress-wrapper">
+          <div class="cg-progress-bar">
+            <div class="cg-progress-fill"></div>
+            <div class="cg-progress-light"></div>
+          </div>
+          <div class="cg-loading-meta">
+            <span class="cg-loading-text">Menyiapkan pengalaman terbaik...</span>
+            <span class="cg-loading-percent">99%</span>
+          </div>
+        </div>
+
+        <!-- Innovation Tagline Micro-Pills -->
+        <div class="cg-features-tags">
+          <span class="cg-tag">✨ Transparansi Pasar</span>
+          <span class="cg-tag">⚡ K-Means Engine</span>
+          <span class="cg-tag">🛡️ Unit Terinspeksi</span>
+        </div>
       </div>
+
       <style>
+        .cg-loader-root {
+          position: fixed;
+          inset: 0;
+          min-height: 100vh;
+          width: 100vw;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #070B14;
+          font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          color: #ffffff;
+          overflow: hidden;
+          z-index: 99999;
+          perspective: 1000px;
+        }
+
+        /* Ambient Mesh & Cyber Grid */
+        .cg-bg-mesh {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          pointer-events: none;
+        }
+
+        .cg-cyber-grid {
+          position: absolute;
+          inset: 0;
+          background-image: 
+            linear-gradient(to right, rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+          background-size: 40px 40px;
+          mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+          -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+        }
+
+        .cg-glow {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(80px);
+          opacity: 0.5;
+          animation: cgFloat 10s ease-in-out infinite alternate;
+        }
+
+        .cg-glow-1 {
+          width: 380px;
+          height: 380px;
+          background: radial-gradient(circle, #2563EB 0%, rgba(37, 99, 235, 0) 70%);
+          top: 15%;
+          left: 20%;
+          animation-duration: 8s;
+        }
+
+        .cg-glow-2 {
+          width: 420px;
+          height: 420px;
+          background: radial-gradient(circle, #7C3AED 0%, rgba(124, 58, 237, 0) 70%);
+          bottom: 10%;
+          right: 18%;
+          animation-duration: 11s;
+        }
+
+        .cg-glow-3 {
+          width: 300px;
+          height: 300px;
+          background: radial-gradient(circle, #06B6D4 0%, rgba(6, 182, 212, 0) 70%);
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          opacity: 0.25;
+        }
+
+        @keyframes cgFloat {
+          0% { transform: translateY(0px) scale(1); }
+          50% { transform: translateY(-30px) scale(1.1); }
+          100% { transform: translateY(20px) scale(0.95); }
+        }
+
+        /* Floating Light Particles */
+        .cg-particle-field {
+          position: absolute;
+          inset: 0;
+        }
+        .cg-pt {
+          position: absolute;
+          width: 4px;
+          height: 4px;
+          background: #60A5FA;
+          border-radius: 50%;
+          box-shadow: 0 0 10px #60A5FA;
+          animation: cgRise 7s infinite linear;
+        }
+        .cg-pt-1 { left: 15%; top: 80%; animation-delay: 0s; }
+        .cg-pt-2 { left: 35%; top: 90%; animation-delay: 2s; width: 6px; height: 6px; }
+        .cg-pt-3 { left: 65%; top: 85%; animation-delay: 1.5s; }
+        .cg-pt-4 { left: 80%; top: 75%; animation-delay: 3s; width: 5px; height: 5px; }
+        .cg-pt-5 { left: 50%; top: 95%; animation-delay: 4.5s; }
+
+        @keyframes cgRise {
+          0% { transform: translateY(0) scale(0.5); opacity: 0; }
+          40% { opacity: 0.8; }
+          100% { transform: translateY(-300px) scale(1.2); opacity: 0; }
+        }
+
+        /* Glass Innovation Card */
+        .cg-loader-card {
+          position: relative;
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 38px 44px;
+          border-radius: 28px;
+          background: rgba(13, 20, 36, 0.72);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(37, 99, 235, 0.2);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+          max-width: 420px;
+          width: 90%;
+          animation: cgCardIntro 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes cgCardIntro {
+          0% { opacity: 0; transform: translateY(20px) scale(0.96); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Logo Orbit Ring & Energy */
+        .cg-logo-orbit {
+          position: relative;
+          width: 96px;
+          height: 96px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 20px;
+        }
+
+        .cg-logo-wrapper {
+          position: relative;
+          z-index: 3;
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          padding: 3px;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(37, 99, 235, 0.6));
+          box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45);
+          animation: cgLogoFloat 3s ease-in-out infinite;
+        }
+
+        .cg-logo-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 50%;
+          background: #0B0F19;
+          display: block;
+        }
+
+        @keyframes cgLogoFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+
+        .cg-orbit-ring {
+          position: absolute;
+          border-radius: 50%;
+          border: 1.5px dashed rgba(96, 165, 250, 0.5);
+          pointer-events: none;
+        }
+
+        .cg-ring-outer {
+          inset: -4px;
+          border-color: rgba(96, 165, 250, 0.35);
+          border-style: solid;
+          border-top-color: #38BDF8;
+          border-right-color: transparent;
+          animation: cgSpin 3s linear infinite;
+        }
+
+        .cg-ring-inner {
+          inset: 4px;
+          border-color: rgba(168, 85, 247, 0.4);
+          border-style: dashed;
+          border-bottom-color: #C084FC;
+          animation: cgSpinReverse 5s linear infinite;
+        }
+
+        .cg-energy-pulse {
+          position: absolute;
+          inset: 6px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, transparent 70%);
+          animation: cgPulse 2s ease-in-out infinite;
+          z-index: 1;
+        }
+
         @keyframes cgSpin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes cgSpinReverse {
+          from { transform: rotate(360deg); }
+          to { transform: rotate(0deg); }
+        }
+
+        @keyframes cgPulse {
+          0%, 100% { transform: scale(0.9); opacity: 0.3; }
+          50% { transform: scale(1.3); opacity: 0.8; }
+        }
+
+        /* Brand Typography */
+        .cg-brand-badge {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-bottom: 22px;
+          text-align: center;
+        }
+
+        .cg-brand-title {
+          font-size: 28px;
+          font-weight: 800;
+          letter-spacing: -0.03em;
+          margin: 0;
+          line-height: 1.2;
+          color: #FFFFFF;
+        }
+
+        .cg-brand-title span {
+          background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
+        .cg-badge-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 6px;
+          padding: 4px 12px;
+          border-radius: 999px;
+          background: rgba(37, 99, 235, 0.18);
+          border: 1px solid rgba(59, 130, 246, 0.3);
+          font-size: 11px;
+          font-weight: 600;
+          color: #93C5FD;
+          letter-spacing: 0.02em;
+        }
+
+        .cg-status-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #34D399;
+          box-shadow: 0 0 8px #34D399;
+          animation: cgBlink 1.4s ease-in-out infinite;
+        }
+
+        @keyframes cgBlink {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        /* Cyber Progress Bar */
+        .cg-progress-wrapper {
+          width: 100%;
+          margin-bottom: 20px;
+        }
+
+        .cg-progress-bar {
+          position: relative;
+          width: 100%;
+          height: 6px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.08);
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .cg-progress-fill {
+          position: absolute;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          width: 100%;
+          background: linear-gradient(90deg, #2563EB, #60A5FA, #A855F7, #38BDF8);
+          background-size: 200% 100%;
+          border-radius: 999px;
+          animation: cgGradientMove 2s linear infinite, cgIndeterminate 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+        }
+
+        .cg-progress-light {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 40px;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+          filter: blur(2px);
+          animation: cgScan 1.6s ease-in-out infinite;
+        }
+
+        @keyframes cgGradientMove {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+
+        @keyframes cgIndeterminate {
+          0% { transform: translateX(-100%); }
+          50% { transform: translateX(20%); }
+          100% { transform: translateX(110%); }
+        }
+
+        @keyframes cgScan {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(380px); }
+        }
+
+        .cg-loading-meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-top: 8px;
+          font-size: 11px;
+          color: #94A3B8;
+        }
+
+        .cg-loading-text {
+          font-weight: 500;
+          letter-spacing: 0.01em;
+          animation: cgFadeInOut 2.5s ease-in-out infinite alternate;
+        }
+
+        .cg-loading-percent {
+          font-family: monospace;
+          color: #60A5FA;
+          font-weight: 700;
+        }
+
+        @keyframes cgFadeInOut {
+          0% { opacity: 0.6; }
+          100% { opacity: 1; }
+        }
+
+        /* Feature Pills */
+        .cg-features-tags {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 6px;
+          width: 100%;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          padding-top: 14px;
+        }
+
+        .cg-tag {
+          font-size: 10px;
+          font-weight: 600;
+          color: #CBD5E1;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          padding: 3px 9px;
+          border-radius: 6px;
+          transition: all 0.2s ease;
         }
       </style>
     </div>
