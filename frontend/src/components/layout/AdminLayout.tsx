@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'motion/react';
 import { 
   LayoutDashboard, PieChart, Car, Users, UserCheck, Database, 
-  ArrowLeft, LogOut, BarChart3, Sun, Moon
+  ArrowLeft, LogOut, BarChart3, Sun, Moon, BookOpen
 } from 'lucide-react';
 import { getUser, removeToken } from '@/services/api';
 import { useTheme } from '@/context/ThemeContext';
@@ -37,6 +37,7 @@ export function AdminLayout() {
     { to: '/admin/bi', icon: BarChart3, label: 'Dashboard BI K-Means' },
     { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Ringkasan KPI' },
     { to: '/admin/segmentasi', icon: PieChart, label: 'Evaluasi K-Means' },
+    { to: '/admin/metodologi', icon: BookOpen, label: 'Metodologi & Algoritma' },
     { to: '/admin/inventori', icon: Car, label: 'Manajemen Inventori' },
     { to: '/admin/leads', icon: Users, label: 'Leads & Test Drive' },
     { to: '/admin/pengguna', icon: UserCheck, label: 'Manajemen Pengguna' },

@@ -158,7 +158,6 @@ export default function App() {
               <Route path="/segmen" element={<SegmenPage />} />
               <Route path="/favorit" element={<FavoritPage />} />
               <Route path="/bandingkan" element={<BandingkanPage />} />
-              <Route path="/metodologi" element={<MetodologiPage />} />
               <Route path="/akun" element={<PlaceholderPage title="Profil & Akun Anda" />} />
               <Route path="/mobil/:id" element={<DetailMobilPage />} />
               <Route path="/booking" element={<BookingPage />} />
@@ -171,12 +170,16 @@ export default function App() {
                 <Route path="bi" element={<AdminBIPage />} />
                 <Route path="dashboard" element={<AdminDashboardPage />} />
                 <Route path="segmentasi" element={<AdminSegmentasiPage />} />
+                <Route path="metodologi" element={<MetodologiPage />} />
                 <Route path="inventori" element={<AdminInventoriPage />} />
                 <Route path="leads" element={<AdminLeadsPage />} />
                 <Route path="pengguna" element={<AdminUsersPage />} />
                 <Route path="users" element={<AdminUsersPage />} />
                 <Route path="database" element={<DatabaseExplorerPage />} />
               </Route>
+
+              {/* Redirect public metodologi to admin metodologi */}
+              <Route path="/metodologi" element={<Navigate to="/admin/metodologi" replace />} />
 
               {/* Database Explorer Redirect for backwards compatibility */}
               <Route path="/database" element={<Navigate to="/admin/database" replace />} />

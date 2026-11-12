@@ -89,7 +89,6 @@ export function Navbar() {
   const isHomeActive = location.pathname === '/';
   const isKatalogActive = location.pathname === '/cari';
   const isSegmenActive = location.pathname.startsWith('/segmen');
-  const isMetodologiActive = location.pathname.startsWith('/metodologi');
   const isBandingkanActive = location.pathname.startsWith('/bandingkan');
   const isFavoritActive = location.pathname.startsWith('/favorit');
 
@@ -441,19 +440,6 @@ export function Navbar() {
                 </span>
               )}
             </Link>
-
-            {/* 5. Metodologi K-Means */}
-            <Link
-              to="/metodologi"
-              onClick={() => setActiveMenu(null)}
-              className={`rounded-full px-3.5 py-1.5 transition-colors cursor-pointer ${
-                isMetodologiActive
-                  ? 'bg-[#2A2A33] text-white font-semibold'
-                  : 'text-zinc-300 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              Metodologi
-            </Link>
           </nav>
         </div>
 
@@ -667,15 +653,6 @@ export function Navbar() {
                 {compareCount}
               </span>
             )}
-          </Link>
-          <Link
-            to="/metodologi"
-            onClick={() => setMobileOpen(false)}
-            className={`block px-3 py-2 rounded-xl text-sm font-medium ${
-              isMetodologiActive ? 'bg-[#2A2A33] text-white font-semibold' : 'text-zinc-300 hover:bg-white/10'
-            }`}
-          >
-            Metodologi K-Means
           </Link>
           <div className="pt-2 border-t border-white/10 flex items-center justify-between">
             <Link
