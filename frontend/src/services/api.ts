@@ -46,8 +46,8 @@ export async function apiFetch<T = unknown>(endpoint: string, options: RequestIn
     headers,
   });
 
-  // Auto-recover session if 401 Unauthorized occurs on admin/portal endpoints only
-  if (res.status === 401 && !isRefreshing && !endpoint.includes('/auth/login') && endpoint.startsWith('/admin')) {
+  // Auto-recover session if 401 Unauthorized or 403 Forbidden occurs on admin/portal endpoints only
+  if ((res.status === 401 || res.status === 403) && !isRefreshing && !endpoint.includes('/auth/login') && endpoint.startsWith('/admin')) {
     isRefreshing = true;
     try {
       const loginRes = await fetch(`${API_BASE}/auth/login`, {

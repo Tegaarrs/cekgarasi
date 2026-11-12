@@ -18,6 +18,8 @@ export interface ToastState {
 }
 
 const STORAGE_PENDING_KEY = 'cg.pending_favorite';
+const STORAGE_LOCAL_FAVS = 'cg.local_favorites';
+
 let favoriteIdsCache: number[] = [];
 let isInitialized = false;
 let isLoading = false;
@@ -25,10 +27,28 @@ const listeners = new Set<() => void>();
 const toastListeners = new Set<(toast: ToastState) => void>();
 let undoTimer: ReturnType<typeof setTimeout> | null = null;
 
+function readLocalFavorites(): number[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_LOCAL_FAVS);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'number') : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalFavorites(ids: number[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_LOCAL_FAVS, JSON.stringify(ids));
+  } catch {}
+}
+
 export function sanitizeInternalPath(path: string | null | undefined, fallback = '/'): string {
   if (!path) return fallback;
   const trimmed = path.trim();
-  // Must start with single "/" and not "//", and not contain protocols like "http:", "javascript:"
   if (/^(\/)(?!\/)/.test(trimmed) && !trimmed.includes(':') && !trimmed.includes('\\')) {
     return trimmed;
   }
@@ -41,13 +61,11 @@ export function savePendingFavorite(carId: number, returnTo: string): void {
     type: 'favorit',
     carId,
     returnTo: safeReturnTo,
-    expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
+    expiresAt: Date.now() + 10 * 60 * 1000,
   };
   try {
     sessionStorage.setItem(STORAGE_PENDING_KEY, JSON.stringify(pending));
-  } catch {
-    // Ignore storage errors
-  }
+  } catch {}
 }
 
 export function getPendingFavorite(): PendingFavorite | null {
@@ -73,18 +91,14 @@ export function getPendingFavorite(): PendingFavorite | null {
 export function clearPendingFavorite(): void {
   try {
     sessionStorage.removeItem(STORAGE_PENDING_KEY);
-  } catch {
-    // Ignore storage errors
-  }
+  } catch {}
 }
 
 function notifySubscribers() {
   listeners.forEach((listener) => {
     try {
       listener();
-    } catch {
-      // Ignore listener error
-    }
+    } catch {}
   });
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('cekgarasi:favorite_changed'));
@@ -95,13 +109,14 @@ export function notifyToast(toast: ToastState) {
   toastListeners.forEach((listener) => {
     try {
       listener(toast);
-    } catch {
-      // Ignore listener error
-    }
+    } catch {}
   });
 }
 
 export function subscribeFavorites(listener: () => void): () => void {
+  if (!isInitialized) {
+    favoriteIdsCache = readLocalFavorites();
+  }
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
@@ -116,12 +131,14 @@ export function subscribeToast(listener: (toast: ToastState) => void): () => voi
 }
 
 export async function fetchFavoriteIds(force = false): Promise<number[]> {
+  const localFavs = readLocalFavorites();
   const token = getToken();
+
   if (!token) {
-    favoriteIdsCache = [];
+    favoriteIdsCache = localFavs;
     isInitialized = true;
     notifySubscribers();
-    return [];
+    return favoriteIdsCache;
   }
 
   if (isInitialized && !force) {
@@ -134,14 +151,33 @@ export async function fetchFavoriteIds(force = false): Promise<number[]> {
 
   isLoading = true;
   try {
-    const ids = await apiFetch<number[]>('/favorit/ids');
-    if (Array.isArray(ids)) {
-      favoriteIdsCache = ids;
+    const serverIds = await apiFetch<number[]>('/favorit/ids');
+    if (Array.isArray(serverIds)) {
+      // Merge server IDs with any locally favorited IDs
+      const merged = Array.from(new Set([...serverIds, ...localFavs]));
+      favoriteIdsCache = merged;
+      writeLocalFavorites(merged);
       isInitialized = true;
       notifySubscribers();
+
+      // Sync any local favorites that were added offline/as guest to the server
+      const missingOnServer = localFavs.filter((id) => !serverIds.includes(id));
+      if (missingOnServer.length > 0) {
+        Promise.allSettled(
+          missingOnServer.map((id) =>
+            apiFetch('/favorit', {
+              method: 'POST',
+              body: JSON.stringify({ car_id: id }),
+            })
+          )
+        ).catch(() => {});
+      }
     }
   } catch {
-    // Fail silently if guest or network error
+    // If server call fails, fallback to local storage seamlessly
+    favoriteIdsCache = localFavs;
+    isInitialized = true;
+    notifySubscribers();
   } finally {
     isLoading = false;
   }
@@ -149,14 +185,26 @@ export async function fetchFavoriteIds(force = false): Promise<number[]> {
 }
 
 export function getFavoriteIds(): number[] {
+  if (!isInitialized) {
+    favoriteIdsCache = readLocalFavorites();
+    isInitialized = true;
+  }
   return [...favoriteIdsCache];
 }
 
 export function getFavoriteCount(): number {
+  if (!isInitialized) {
+    favoriteIdsCache = readLocalFavorites();
+    isInitialized = true;
+  }
   return favoriteIdsCache.length;
 }
 
 export function isFavorite(carId: number): boolean {
+  if (!isInitialized) {
+    favoriteIdsCache = readLocalFavorites();
+    isInitialized = true;
+  }
   return favoriteIdsCache.includes(carId);
 }
 
@@ -173,19 +221,13 @@ export async function toggleFavorite(
     onRequireLogin?: () => void;
   }
 ): Promise<boolean> {
-  const token = getToken();
-  if (!token) {
-    savePendingFavorite(carId, options?.returnTo || (typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/cari'));
-    if (options?.onRequireLogin) {
-      options.onRequireLogin();
-    } else {
-      requestLoginPrompt();
-    }
-    return false;
+  if (!isInitialized) {
+    favoriteIdsCache = readLocalFavorites();
+    isInitialized = true;
   }
 
-  const alreadyFavorited = isFavorite(carId);
-  const previousState = [...favoriteIdsCache];
+  const alreadyFavorited = favoriteIdsCache.includes(carId);
+  const token = getToken();
 
   if (undoTimer) {
     clearTimeout(undoTimer);
@@ -193,8 +235,9 @@ export async function toggleFavorite(
   }
 
   if (alreadyFavorited) {
-    // Optimistic removal
+    // 1. Remove favorite
     favoriteIdsCache = favoriteIdsCache.filter((id) => id !== carId);
+    writeLocalFavorites(favoriteIdsCache);
     notifySubscribers();
 
     notifyToast({
@@ -204,48 +247,38 @@ export async function toggleFavorite(
       action: {
         label: 'Urungkan',
         onClick: async () => {
-          try {
-            await apiFetch('/favorit', {
-              method: 'POST',
-              body: JSON.stringify({ car_id: carId }),
-            });
-            if (!favoriteIdsCache.includes(carId)) {
-              favoriteIdsCache = [...favoriteIdsCache, carId];
-              notifySubscribers();
-            }
-            notifyToast({
-              show: true,
-              message: 'Ditambahkan kembali ke Favorit saya',
-              type: 'success',
-            });
-          } catch {
-            notifyToast({
-              show: true,
-              message: 'Gagal mengembalikan favorit',
-              type: 'error',
-            });
+          if (!favoriteIdsCache.includes(carId)) {
+            favoriteIdsCache = [...favoriteIdsCache, carId];
+            writeLocalFavorites(favoriteIdsCache);
+            notifySubscribers();
           }
+          if (token) {
+            try {
+              await apiFetch('/favorit', {
+                method: 'POST',
+                body: JSON.stringify({ car_id: carId }),
+              });
+            } catch {}
+          }
+          notifyToast({
+            show: true,
+            message: 'Ditambahkan kembali ke Favorit saya',
+            type: 'success',
+          });
         },
       },
     });
 
-    try {
-      await apiFetch(`/favorit/${carId}`, { method: 'DELETE' });
-      return false;
-    } catch {
-      // Rollback on network failure
-      favoriteIdsCache = previousState;
-      notifySubscribers();
-      notifyToast({
-        show: true,
-        message: 'Gagal menghapus favorit. Silakan coba lagi.',
-        type: 'error',
-      });
-      return true;
+    if (token) {
+      try {
+        await apiFetch(`/favorit/${carId}`, { method: 'DELETE' });
+      } catch {}
     }
+    return false;
   } else {
-    // Optimistic addition
+    // 2. Add favorite
     favoriteIdsCache = [...favoriteIdsCache, carId];
+    writeLocalFavorites(favoriteIdsCache);
     notifySubscribers();
 
     notifyToast({
@@ -254,23 +287,24 @@ export async function toggleFavorite(
       type: 'success',
     });
 
-    try {
-      await apiFetch('/favorit', {
-        method: 'POST',
-        body: JSON.stringify({ car_id: carId }),
-      });
-      return true;
-    } catch {
-      // Rollback on network failure
-      favoriteIdsCache = previousState;
-      notifySubscribers();
-      notifyToast({
-        show: true,
-        message: 'Gagal menambahkan favorit. Silakan coba lagi.',
-        type: 'error',
-      });
-      return false;
+    if (token) {
+      try {
+        await apiFetch('/favorit', {
+          method: 'POST',
+          body: JSON.stringify({ car_id: carId }),
+        });
+      } catch {}
+    } else {
+      // For guest, also save pending in case they log in later
+      savePendingFavorite(
+        carId,
+        options?.returnTo ||
+          (typeof window !== 'undefined'
+            ? window.location.pathname + window.location.search
+            : '/cari')
+      );
     }
+    return true;
   }
 }
 
@@ -290,6 +324,7 @@ export async function processPendingFavorite(navigate?: (to: string) => void): P
 
     if (!favoriteIdsCache.includes(pending.carId)) {
       favoriteIdsCache = [...favoriteIdsCache, pending.carId];
+      writeLocalFavorites(favoriteIdsCache);
       notifySubscribers();
     }
 
@@ -298,9 +333,7 @@ export async function processPendingFavorite(navigate?: (to: string) => void): P
       message: 'Ditambahkan ke Favorit saya',
       type: 'success',
     });
-  } catch {
-    // non-blocking
-  }
+  } catch {}
 
   const safeReturn = sanitizeInternalPath(pending.returnTo, '/cari');
   if (navigate && safeReturn) {
@@ -309,8 +342,12 @@ export async function processPendingFavorite(navigate?: (to: string) => void): P
 }
 
 export async function saveFavoriteNote(carId: number, catatan: string): Promise<void> {
-  await apiFetch(`/favorit/${carId}/catatan`, {
-    method: 'PUT',
-    body: JSON.stringify({ catatan }),
-  });
+  const token = getToken();
+  if (!token) return;
+  try {
+    await apiFetch(`/favorit/${carId}/catatan`, {
+      method: 'PUT',
+      body: JSON.stringify({ catatan }),
+    });
+  } catch {}
 }

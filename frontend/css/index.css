@@ -2,34 +2,34 @@
   --primary: #2563EB;
   --primary-hover: #1D4ED8;
   --primary-light: #EFF6FF;
-  
+
   /* Segment Colors */
   --seg-0: #2557D6;
   --seg-0-light: #EEF2FF;
   --seg-0-dark: #1E40AF;
-  
+
   --seg-1: #0CA678;
   --seg-1-light: #E6FCF5;
   --seg-1-dark: #099268;
-  
+
   --seg-2: #AE3EC9;
   --seg-2-light: #F8F0FC;
   --seg-2-dark: #862E9C;
-  
+
   /* Neutrals */
   --bg-page: #F8FAFC;
-  --bg-card: #FFFFFF;
+  --bg-card: #d00f0f;
   --text-main: #0F172A;
   --text-muted: #64748B;
   --text-light: #94A3B8;
   --border: #E2E8F0;
   --border-focus: #94A3B8;
-  
+
   /* Accents */
   --accent-amber: #F59E0B;
   --accent-red: #EF4444;
   --accent-green: #10B981;
-  
+
   /* Effects */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
@@ -39,8 +39,8 @@
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-full: 9999px;
-  
-  --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  --transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
@@ -57,7 +57,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, .brand-title {
+h1,
+h2,
+h3,
+h4,
+.brand-title {
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -268,7 +272,8 @@ h1, h2, h3, h4, .brand-title {
   gap: 0.4rem;
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover,
+.nav-link.active {
   color: var(--primary);
   background: var(--primary-light);
 }
@@ -363,13 +368,38 @@ h1, h2, h3, h4, .brand-title {
   border-radius: var(--radius-full);
 }
 
-.badge-seg-0 { background: var(--seg-0-light); color: var(--seg-0-dark); border: 1px solid rgba(37, 87, 214, 0.2); }
-.badge-seg-1 { background: var(--seg-1-light); color: var(--seg-1-dark); border: 1px solid rgba(12, 166, 120, 0.2); }
-.badge-seg-2 { background: var(--seg-2-light); color: var(--seg-2-dark); border: 1px solid rgba(174, 62, 201, 0.2); }
+.badge-seg-0 {
+  background: var(--seg-0-light);
+  color: var(--seg-0-dark);
+  border: 1px solid rgba(37, 87, 214, 0.2);
+}
 
-.badge-draft { background: #FEF3C7; color: #92400E; }
-.badge-tayang { background: #D1FAE5; color: #065F46; }
-.badge-info { background: #E0E7FF; color: #3730A3; }
+.badge-seg-1 {
+  background: var(--seg-1-light);
+  color: var(--seg-1-dark);
+  border: 1px solid rgba(12, 166, 120, 0.2);
+}
+
+.badge-seg-2 {
+  background: var(--seg-2-light);
+  color: var(--seg-2-dark);
+  border: 1px solid rgba(174, 62, 201, 0.2);
+}
+
+.badge-draft {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.badge-tayang {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.badge-info {
+  background: #E0E7FF;
+  color: #3730A3;
+}
 
 /* Main Container */
 .main-wrapper {
@@ -525,9 +555,17 @@ h1, h2, h3, h4, .brand-title {
   height: 5px;
 }
 
-.segment-card.seg-0::before { background: var(--seg-0); }
-.segment-card.seg-1::before { background: var(--seg-1); }
-.segment-card.seg-2::before { background: var(--seg-2); }
+.segment-card.seg-0::before {
+  background: var(--seg-0);
+}
+
+.segment-card.seg-1::before {
+  background: var(--seg-1);
+}
+
+.segment-card.seg-2::before {
+  background: var(--seg-2);
+}
 
 .segment-header {
   display: flex;
@@ -898,12 +936,24 @@ h1, h2, h3, h4, .brand-title {
   animation: slideUp 0.3s ease;
 }
 
-.toast.success { border-left: 4px solid var(--accent-green); }
-.toast.error { border-left: 4px solid var(--accent-red); }
+.toast.success {
+  border-left: 4px solid var(--accent-green);
+}
+
+.toast.error {
+  border-left: 4px solid var(--accent-red);
+}
 
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Responsive */
@@ -912,17 +962,20 @@ h1, h2, h3, h4, .brand-title {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
+
   .marketing-benefits-grid {
     grid-template-columns: 1fr;
   }
+
   .marketing-headline {
     font-size: 2.1rem;
   }
+
   .segments-grid {
     grid-template-columns: 1fr;
   }
+
   .search-grid {
     grid-template-columns: 1fr;
   }
 }
-

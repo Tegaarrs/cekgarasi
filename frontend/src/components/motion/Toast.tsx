@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { spring, dur, ease } from '@/lib/motion';
+import { X } from 'lucide-react';
 
 interface ToastProps {
   show: boolean;
@@ -58,10 +59,10 @@ export function Toast({
           {onClose && (
             <button
               onClick={onClose}
-              className="ml-2 rounded p-1 opacity-75 hover:opacity-100 focus:outline-none"
+              className="ml-2 rounded p-1 opacity-75 hover:opacity-100 focus:outline-none cursor-pointer"
               aria-label="Tutup notifikasi"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </motion.div>

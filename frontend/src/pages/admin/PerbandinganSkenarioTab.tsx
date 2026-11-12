@@ -4,7 +4,8 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend, Cell 
 } from 'recharts';
 import { 
-  RefreshCw, AlertCircle, Info, Layers, CheckCircle2, TrendingUp, Sparkles, Sliders 
+  RefreshCw, AlertCircle, Info, Layers, CheckCircle2, TrendingUp, Sparkles, Sliders,
+  Filter, Target, ArrowRight
 } from 'lucide-react';
 import { AnimatedNumber } from '@/components/motion/AnimatedNumber';
 import { Skeleton } from '@/components/motion/Skeleton';
@@ -89,10 +90,27 @@ export function PerbandinganSkenarioTab() {
   const shouldReduce = useReducedMotion();
 
   const [selectedK, setSelectedK] = useState<number>(3);
+  const [focusedScenario, setFocusedScenario] = useState<'all' | 'produksi' | 'A' | 'B'>('all');
+  const [hoveredScenario, setHoveredScenario] = useState<string | null>(null);
   const [data, setData] = useState<ScenarioSummaryResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [profileViewTab, setProfileViewTab] = useState<'semua' | 'produksi' | 'A' | 'B'>('semua');
+
+  const activeScenario = hoveredScenario || (focusedScenario !== 'all' ? focusedScenario : null);
+
+  const getBarOpacity = (scenarioId: string) => {
+    if (!activeScenario) return 1.0;
+    return activeScenario === scenarioId ? 1.0 : 0.28;
+  };
+
+  const toggleFocus = (scId: 'produksi' | 'A' | 'B') => {
+    if (focusedScenario === scId) {
+      setFocusedScenario('all');
+    } else {
+      setFocusedScenario(scId);
+    }
+  };
 
   const loadData = (kVal: number) => {
     setLoading(true);
@@ -127,63 +145,87 @@ export function PerbandinganSkenarioTab() {
   // Data for Chart 1: Silhouette Comparison (Train & Test)
   const silhouetteChartData = [
     {
+      id: 'produksi',
       skenario: 'Produksi',
-      fullSkenario: 'Skenario Produksi',
+      fullSkenario: 'Skenario Produksi (4D Baseline)',
       silhouette: prod?.silhouette ?? 0,
       silhouette_uji: prod?.silhouette_uji ?? 0,
       color: '#2563EB',
+      delta: 0,
     },
     {
+      id: 'A',
       skenario: 'Skenario A',
-      fullSkenario: 'Skenario A (+ Tipe Bodi)',
+      fullSkenario: 'Skenario A (+ Tipe Bodi One-Hot 7D)',
       silhouette: a?.silhouette ?? 0,
       silhouette_uji: a?.silhouette_uji ?? 0,
       color: '#8B5CF6',
+      delta: (a?.silhouette ?? 0) - (prod?.silhouette ?? 0),
     },
     {
+      id: 'B',
       skenario: 'Skenario B',
-      fullSkenario: 'Skenario B (Tanpa Tahun)',
+      fullSkenario: 'Skenario B (Tanpa Variabel Tahun 3D)',
       silhouette: b?.silhouette ?? 0,
       silhouette_uji: b?.silhouette_uji ?? 0,
       color: '#0D9488',
+      delta: (b?.silhouette ?? 0) - (prod?.silhouette ?? 0),
     },
   ];
 
   // Data for Chart 2: Davies-Bouldin Comparison (Lower is better)
   const daviesBouldinChartData = [
     {
+      id: 'produksi',
       skenario: 'Produksi',
+      fullSkenario: 'Skenario Produksi (4D Baseline)',
       davies_bouldin: prod?.davies_bouldin ?? 0,
       color: '#2563EB',
+      delta: 0,
     },
     {
+      id: 'A',
       skenario: 'Skenario A',
+      fullSkenario: 'Skenario A (+ Tipe Bodi One-Hot 7D)',
       davies_bouldin: a?.davies_bouldin ?? 0,
       color: '#8B5CF6',
+      delta: (a?.davies_bouldin ?? 0) - (prod?.davies_bouldin ?? 0),
     },
     {
+      id: 'B',
       skenario: 'Skenario B',
+      fullSkenario: 'Skenario B (Tanpa Variabel Tahun 3D)',
       davies_bouldin: b?.davies_bouldin ?? 0,
       color: '#0D9488',
+      delta: (b?.davies_bouldin ?? 0) - (prod?.davies_bouldin ?? 0),
     },
   ];
 
   // Data for Chart 3: Calinski-Harabasz Comparison (Higher is better)
   const calinskiChartData = [
     {
+      id: 'produksi',
       skenario: 'Produksi',
+      fullSkenario: 'Skenario Produksi (4D Baseline)',
       calinski_harabasz: prod?.calinski_harabasz ?? 0,
       color: '#2563EB',
+      delta: 0,
     },
     {
+      id: 'A',
       skenario: 'Skenario A',
+      fullSkenario: 'Skenario A (+ Tipe Bodi One-Hot 7D)',
       calinski_harabasz: a?.calinski_harabasz ?? 0,
       color: '#8B5CF6',
+      delta: (a?.calinski_harabasz ?? 0) - (prod?.calinski_harabasz ?? 0),
     },
     {
+      id: 'B',
       skenario: 'Skenario B',
+      fullSkenario: 'Skenario B (Tanpa Variabel Tahun 3D)',
       calinski_harabasz: b?.calinski_harabasz ?? 0,
       color: '#0D9488',
+      delta: (b?.calinski_harabasz ?? 0) - (prod?.calinski_harabasz ?? 0),
     },
   ];
 
@@ -546,32 +588,91 @@ export function PerbandinganSkenarioTab() {
         </div>
       </div>
 
-      {/* 2. Three Bar Charts */}
-      <div>
-        <div className="mb-4">
-          <h2 className="font-display text-base font-bold text-slate-900 flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-indigo-600" />
-            Visualisasi Grafik Komparasi Metrik (Tiga Bar Chart)
-          </h2>
-          <p className="text-xs text-slate-500">
-            Perbandingan grafis langsung antara Skenario Produksi, Skenario A, dan Skenario B
-          </p>
+      {/* 2. Three Bar Charts with Interactive Cross-Chart Highlighting */}
+      <div id="visualisasi-tiga-barchart" className="space-y-4">
+        {/* Header & Scenario Focus Selector */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/90 backdrop-blur-md p-5 rounded-3xl border border-slate-200/90 shadow-sm">
+          <div>
+            <h2 className="font-display text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-indigo-600" />
+              Visualisasi Grafik Komparasi Metrik (Tiga Bar Chart)
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Perbandingan grafis langsung antara Skenario Produksi, Skenario A, dan Skenario B. Klik bar atau pilih fokus untuk menginspeksi perbedaan lintas ketiga grafik.
+            </p>
+          </div>
+
+          {/* Interactive Scenario Focus Pills */}
+          <div className="flex items-center gap-1.5 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80 shadow-inner flex-wrap">
+            <span className="text-[10px] font-bold text-slate-500 px-2 uppercase tracking-wider flex items-center gap-1">
+              <Filter className="h-3 w-3 text-slate-400" />
+              Sorot Skenario:
+            </span>
+            {[
+              { id: 'all', label: 'Semua Skenario', color: 'bg-white text-slate-800' },
+              { id: 'produksi', label: 'Produksi (4D)', color: 'bg-blue-600 text-white' },
+              { id: 'A', label: 'Skenario A (7D)', color: 'bg-purple-600 text-white' },
+              { id: 'B', label: 'Skenario B (3D)', color: 'bg-teal-600 text-white' },
+            ].map((pill) => {
+              const isSelected = focusedScenario === pill.id;
+              return (
+                <button
+                  key={pill.id}
+                  onClick={() => setFocusedScenario(pill.id as typeof focusedScenario)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all duration-200 shadow-xs ${
+                    isSelected
+                      ? `${pill.color} shadow-sm scale-105 ring-2 ring-slate-900/10`
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                  }`}
+                >
+                  {pill.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
+        {/* Active Focus Alert Banner */}
+        {activeScenario && (
+          <div className="flex items-center justify-between px-4 py-2.5 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white text-xs shadow-sm">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span>
+                Fokus Interaktif Aktif:{' '}
+                <strong className="text-emerald-300">
+                  {activeScenario === 'produksi' ? 'Skenario Produksi (4D Baseline)' : activeScenario === 'A' ? 'Skenario A (+Tipe Bodi One-Hot 7D)' : 'Skenario B (Tanpa Variabel Tahun 3D)'}
+                </strong>
+                . Bar skenario terpilih di-highlight di ketiga grafik secara serentak.
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setFocusedScenario('all');
+                setHoveredScenario(null);
+              }}
+              className="text-[11px] underline text-slate-300 hover:text-white font-medium"
+            >
+              Reset ke Semua
+            </button>
+          </div>
+        )}
+
+        {/* 3 Bar Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Bar Chart 1: Silhouette Score */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col justify-between">
+          <div className="rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
             <div>
               <div className="flex items-center justify-between mb-1">
-                <h3 className="font-display text-sm font-bold text-slate-900">
+                <h3 className="font-display text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-blue-600"></span>
                   1. Koefisien Silhouette
                 </h3>
-                <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
-                  Higher is Better
+                <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-lg">
+                  Lebih Tinggi Lebih Baik
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 mb-4">
-                Membandingkan Silhouette Data Latih vs Test Holdout (80/20)
+              <p className="text-[11px] text-slate-500 mb-3">
+                Membandingkan Silhouette Data Latih vs Test Holdout (80/20). Klik bar untuk fokus.
               </p>
             </div>
 
@@ -584,17 +685,42 @@ export function PerbandinganSkenarioTab() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={silhouetteChartData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                    <XAxis dataKey="skenario" stroke="#94A3B8" fontSize={11} />
-                    <YAxis stroke="#94A3B8" fontSize={11} domain={[0, 0.45]} />
+                    <XAxis dataKey="skenario" stroke="#94A3B8" fontSize={11} tick={{ fill: '#475569', fontWeight: 600 }} />
+                    <YAxis stroke="#94A3B8" fontSize={11} domain={[0, 0.45]} tick={{ fill: '#475569' }} tickFormatter={(v) => v.toFixed(2)} />
                     <Tooltip
                       content={({ payload }) => {
                         if (!payload || !payload.length) return null;
                         const item = payload[0].payload;
+                        const delta = item.delta;
                         return (
-                          <div className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-md text-xs space-y-1">
-                            <div className="font-bold text-slate-900">{item.fullSkenario}</div>
-                            <div className="text-blue-600">Latih (Train): {item.silhouette.toFixed(4)}</div>
-                            <div className="text-slate-500">Uji (Test): {item.silhouette_uji.toFixed(4)}</div>
+                          <div className="rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-md p-3.5 shadow-xl text-xs space-y-1.5 min-w-[210px]">
+                            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                              <span className="font-extrabold text-slate-900">{item.fullSkenario}</span>
+                              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 font-bold">K={selectedK}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-slate-600">
+                              <span>Latih (Train):</span>
+                              <span className="font-mono font-bold text-blue-600">{item.silhouette.toFixed(4)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-slate-500">
+                              <span>Uji Holdout:</span>
+                              <span className="font-mono font-bold text-slate-700">{item.silhouette_uji.toFixed(4)}</span>
+                            </div>
+                            {item.id !== 'produksi' ? (
+                              <div className="flex justify-between items-center text-[11px] pt-1 border-t border-slate-100">
+                                <span>Selisih vs Baseline:</span>
+                                <span className={`font-mono font-bold ${delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                  {delta >= 0 ? `▲ +${delta.toFixed(4)}` : `▼ ${delta.toFixed(4)}`}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="text-[10px] text-blue-700 font-bold pt-1 border-t border-slate-100">
+                                Standar Baseline Produksi
+                              </div>
+                            )}
+                            <div className="text-[9px] text-slate-400 italic text-center pt-0.5">
+                              Klik bar untuk mengunci fokus
+                            </div>
                           </div>
                         );
                       }}
@@ -604,34 +730,64 @@ export function PerbandinganSkenarioTab() {
                       height={32}
                       formatter={(val) => <span className="text-[10px] text-slate-600 font-semibold">{val === 'silhouette' ? 'Silhouette Latih' : 'Silhouette Uji'}</span>}
                     />
-                    <Bar dataKey="silhouette" name="silhouette" fill="#2563EB" radius={[4, 4, 0, 0]} isAnimationActive={!shouldReduce} animationDuration={700}>
-                      {silhouetteChartData.map((entry, idx) => (
-                        <Cell key={`sil-cell-${idx}`} fill={entry.color} />
-                      ))}
+                    <Bar 
+                      dataKey="silhouette" 
+                      name="silhouette" 
+                      radius={[6, 6, 0, 0]} 
+                      isAnimationActive={!shouldReduce} 
+                      animationDuration={600}
+                    >
+                      {silhouetteChartData.map((entry) => {
+                        const isFocused = activeScenario === entry.id;
+                        return (
+                          <Cell 
+                            key={`sil-cell-${entry.id}`} 
+                            fill={entry.color} 
+                            fillOpacity={getBarOpacity(entry.id)}
+                            stroke={isFocused ? '#0F172A' : undefined}
+                            strokeWidth={isFocused ? 2.5 : 0}
+                            className="cursor-pointer transition-all duration-200"
+                            onMouseEnter={() => setHoveredScenario(entry.id)}
+                            onMouseLeave={() => setHoveredScenario(null)}
+                            onClick={() => toggleFocus(entry.id as 'produksi' | 'A' | 'B')}
+                          />
+                        );
+                      })}
                     </Bar>
-                    <Bar dataKey="silhouette_uji" name="silhouette_uji" fill="#94A3B8" radius={[4, 4, 0, 0]} isAnimationActive={!shouldReduce} animationDuration={700} />
+                    <Bar 
+                      dataKey="silhouette_uji" 
+                      name="silhouette_uji" 
+                      fill="#94A3B8" 
+                      fillOpacity={activeScenario ? 0.4 : 0.8}
+                      radius={[6, 6, 0, 0]} 
+                      isAnimationActive={!shouldReduce} 
+                      animationDuration={600} 
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               )}
             </div>
-            <div className="pt-2 text-[10px] text-slate-400 border-t border-slate-100 mt-2">
-              B = 0.3526 | Produksi = 0.3061 | A = 0.2865
+            
+            <div className="pt-2.5 text-[10px] text-slate-500 border-t border-slate-100 mt-2 flex items-center justify-between">
+              <span>B = <strong>{b?.silhouette.toFixed(3) ?? '-'}</strong> | Prod = <strong>{prod?.silhouette.toFixed(3) ?? '-'}</strong> | A = <strong>{a?.silhouette.toFixed(3) ?? '-'}</strong></span>
+              <span className="text-blue-600 font-bold">K={selectedK}</span>
             </div>
           </div>
 
           {/* Bar Chart 2: Davies-Bouldin Index */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col justify-between">
+          <div className="rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
             <div>
               <div className="flex items-center justify-between mb-1">
-                <h3 className="font-display text-sm font-bold text-slate-900">
+                <h3 className="font-display text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-emerald-600"></span>
                   2. Davies-Bouldin Index
                 </h3>
-                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                  Lower is Better
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg">
+                  Lebih Rendah Lebih Baik
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 mb-4">
-                Derajat kemiripan antar-klaster (jarak intra vs inter klaster)
+              <p className="text-[11px] text-slate-500 mb-3">
+                Derajat kemiripan antar-klaster (jarak intra vs inter klaster). Klik bar untuk fokus.
               </p>
             </div>
 
@@ -644,47 +800,90 @@ export function PerbandinganSkenarioTab() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={daviesBouldinChartData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                    <XAxis dataKey="skenario" stroke="#94A3B8" fontSize={11} />
-                    <YAxis stroke="#94A3B8" fontSize={11} domain={[0, 1.5]} />
+                    <XAxis dataKey="skenario" stroke="#94A3B8" fontSize={11} tick={{ fill: '#475569', fontWeight: 600 }} />
+                    <YAxis stroke="#94A3B8" fontSize={11} domain={[0, 1.5]} tick={{ fill: '#475569' }} tickFormatter={(v) => v.toFixed(1)} />
                     <Tooltip
                       content={({ payload }) => {
                         if (!payload || !payload.length) return null;
                         const item = payload[0].payload;
+                        const delta = item.delta;
                         return (
-                          <div className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-md text-xs">
-                            <div className="font-bold text-slate-900">{item.skenario}</div>
-                            <div className="text-emerald-700 font-semibold">Davies-Bouldin: {item.davies_bouldin.toFixed(3)}</div>
+                          <div className="rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-md p-3.5 shadow-xl text-xs space-y-1.5 min-w-[210px]">
+                            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                              <span className="font-extrabold text-slate-900">{item.fullSkenario}</span>
+                              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 font-bold">K={selectedK}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-slate-600">
+                              <span>Davies-Bouldin Index:</span>
+                              <span className="font-mono font-bold text-emerald-700">{item.davies_bouldin.toFixed(3)}</span>
+                            </div>
+                            {item.id !== 'produksi' ? (
+                              <div className="flex justify-between items-center text-[11px] pt-1 border-t border-slate-100">
+                                <span>Selisih vs Baseline:</span>
+                                <span className={`font-mono font-bold ${delta <= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                  {delta <= 0 ? `▲ Lebih Baik (${delta.toFixed(3)})` : `▼ Lebih Buruk (+${delta.toFixed(3)})`}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="text-[10px] text-blue-700 font-bold pt-1 border-t border-slate-100">
+                                Standar Baseline Produksi
+                              </div>
+                            )}
+                            <div className="text-[9px] text-slate-400 italic text-center pt-0.5">
+                              Klik bar untuk mengunci fokus
+                            </div>
                           </div>
                         );
                       }}
                     />
-                    <Bar dataKey="davies_bouldin" radius={[6, 6, 0, 0]} isAnimationActive={!shouldReduce} animationDuration={700}>
-                      {daviesBouldinChartData.map((entry, idx) => (
-                        <Cell key={`db-cell-${idx}`} fill={entry.color} />
-                      ))}
+                    <Bar 
+                      dataKey="davies_bouldin" 
+                      radius={[6, 6, 0, 0]} 
+                      isAnimationActive={!shouldReduce} 
+                      animationDuration={600}
+                    >
+                      {daviesBouldinChartData.map((entry) => {
+                        const isFocused = activeScenario === entry.id;
+                        return (
+                          <Cell 
+                            key={`db-cell-${entry.id}`} 
+                            fill={entry.color} 
+                            fillOpacity={getBarOpacity(entry.id)}
+                            stroke={isFocused ? '#0F172A' : undefined}
+                            strokeWidth={isFocused ? 2.5 : 0}
+                            className="cursor-pointer transition-all duration-200"
+                            onMouseEnter={() => setHoveredScenario(entry.id)}
+                            onMouseLeave={() => setHoveredScenario(null)}
+                            onClick={() => toggleFocus(entry.id as 'produksi' | 'A' | 'B')}
+                          />
+                        );
+                      })}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               )}
             </div>
-            <div className="pt-2 text-[10px] text-slate-400 border-t border-slate-100 mt-2">
-              B = 1.014 (Optimal) | Produksi = 1.108 | A = 1.202
+            
+            <div className="pt-2.5 text-[10px] text-slate-500 border-t border-slate-100 mt-2 flex items-center justify-between">
+              <span>B = <strong>{b?.davies_bouldin.toFixed(3) ?? '-'}</strong> | Prod = <strong>{prod?.davies_bouldin.toFixed(3) ?? '-'}</strong> | A = <strong>{a?.davies_bouldin.toFixed(3) ?? '-'}</strong></span>
+              <span className="text-emerald-600 font-bold">Mendekati 0 Lebih Bagus</span>
             </div>
           </div>
 
           {/* Bar Chart 3: Calinski-Harabasz Score */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col justify-between">
+          <div className="rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
             <div>
               <div className="flex items-center justify-between mb-1">
-                <h3 className="font-display text-sm font-bold text-slate-900">
+                <h3 className="font-display text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-purple-600"></span>
                   3. Calinski-Harabasz Score
                 </h3>
-                <span className="text-[10px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">
-                  Higher is Better
+                <span className="text-[10px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-lg">
+                  Lebih Tinggi Lebih Baik
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 mb-4">
-                Rasio dispersi total (antara varians antar klaster vs dalam klaster)
+              <p className="text-[11px] text-slate-500 mb-3">
+                Rasio dispersi total (varians antar-klaster vs dalam-klaster). Klik bar untuk fokus.
               </p>
             </div>
 
@@ -697,31 +896,273 @@ export function PerbandinganSkenarioTab() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={calinskiChartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                    <XAxis dataKey="skenario" stroke="#94A3B8" fontSize={11} />
-                    <YAxis stroke="#94A3B8" fontSize={11} domain={[0, 400]} />
+                    <XAxis dataKey="skenario" stroke="#94A3B8" fontSize={11} tick={{ fill: '#475569', fontWeight: 600 }} />
+                    <YAxis stroke="#94A3B8" fontSize={11} domain={[0, 400]} tick={{ fill: '#475569' }} />
                     <Tooltip
                       content={({ payload }) => {
                         if (!payload || !payload.length) return null;
                         const item = payload[0].payload;
+                        const delta = item.delta;
                         return (
-                          <div className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-md text-xs">
-                            <div className="font-bold text-slate-900">{item.skenario}</div>
-                            <div className="text-purple-700 font-semibold">Calinski-Harabasz: {item.calinski_harabasz.toFixed(1)}</div>
+                          <div className="rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-md p-3.5 shadow-xl text-xs space-y-1.5 min-w-[210px]">
+                            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                              <span className="font-extrabold text-slate-900">{item.fullSkenario}</span>
+                              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 font-bold">K={selectedK}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-slate-600">
+                              <span>Calinski-Harabasz:</span>
+                              <span className="font-mono font-bold text-purple-700">{item.calinski_harabasz.toFixed(1)}</span>
+                            </div>
+                            {item.id !== 'produksi' ? (
+                              <div className="flex justify-between items-center text-[11px] pt-1 border-t border-slate-100">
+                                <span>Selisih vs Baseline:</span>
+                                <span className={`font-mono font-bold ${delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                  {delta >= 0 ? `▲ +${delta.toFixed(1)}` : `▼ ${delta.toFixed(1)}`}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="text-[10px] text-blue-700 font-bold pt-1 border-t border-slate-100">
+                                Standar Baseline Produksi
+                              </div>
+                            )}
+                            <div className="text-[9px] text-slate-400 italic text-center pt-0.5">
+                              Klik bar untuk mengunci fokus
+                            </div>
                           </div>
                         );
                       }}
                     />
-                    <Bar dataKey="calinski_harabasz" radius={[6, 6, 0, 0]} isAnimationActive={!shouldReduce} animationDuration={700}>
-                      {calinskiChartData.map((entry, idx) => (
-                        <Cell key={`ch-cell-${idx}`} fill={entry.color} />
-                      ))}
+                    <Bar 
+                      dataKey="calinski_harabasz" 
+                      radius={[6, 6, 0, 0]} 
+                      isAnimationActive={!shouldReduce} 
+                      animationDuration={600}
+                    >
+                      {calinskiChartData.map((entry) => {
+                        const isFocused = activeScenario === entry.id;
+                        return (
+                          <Cell 
+                            key={`ch-cell-${entry.id}`} 
+                            fill={entry.color} 
+                            fillOpacity={getBarOpacity(entry.id)}
+                            stroke={isFocused ? '#0F172A' : undefined}
+                            strokeWidth={isFocused ? 2.5 : 0}
+                            className="cursor-pointer transition-all duration-200"
+                            onMouseEnter={() => setHoveredScenario(entry.id)}
+                            onMouseLeave={() => setHoveredScenario(null)}
+                            onClick={() => toggleFocus(entry.id as 'produksi' | 'A' | 'B')}
+                          />
+                        );
+                      })}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               )}
             </div>
-            <div className="pt-2 text-[10px] text-slate-400 border-t border-slate-100 mt-2">
-              B = 329.1 | Produksi = 284.0 | A = 257.6
+            
+            <div className="pt-2.5 text-[10px] text-slate-500 border-t border-slate-100 mt-2 flex items-center justify-between">
+              <span>B = <strong>{b?.calinski_harabasz.toFixed(1) ?? '-'}</strong> | Prod = <strong>{prod?.calinski_harabasz.toFixed(1) ?? '-'}</strong> | A = <strong>{a?.calinski_harabasz.toFixed(1) ?? '-'}</strong></span>
+              <span className="text-purple-600 font-bold">Rasio Dispersi</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Interactive Head-to-Head Comparative Deep-Dive Inspector */}
+        <div className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+            <div>
+              <h3 className="font-display text-base font-bold text-slate-900 flex items-center gap-2">
+                <Target className="h-4 w-4 text-blue-600" />
+                Panel Komparasi Grafis Langsung (Head-to-Head Deep Dive)
+              </h3>
+              <p className="text-xs text-slate-500">
+                Interpretasi matematis dan domain bisnis showroom mengapa tiap skenario menghasilkan metrik yang berbeda
+              </p>
+            </div>
+            <span className="text-[11px] font-semibold text-slate-400">
+              Evaluasi Berbasis Dataset 609 Mobil (K = {selectedK})
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Card Skenario Produksi */}
+            <div 
+              onClick={() => toggleFocus('produksi')}
+              className={`cursor-pointer rounded-2xl border p-5 transition-all duration-200 ${
+                activeScenario === 'produksi'
+                  ? 'border-blue-400 bg-blue-50/70 ring-2 ring-blue-500/20 shadow-md scale-[1.02]'
+                  : 'border-blue-200 bg-blue-50/30 hover:bg-blue-50/50 hover:border-blue-300'
+              }`}
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-blue-200/70">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-blue-600"></span>
+                  <span className="font-display text-sm font-bold text-blue-900">Skenario Produksi</span>
+                </div>
+                <span className="rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 border border-blue-300">
+                  Baseline (4D)
+                </span>
+              </div>
+
+              <div className="py-3 space-y-1.5 text-xs">
+                <div className="flex justify-between text-slate-600">
+                  <span>Silhouette Latih / Uji:</span>
+                  <span className="font-mono font-bold text-blue-700">{prod?.silhouette.toFixed(4)} / {prod?.silhouette_uji.toFixed(4)}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Davies-Bouldin:</span>
+                  <span className="font-mono font-bold text-slate-900">{prod?.davies_bouldin.toFixed(3)}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Stabilitas ARI (30 Run):</span>
+                  <span className="font-mono font-bold text-emerald-700">100% (1.000)</span>
+                </div>
+              </div>
+
+              <div className="pt-2.5 border-t border-blue-200/60 text-[11px] text-slate-700 leading-relaxed space-y-1.5">
+                <p>
+                  <strong>Mengapa Paling Ideal:</strong> Menggunakan 4 fitur numerik kontinu murni <code>[harga_rp, tahun, jarak_tempuh, total_fitur]</code> yang distandarisasi Z-Score. 
+                </p>
+                <p className="text-blue-900 font-medium flex items-start gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <span>Keseimbangan sempurna antara depresiasi usia kendaraan dan jarak tempuh tanpa noise biner.</span>
+                </p>
+              </div>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProfileViewTab('produksi');
+                  const el = document.getElementById('tabel-profil-skenario');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="mt-4 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold shadow-xs transition-colors"
+              >
+                <span>Inspeksi Profil Klaster Produksi</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
+
+            {/* Card Skenario A */}
+            <div 
+              onClick={() => toggleFocus('A')}
+              className={`cursor-pointer rounded-2xl border p-5 transition-all duration-200 ${
+                activeScenario === 'A'
+                  ? 'border-purple-400 bg-purple-50/70 ring-2 ring-purple-500/20 shadow-md scale-[1.02]'
+                  : 'border-purple-200 bg-purple-50/30 hover:bg-purple-50/50 hover:border-purple-300'
+              }`}
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-purple-200/70">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-purple-600"></span>
+                  <span className="font-display text-sm font-bold text-purple-900">Skenario A</span>
+                </div>
+                <span className="rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 border border-purple-300">
+                  Kategorikal (7D)
+                </span>
+              </div>
+
+              <div className="py-3 space-y-1.5 text-xs">
+                <div className="flex justify-between text-slate-600">
+                  <span>Silhouette Score:</span>
+                  <span className="font-mono font-bold text-rose-600">
+                    {a ? `${a.silhouette.toFixed(4)} (${prod?.silhouette ? (((a.silhouette - prod.silhouette) / prod.silhouette) * 100).toFixed(1) : 0}%)` : '-'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Davies-Bouldin:</span>
+                  <span className="font-mono font-bold text-rose-600">
+                    {a?.davies_bouldin.toFixed(3)} (Lebih Buruk)
+                  </span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Calinski-Harabasz:</span>
+                  <span className="font-mono font-bold text-rose-600">{a?.calinski_harabasz.toFixed(1)}</span>
+                </div>
+              </div>
+
+              <div className="pt-2.5 border-t border-purple-200/60 text-[11px] text-slate-700 leading-relaxed space-y-1.5">
+                <p>
+                  <strong>Kutukan Dimensi & Sparse Matrix:</strong> Penambahan 5 kolom biner One-Hot <code>[Hatchback, MPV, SUV, Sedan, Niaga]</code> mendistorsi jarak Euclidean.
+                </p>
+                <p className="text-purple-950 font-medium flex items-start gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 text-purple-600 flex-shrink-0 mt-0.5" />
+                  <span>Mobil berharga dan tahun identik terpisah klaster hanya karena beda bodi, merusak kepadatan klaster.</span>
+                </p>
+              </div>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProfileViewTab('A');
+                  const el = document.getElementById('tabel-profil-skenario');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="mt-4 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold shadow-xs transition-colors"
+              >
+                <span>Inspeksi Profil Klaster Skenario A</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
+
+            {/* Card Skenario B */}
+            <div 
+              onClick={() => toggleFocus('B')}
+              className={`cursor-pointer rounded-2xl border p-5 transition-all duration-200 ${
+                activeScenario === 'B'
+                  ? 'border-teal-400 bg-teal-50/70 ring-2 ring-teal-500/20 shadow-md scale-[1.02]'
+                  : 'border-teal-200 bg-teal-50/30 hover:bg-teal-50/50 hover:border-teal-300'
+              }`}
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-teal-200/70">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-teal-600"></span>
+                  <span className="font-display text-sm font-bold text-teal-900">Skenario B</span>
+                </div>
+                <span className="rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold px-2 py-0.5 border border-teal-300">
+                  Tanpa Tahun (3D)
+                </span>
+              </div>
+
+              <div className="py-3 space-y-1.5 text-xs">
+                <div className="flex justify-between text-slate-600">
+                  <span>Silhouette Score:</span>
+                  <span className="font-mono font-bold text-teal-700">
+                    {b?.silhouette.toFixed(4)} (Skor Semu Tinggi)
+                  </span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Davies-Bouldin:</span>
+                  <span className="font-mono font-bold text-teal-700">{b?.davies_bouldin.toFixed(3)}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Dimensi Fitur:</span>
+                  <span className="font-mono font-bold text-slate-700">Hanya 3 Variabel</span>
+                </div>
+              </div>
+
+              <div className="pt-2.5 border-t border-teal-200/60 text-[11px] text-slate-700 leading-relaxed space-y-1.5">
+                <p>
+                  <strong>Anomali Matematika vs Realita Bisnis:</strong> Skor metrik tampak lebih tinggi karena dimensi berkurang ke 3D (geometri jarak Euclidean lebih rapat pada ruang berdimensi rendah).
+                </p>
+                <p className="text-teal-950 font-medium flex items-start gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0 mt-0.5" />
+                  <span>Menghilangkan variabel <code>tahun</code> fatal untuk dealer karena mengabaikan kurva depresiasi usia mobil bekas.</span>
+                </p>
+              </div>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProfileViewTab('B');
+                  const el = document.getElementById('tabel-profil-skenario');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="mt-4 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-bold shadow-xs transition-colors"
+              >
+                <span>Inspeksi Profil Klaster Skenario B</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
             </div>
           </div>
         </div>

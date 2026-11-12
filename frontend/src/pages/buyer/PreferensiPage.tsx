@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   Sparkles, Check, Plus, 
-  ArrowRight, ArrowLeft, Database, Info,
+  ArrowRight, ArrowLeft, Database,
   BrainCircuit, ShieldCheck
 } from 'lucide-react';
 
@@ -87,120 +87,120 @@ export function PreferensiPage() {
   };
 
   return (
-    <div className="w-full min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row bg-[#F9F9FF]">
+    <div className="w-full min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row bg-slate-50 dark:bg-[#0B132B] transition-colors duration-200">
       
       {/* ============================================================ */}
       {/* SPLIT SCREEN LEFT: Brand, Editorial & ML Architecture       */}
       {/* ============================================================ */}
-      <div className="relative w-full lg:w-1/2 flex flex-col justify-between p-6 sm:p-8 lg:p-12 overflow-hidden bg-[#001540] text-white min-h-[520px] lg:min-h-auto">
+      <div className="relative w-full lg:w-1/2 flex flex-col justify-between p-6 sm:p-8 lg:p-12 overflow-hidden bg-[#0B192C] text-white min-h-[520px] lg:min-h-auto border-r border-slate-800">
         
         {/* Background photo with atmospheric gradient scrim */}
         <div 
-          className="absolute inset-0 bg-cover bg-center mix-blend-luminosity opacity-25"
+          className="absolute inset-0 bg-cover bg-center mix-blend-luminosity opacity-20"
           style={{
             backgroundImage: `url('/images/hero/hero-720.webp')`
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#001540] via-[#001540]/90 to-[#001540]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0B192C] via-[#0B192C]/90 to-[#0B192C]" />
 
         {/* Left Header Lockup */}
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0F2A5F] flex items-center justify-center shadow-md">
-              <Sparkles className="h-5 w-5 text-[#FE6A2B]" />
+            <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-400/30 flex items-center justify-center shadow-md">
+              <Sparkles className="h-5 w-5 text-blue-400" />
             </div>
             <div className="flex flex-col">
               <span className="text-base font-extrabold tracking-tight text-white leading-none">
                 CekGarasi ML-Engine
               </span>
-              <span className="text-[11px] text-[#7D93CE] uppercase tracking-wider mt-1 font-semibold">
+              <span className="text-[11px] text-blue-300 uppercase tracking-wider mt-1 font-semibold">
                 Algoritma Penilai Objektif
               </span>
             </div>
           </div>
 
-          <div className="px-3 py-1 rounded-full bg-white/10 text-white text-[11px] font-bold tracking-wider flex items-center gap-2 backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-[#FE6A2B] animate-pulse" />
+          <div className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-[11px] font-bold tracking-wider flex items-center gap-2 backdrop-blur-sm border border-blue-400/30">
+            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
             <span>REALTIME CLUSTERING</span>
           </div>
         </div>
 
         {/* Left Central Editorial Content */}
         <div className="relative z-10 my-auto py-8 max-w-lg">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-[#B1C5FF] text-xs font-semibold mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-blue-300 text-xs font-semibold mb-4 border border-white/10">
             <BrainCircuit className="h-3.5 w-3.5" />
-            <span>Pengelompokan Otomatis CekGarasi</span>
+            <span>Pengelompokan Otomatis K-Means</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight mb-3">
-            Rekomendasi Cerdas Sesuai Profilmu
+            Rekomendasi Cerdas Sesuai Profil Anda
           </h1>
 
-          <p className="text-sm text-[#7D93CE] leading-relaxed mb-6">
-            Sistem CekGarasi memproses parameter riil dari 609 unit mobil terinspeksi, mengelompokkannya secara objektif berdasarkan kesesuaian anggaran, depresiasi usia, dan preferensi mobilitas harian Anda.
+          <p className="text-sm text-slate-300 leading-relaxed mb-6">
+            Sistem CekGarasi memproses parameter riil dari 610 unit mobil, mengelompokkannya secara objektif berdasarkan kesesuaian anggaran, usia kendaraan, dan kebutuhan mobilitas Anda.
           </p>
 
           {/* 3 Segmen Pasar Overview Cards */}
           <div className="space-y-2.5">
             {/* 1. Premium */}
-            <div className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+            <div className={`flex items-center justify-between p-3.5 rounded-xl transition-all ${
               predictedSegment.klaster === 0
-                ? 'bg-white/20 shadow-sm backdrop-blur-sm ring-1 ring-[#2557D6]'
-                : 'bg-white/10 backdrop-blur-sm hover:bg-white/15'
+                ? 'bg-blue-600/25 border border-blue-500 shadow-md backdrop-blur-sm'
+                : 'bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10'
             }`}>
               <div className="flex items-center gap-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#2557D6] shadow-[0_0_8px_#2557D6]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#1D4ED8] shadow-[0_0_8px_#1D4ED8]" />
                 <div>
                   <p className="text-xs font-bold text-white flex items-center gap-1.5">
                     Premium
-                    {predictedSegment.klaster === 0 && <ShieldCheck className="h-3.5 w-3.5 text-[#2557D6]" />}
+                    {predictedSegment.klaster === 0 && <ShieldCheck className="h-3.5 w-3.5 text-blue-400" />}
                   </p>
-                  <p className="text-[11px] text-[#7D93CE]">Fitur keselamatan paripurna, interior mewah, kenyamanan berkendara maksimal.</p>
+                  <p className="text-[11px] text-slate-300">Fitur keselamatan paripurna, kenyamanan berkendara mewah dan performa tinggi.</p>
                 </div>
               </div>
-              <span className="text-[10px] text-[#B1C5FF] px-2 py-0.5 rounded bg-[#0F2A5F] font-mono font-bold shrink-0">
+              <span className="text-[10px] text-blue-300 px-2 py-0.5 rounded bg-blue-950/80 font-mono font-bold shrink-0 border border-blue-800">
                 Segmen 01
               </span>
             </div>
 
             {/* 2. Keluarga Muda */}
-            <div className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+            <div className={`flex items-center justify-between p-3.5 rounded-xl transition-all ${
               predictedSegment.klaster === 1
-                ? 'bg-white/20 shadow-sm backdrop-blur-sm ring-1 ring-[#0CA678]'
-                : 'bg-white/10 backdrop-blur-sm hover:bg-white/15'
+                ? 'bg-emerald-600/25 border border-emerald-500 shadow-md backdrop-blur-sm'
+                : 'bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10'
             }`}>
               <div className="flex items-center gap-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#0CA678] shadow-[0_0_8px_#0CA678]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#059669] shadow-[0_0_8px_#059669]" />
                 <div>
                   <p className="text-xs font-bold text-white flex items-center gap-1.5">
                     Keluarga Muda
-                    {predictedSegment.klaster === 1 && <ShieldCheck className="h-3.5 w-3.5 text-[#0CA678]" />}
+                    {predictedSegment.klaster === 1 && <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />}
                   </p>
-                  <p className="text-[11px] text-[#D9E3FB]">Tahun perakitan muda, efisiensi BBM tinggi, kabin luas &amp; ramah anak.</p>
+                  <p className="text-[11px] text-slate-300">Tahun perakitan muda, efisiensi BBM tinggi, kabin lapang dan ramah keluarga.</p>
                 </div>
               </div>
-              <span className="text-[10px] text-[#0CA678] px-2 py-0.5 rounded bg-[#0CA678]/20 font-mono font-bold shrink-0">
+              <span className="text-[10px] text-emerald-300 px-2 py-0.5 rounded bg-emerald-950/80 font-mono font-bold shrink-0 border border-emerald-800">
                 Segmen 02
               </span>
             </div>
 
             {/* 3. Ekonomis */}
-            <div className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+            <div className={`flex items-center justify-between p-3.5 rounded-xl transition-all ${
               predictedSegment.klaster === 2
-                ? 'bg-white/20 shadow-sm backdrop-blur-sm ring-1 ring-[#AE3EC9]'
-                : 'bg-white/10 backdrop-blur-sm hover:bg-white/15'
+                ? 'bg-purple-600/25 border border-purple-500 shadow-md backdrop-blur-sm'
+                : 'bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10'
             }`}>
               <div className="flex items-center gap-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#AE3EC9] shadow-[0_0_8px_#AE3EC9]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#7C3AED] shadow-[0_0_8px_#7C3AED]" />
                 <div>
                   <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                    Ekonomis &amp; Efisien
-                    {predictedSegment.klaster === 2 && <ShieldCheck className="h-3.5 w-3.5 text-[#AE3EC9]" />}
+                    Ekonomis
+                    {predictedSegment.klaster === 2 && <ShieldCheck className="h-3.5 w-3.5 text-purple-400" />}
                   </p>
-                  <p className="text-[11px] text-[#7D93CE]">Perawatan terjangkau, suku cadang melimpah, rasio value-to-cost optimal.</p>
+                  <p className="text-[11px] text-slate-300">Perawatan terjangkau, suku cadang melimpah, rasio nilai-terhadap-biaya optimal.</p>
                 </div>
               </div>
-              <span className="text-[10px] text-[#B1C5FF] px-2 py-0.5 rounded bg-[#0F2A5F] font-mono font-bold shrink-0">
+              <span className="text-[10px] text-purple-300 px-2 py-0.5 rounded bg-purple-950/80 font-mono font-bold shrink-0 border border-purple-800">
                 Segmen 03
               </span>
             </div>
@@ -208,13 +208,13 @@ export function PreferensiPage() {
         </div>
 
         {/* Left Bottom Status Anchor */}
-        <div className="relative z-10 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-[#7D93CE]">
+        <div className="relative z-10 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
           <div className="flex items-center gap-2">
-            <Database className="h-4 w-4 text-[#FE6A2B]" />
-            <span className="font-semibold text-white">3 Segmen Pasar • 609 Data Mobil Terverifikasi</span>
+            <Database className="h-4 w-4 text-blue-400" />
+            <span className="font-semibold text-white">3 Segmen Pasar • 610 Data Mobil Terverifikasi</span>
           </div>
-          <div className="font-mono text-[11px] text-[#B1C5FF]">
-            3 SEGMEN PASAR OTOMATIS
+          <div className="font-mono text-[11px] text-blue-300">
+            KLUSTERISASI K-MEANS
           </div>
         </div>
       </div>
@@ -228,30 +228,30 @@ export function PreferensiPage() {
           {/* Top Nav Bar */}
           <div className="flex items-center justify-between">
             <Link
-              to="/daftar"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors group"
+              to="/cari"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors group cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
-              <span>Langkah Sebelumnya</span>
+              <span>Kembali ke Katalog</span>
             </Link>
-            <span className="font-mono text-[11px] font-bold text-slate-500 px-2 py-0.5 bg-slate-200/80 rounded">
-              ID: B2C-PREFERENCES
+            <span className="font-mono text-[11px] font-bold text-slate-500 dark:text-slate-400 px-2.5 py-1 bg-slate-200/80 dark:bg-slate-800 rounded-lg">
+              K-MEANS PREFERENCES
             </span>
           </div>
 
           {/* Progress Indicator Tag */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/60 text-[#001540] text-xs font-bold w-fit">
-            <span className="w-2 h-2 rounded-full bg-[#FE6A2B]" />
-            <span>Langkah 3 dari 3: Personalisasi Cerdas</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs font-bold w-fit">
+            <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400" />
+            <span>Personalisasi Segmen Cerdas</span>
           </div>
 
           {/* Headings */}
           <div>
-            <h2 className="text-2xl font-extrabold text-[#001540] tracking-tight">
-              Bantu kami merekomendasikan mobil yang pas
+            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              Bantu Kami Menemukan Mobil yang Tepat
             </h2>
-            <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
-              Pilih preferensi awal Anda untuk menyesuaikan hasil pencarian pertama secara akurat tanpa survei berulang.
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+              Atur anggaran dan kriteria utama Anda untuk mencocokkan segmen K-Means yang paling relevan.
             </p>
           </div>
 
@@ -259,17 +259,17 @@ export function PreferensiPage() {
           <div className="space-y-4">
             
             {/* 1. Rentang Anggaran (Budget) */}
-            <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2">
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#0E172A] border border-slate-200/90 dark:border-slate-800 shadow-soft dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] space-y-2.5">
               <div className="flex items-baseline justify-between">
-                <label className="text-xs font-bold text-[#001540]">
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
                   Rentang Anggaran (Budget)
                 </label>
-                <span className="font-display text-base font-extrabold text-[#001540] tracking-tight">
+                <span className="font-display text-base font-extrabold text-blue-600 dark:text-blue-400 tracking-tight">
                   Rp {budgetMin} Juta — Rp {budgetMax} Juta
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500">
-                Geser untuk mengatur rentang harga pembelian tunai atau plafon kredit ideal.
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Geser untuk mengatur batas atas budget pembelian Anda.
               </p>
 
               {/* Slider Track */}
@@ -281,43 +281,43 @@ export function PreferensiPage() {
                   step={10}
                   value={budgetMax}
                   onChange={(e) => setBudgetMax(Number(e.target.value))}
-                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#FE6A2B]"
+                  className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
               </div>
 
-              <div className="flex justify-between items-center text-[10px] text-slate-500 font-semibold pt-0.5">
-                <span>Rp 50 Jt</span>
-                <span className="text-blue-900 font-bold">Median Pasar: Rp 165 Jt</span>
+              <div className="flex justify-between items-center text-[10px] text-slate-500 dark:text-slate-400 font-semibold pt-0.5">
+                <span>Rp 80 Jt</span>
+                <span className="text-blue-600 dark:text-blue-400 font-bold">Pilihan Saat Ini: Rp {budgetMax} Jt</span>
                 <span>Rp 500 Jt+</span>
               </div>
             </div>
 
             {/* 2. Tahun Minimal Kendaraan */}
-            <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2">
-              <label htmlFor="car-year" className="block text-xs font-bold text-[#001540]">
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#0E172A] border border-slate-200/90 dark:border-slate-800 shadow-soft dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] space-y-2">
+              <label htmlFor="car-year" className="block text-xs font-bold text-slate-800 dark:text-slate-200">
                 Tahun Minimal Kendaraan
               </label>
               <select
                 id="car-year"
                 value={tahunMin}
                 onChange={(e) => setTahunMin(e.target.value)}
-                className="w-full h-10 px-3.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-xs font-medium focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="2018">2018 ke atas (Mobil usia &lt; 6 tahun)</option>
-                <option value="2020">2020 ke atas (Mobil usia &lt; 4 tahun)</option>
-                <option value="2022">2022 ke atas (Mobil usia &lt; 2 tahun - Like New)</option>
-                <option value="2015">2015 ke atas (Opsi Ekonomis)</option>
-                <option value="0">Semua Tahun Perakitan</option>
+                <option value="2018" className="bg-white dark:bg-slate-900">2018 ke atas (Mobil usia &lt; 6 tahun)</option>
+                <option value="2020" className="bg-white dark:bg-slate-900">2020 ke atas (Mobil usia &lt; 4 tahun)</option>
+                <option value="2022" className="bg-white dark:bg-slate-900">2022 ke atas (Mobil usia &lt; 2 tahun - Kondisi Baru)</option>
+                <option value="2015" className="bg-white dark:bg-slate-900">2015 ke atas (Opsi Ekonomis)</option>
+                <option value="0" className="bg-white dark:bg-slate-900">Semua Tahun Perakitan</option>
               </select>
             </div>
 
             {/* 3. Kriteria Utama Chip Group */}
-            <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2">
-              <label className="block text-xs font-bold text-[#001540]">
-                Kriteria Utama (Pilih yang Anda utamakan)
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#0E172A] border border-slate-200/90 dark:border-slate-800 shadow-soft dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] space-y-2">
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                Kriteria Utama Pilihan Anda
               </label>
-              <p className="text-[11px] text-slate-500">
-                Pilihan ini memberi bobot kecocokan lebih tinggi saat menentukan segmen mobil yang paling pas.
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Pilihan kriteria membantu menentukan klaster segmen yang paling relevan.
               </p>
               
               <div className="flex flex-wrap gap-2 pt-1">
@@ -325,56 +325,56 @@ export function PreferensiPage() {
                 <button
                   type="button"
                   onClick={() => toggleCriterion('matik')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     criteria.matik
-                      ? 'bg-[#001540] text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   {criteria.matik ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5 text-slate-400" />}
-                  <span>Transmisi Matik</span>
+                  <span>Transmisi Otomatis</span>
                 </button>
 
                 {/* Jarak Tempuh Rendah */}
                 <button
                   type="button"
                   onClick={() => toggleCriterion('kmRendah')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     criteria.kmRendah
-                      ? 'bg-[#001540] text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   {criteria.kmRendah ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5 text-slate-400" />}
-                  <span>Jarak Tempuh Rendah</span>
+                  <span>Odometer Rendah</span>
                 </button>
 
                 {/* Fitur Lengkap */}
                 <button
                   type="button"
                   onClick={() => toggleCriterion('fiturLengkap')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     criteria.fiturLengkap
-                      ? 'bg-[#001540] text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   {criteria.fiturLengkap ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5 text-slate-400" />}
-                  <span>Fitur Lengkap (ADAS/Sunroof)</span>
+                  <span>Fitur Lengkap (Sunroof / Sensor)</span>
                 </button>
 
                 {/* Harga Terjangkau */}
                 <button
                   type="button"
                   onClick={() => toggleCriterion('hargaTerjangkau')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     criteria.hargaTerjangkau
-                      ? 'bg-[#001540] text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   {criteria.hargaTerjangkau ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5 text-slate-400" />}
-                  <span>Harga Terjangkau</span>
+                  <span>Harga Kompetitif</span>
                 </button>
               </div>
             </div>
@@ -382,39 +382,41 @@ export function PreferensiPage() {
           </div>
 
           {/* Machine Learning Segment Live Prediction Box */}
-          <div className="p-4 rounded-xl bg-[#E6F7F0] border border-[#0CA678]/30 shadow-xs relative overflow-hidden transition-all space-y-2.5">
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#0E172A] border-2 border-blue-500/70 dark:border-blue-400/70 shadow-soft dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative overflow-hidden transition-all space-y-3">
             <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-[#0CA678] text-xs font-bold">
+              <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 text-xs font-bold">
                 <Sparkles className="h-4 w-4" />
-                <span>Perkiraan Segmen Untukmu:</span>
+                <span>Prediksi Segmen K-Means:</span>
               </div>
 
               {/* Tooltip ML Chip */}
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-[#0CA678] text-[10px] font-bold shadow-2xs border border-[#0CA678]/20">
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-bold border border-blue-200 dark:border-blue-800">
                 <BrainCircuit className="h-3 w-3" />
-                <span>Segmen Otomatis</span>
-                <Info className="h-3 w-3 text-slate-400" />
+                <span>Klaster K-Means</span>
               </div>
             </div>
 
             {/* Highlight Segment Tag */}
             <div className="flex items-center gap-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white text-[#0CA678] text-base font-extrabold shadow-xs">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#0CA678] animate-ping" />
+              <div
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-white text-base font-extrabold shadow-sm"
+                style={{ backgroundColor: predictedSegment.warnaHex }}
+              >
+                <span className="w-2 h-2 rounded-full bg-white animate-ping" />
                 <span>{predictedSegment.nama}</span>
               </div>
-              <span className="text-[11px] text-[#0CA678] font-mono uppercase bg-[#0CA678]/15 px-2 py-1 rounded font-bold">
+              <span className="text-[11px] text-blue-700 dark:text-blue-300 font-mono uppercase bg-blue-50 dark:bg-blue-950/80 px-2.5 py-1 rounded-lg font-bold border border-blue-200 dark:border-blue-800">
                 Kecocokan {predictedSegment.kecocokan}
               </span>
             </div>
 
             {/* Insight Caption */}
-            <p className="text-xs text-slate-800 leading-snug">
-              Berdasarkan budget <strong className="text-[#001540] font-bold">Rp {budgetMin} - {budgetMax} Jt</strong> &amp; tahun <strong className="text-[#001540] font-bold">{tahunMin === '0' ? 'Semua' : `${tahunMin}+`}</strong>, terdapat{' '}
-              <span className="underline decoration-[#FE6A2B] decoration-2 font-bold text-[#001540]">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              Berdasarkan budget <strong className="text-slate-900 dark:text-white font-bold">Rp {budgetMin} - {budgetMax} Jt</strong> &amp; tahun <strong className="text-slate-900 dark:text-white font-bold">{tahunMin === '0' ? 'Semua' : `${tahunMin}+`}</strong>, terdapat{' '}
+              <span className="font-extrabold text-blue-600 dark:text-blue-400">
                 {predictedSegment.unitCount} unit mobil
               </span>{' '}
-              ({predictedSegment.sharePercent}% dataset CekGarasi) yang siap uji berkendara besok.
+              ({predictedSegment.sharePercent}% dari dataset 610 mobil) yang siap ditelusuri.
             </p>
           </div>
 
@@ -423,16 +425,16 @@ export function PreferensiPage() {
             <button
               type="button"
               onClick={() => navigate('/cari')}
-              className="px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-[#001540] transition-colors"
+              className="px-4 py-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
               Lewati
             </button>
             <button
               type="button"
               onClick={handleFinish}
-              className="flex-1 h-11 rounded-xl bg-[#FE6A2B] hover:bg-[#A83900] text-white text-xs font-bold inline-flex items-center justify-center gap-2 shadow-md shadow-[#FE6A2B]/20 transition-all active:scale-[0.99] group"
+              className="flex-1 h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 transition-all active:scale-[0.99] group cursor-pointer"
             >
-              <span>Selesai &amp; Buka Hasil Rekomendasi</span>
+              <span>Buka Hasil Rekomendasi Mobil</span>
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>

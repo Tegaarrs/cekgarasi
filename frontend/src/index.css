@@ -2,6 +2,7 @@
 @import '@fontsource/plus-jakarta-sans/500.css';
 @import '@fontsource/plus-jakarta-sans/600.css';
 @import '@fontsource/plus-jakarta-sans/700.css';
+@import '@fontsource/plus-jakarta-sans/800.css';
 
 @tailwind base;
 @tailwind components;
@@ -9,35 +10,489 @@
 
 @layer base {
   :root {
-    --color-premium: #2557D6;
-    --color-family: #0CA678;
-    --color-economy: #AE3EC9;
+    /* CekGarasi Central Design Tokens (Mode Terang) */
+    --color-bg-base: #F6F6FB;           /* Latar terang */
+    --color-panel-soft: #EEEDFB;        /* Panel lembut */
+    --color-surface: #FFFFFF;           /* Kartu putih */
+    --color-border: #E4E4EE;            /* Border terang */
+    --color-border-subtle: #ECECF4;
+    --color-text-main: #14141F;         /* Teks utama */
+    --color-text-muted: #6B6B80;        /* Teks sekunder */
+    
+    --color-primary: #2563EB;           /* Aksen utama Royal Sapphire Blue */
+    --color-primary-hover: #1D4ED8;     /* Hover aksen */
+    
+    --color-nav-bg: #0B0B0F;            /* Navbar hitam pekat */
+    --color-nav-text: #FFFFFF;
+    --color-nav-pill: #2A2A33;          /* Menu aktif pill */
+    --color-nav-btn: #2563EB;
+    
+    --color-badge-pos-bg: #DCFCE7;      /* Badge positif */
+    --color-badge-pos-text: #15803D;
+    
+    /* Cluster Segment Colors (Konsisten Terang) */
+    --color-premium: #2563EB;           /* Premium (Blue) */
+    --color-family: #10B981;            /* Keluarga Muda (Emerald) */
+    --color-economy: #F59E0B;           /* Ekonomis (Amber) */
+
+    /* Animation Duration & Easing Tokens */
+    --dur-fast: 150ms;
+    --dur-base: 300ms;
+    --dur-slow: 600ms;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .dark {
+    /* CekGarasi Central Design Tokens (Mode Gelap) */
+    --color-bg-base: #0D0D14;           /* Latar gelap */
+    --color-panel-soft: #16161F;        /* Panel gelap */
+    --color-surface: #1A1A24;           /* Kartu gelap */
+    --color-border: #2A2A38;            /* Border gelap */
+    --color-border-subtle: #242433;
+    --color-text-main: #E8E8F0;         /* Teks utama gelap */
+    --color-text-muted: #9A9AB0;        /* Teks sekunder gelap */
+    
+    --color-primary: #3B82F6;           /* Aksen utama gelap */
+    --color-primary-hover: #60A5FA;
+    
+    --color-nav-bg: #11111A;            /* Navbar mode gelap */
+    --color-nav-text: #FFFFFF;
+    --color-nav-pill: #2A2A33;
+    --color-nav-btn: #2563EB;
+    
+    --color-badge-pos-bg: rgba(21, 128, 61, 0.2);
+    --color-badge-pos-text: #4ADE80;
+    
+    /* Cluster Segment Colors (Konsisten Gelap) */
+    --color-premium: #60A5FA;
+    --color-family: #34D399;
+    --color-economy: #FBBF24;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 64px;
+    text-rendering: optimizeLegibility;
+    font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 antialiased font-sans selection:bg-blue-500 selection:text-white;
+    background-color: var(--color-bg-base);
+    color: var(--color-text-main);
+    font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
+    @apply antialiased transition-colors duration-200;
     min-height: 100vh;
   }
 }
 
-@keyframes shimmer {
+/* Custom Clean Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #2A2A38;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3A3A4C;
+}
+
+/* ============================================================ */
+/* CEKGARASI DESIGN SYSTEM & COMPONENT CLASSES                 */
+/* ============================================================ */
+
+/* Solid Sticky Navbar */
+.cekgarasi-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 64px;
+  background-color: var(--color-nav-bg);
+  color: var(--color-nav-text);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.dark .cekgarasi-navbar {
+  border-bottom: 1px solid #2A2A38;
+}
+
+/* Unified Card System: 14px radius, 1px border */
+.ios-glass-card,
+.velox-card,
+.cg-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), border-color var(--dur-fast) ease;
+}
+.dark .ios-glass-card,
+.dark .velox-card,
+.dark .cg-card {
+  background-color: #1A1A24;
+  border-color: #2A2A38;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
+}
+
+.ios-glass-card-hover:hover,
+.velox-card:hover,
+.cg-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(91, 78, 240, 0.4);
+  box-shadow: 0 12px 28px -4px rgba(20, 20, 31, 0.08), 0 4px 10px -2px rgba(20, 20, 31, 0.04);
+}
+.dark .ios-glass-card-hover:hover,
+.dark .velox-card:hover,
+.dark .cg-card-hover:hover {
+  border-color: rgba(130, 119, 255, 0.4);
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.65);
+}
+
+/* Inputs */
+.ios-glass-input {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  border-radius: 10px;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+}
+.dark .ios-glass-input {
+  background-color: #16161F;
+  border-color: #2A2A38;
+  color: #E8E8F0;
+}
+.ios-glass-input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(91, 78, 240, 0.15);
+}
+.dark .ios-glass-input:focus {
+  border-color: #8277FF;
+  box-shadow: 0 0 0 3px rgba(130, 119, 255, 0.2);
+}
+
+/* Dark Glass Card & Inputs (Masuk, Daftar, Admin Login) */
+.ios-glass-card-dark {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.ios-glass-input-dark {
+  background-color: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  color: #F8FAFC !important;
+  caret-color: #60A5FA;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease, background-color var(--dur-fast) ease;
+}
+.ios-glass-input-dark::placeholder {
+  color: #94A3B8 !important;
+  opacity: 1;
+}
+.ios-glass-input-dark:focus {
+  background-color: rgba(15, 23, 42, 0.96) !important;
+  border-color: #3B82F6 !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+/* Override Chrome/Edge white/yellow autofill background on dark inputs */
+.ios-glass-input-dark:-webkit-autofill,
+.ios-glass-input-dark:-webkit-autofill:hover,
+.ios-glass-input-dark:-webkit-autofill:focus,
+.ios-glass-input-dark:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #0F172A inset !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  caret-color: #60A5FA !important;
+  border: 1px solid rgba(59, 130, 246, 0.45) !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Primary Button: 10px radius, #2563EB (hover #1D4ED8) */
+.ios-glass-btn-primary,
+.btn-liquid-primary,
+.btn-luxury-primary,
+.btn-velox-crimson,
+.cg-btn-primary {
+  background-color: #2563EB;
+  border: 1px solid #1D4ED8;
+  color: #FFFFFF !important;
+  font-weight: 600;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px 0 rgba(37, 99, 235, 0.28);
+  transition: background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) ease;
+  cursor: pointer;
+}
+.ios-glass-btn-primary:hover,
+.btn-liquid-primary:hover,
+.btn-luxury-primary:hover,
+.btn-velox-crimson:hover,
+.cg-btn-primary:hover {
+  background-color: #1D4ED8;
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 16px -2px rgba(37, 99, 235, 0.38);
+}
+.ios-glass-btn-primary:active,
+.btn-liquid-primary:active,
+.btn-luxury-primary:active,
+.btn-velox-crimson:active,
+.cg-btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px 0 rgba(37, 99, 235, 0.2);
+}
+
+/* Secondary Button */
+.ios-glass-btn-secondary,
+.btn-liquid-secondary,
+.cg-btn-secondary {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main) !important;
+  font-weight: 500;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  transition: all var(--dur-fast) ease;
+  cursor: pointer;
+}
+.dark .ios-glass-btn-secondary,
+.dark .btn-liquid-secondary,
+.dark .cg-btn-secondary {
+  background: #1A1A24;
+  border-color: #2A2A38;
+  color: #E8E8F0 !important;
+}
+.ios-glass-btn-secondary:hover,
+.btn-liquid-secondary:hover,
+.cg-btn-secondary:hover {
+  background: #F1F1F8;
+  border-color: #CBD5E1;
+  transform: translateY(-1px);
+}
+.dark .ios-glass-btn-secondary:hover,
+.dark .btn-liquid-secondary:hover,
+.dark .cg-btn-secondary:hover {
+  background: #22222E;
+  border-color: #3A3A4C;
+}
+
+/* Danger Button (strictly for errors/destructive actions) */
+.ios-glass-btn-danger,
+.btn-liquid-danger {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626 !important;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all var(--dur-fast) ease;
+  cursor: pointer;
+}
+.dark .ios-glass-btn-danger,
+.dark .btn-liquid-danger {
+  background: rgba(220, 38, 38, 0.15);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #F87171 !important;
+}
+
+/* Pills & Filter Badges */
+.ios-glass-pill {
+  border-radius: 9999px;
+  font-weight: 500;
+  transition: all var(--dur-fast) ease;
+}
+.ios-glass-pill-active {
+  background: #5B4EF0;
+  color: #FFFFFF;
+  border: 1px solid #5B4EF0;
+  box-shadow: 0 2px 6px rgba(91, 78, 240, 0.25);
+}
+.ios-glass-pill-inactive {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+.dark .ios-glass-pill-inactive {
+  background: #1A1A24;
+  color: var(--color-text-muted);
+  border-color: #2A2A38;
+}
+.ios-glass-pill-inactive:hover {
+  background: #EEEDFB;
+  color: var(--color-text-main);
+  border-color: #C7C5F4;
+}
+.dark .ios-glass-pill-inactive:hover {
+  background: #242433;
+  color: #FFFFFF;
+  border-color: #3A3A4C;
+}
+
+/* Favorite Heart Icon - Pure Red reserved for Favorites */
+.fav-heart-active {
+  color: #EF4444;
+  fill: #EF4444;
+}
+
+/* Marquee Track */
+@keyframes cgMarquee {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+.velox-marquee-track,
+.cg-marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: cgMarquee 42s linear infinite;
+}
+
+.velox-marquee-track:hover,
+.cg-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* Hairline Grid */
+.bg-grid-hairline {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
+/* Micro-Interactions & Animated Icon Keyframes */
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.42); }
+  65% { transform: scale(0.92); }
+  85% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.animate-heart-pop {
+  animation: heart-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.7); opacity: 0.9; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Skeleton Shimmer Loading Wave */
+@keyframes cg-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.animate-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 30%,
+    rgba(255, 255, 255, 0.65) 50%,
+    rgba(255, 255, 255, 0.25) 70%,
+    transparent 100%
+  );
+  animation: cg-shimmer 1.5s infinite ease-in-out;
+  pointer-events: none;
+  z-index: 10;
+}
+.dark .animate-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 30%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 255, 255, 0.04) 70%,
+    transparent 100%
+  );
+}
+
+/* Tactical Ripple & Micro-Tap Feedback */
+.cg-ripple {
+  position: relative;
+  overflow: hidden;
+}
+.cg-ripple:active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 10%, transparent 70%);
+  animation: ripple-wave 0.4s ease-out;
+  pointer-events: none;
+}
+@keyframes ripple-wave {
+  0% { transform: scale(0.3); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Dynamic Material Design Click Ripple Wave */
+.cg-ripple-element {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, rgba(37, 99, 235, 0.08) 50%, transparent 75%);
+  transform: scale(0);
+  animation: cgMaterialRipple 0.55s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  z-index: 30;
+}
+.dark .cg-ripple-element {
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.35) 0%, rgba(96, 165, 250, 0.1) 50%, transparent 75%);
+}
+@keyframes cgMaterialRipple {
+  0% {
+    transform: scale(0);
+    opacity: 0.8;
+  }
   100% {
-    transform: translateX(100%);
+    transform: scale(2.8);
+    opacity: 0;
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Native View Transitions API Integration */
+@view-transition {
+  navigation: auto;
 }
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+
+::view-transition-group(*) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .velox-marquee-track,
+  .cg-marquee-track {
+    animation: none !important;
+  }
 }

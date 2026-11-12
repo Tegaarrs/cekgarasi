@@ -317,7 +317,7 @@ export async function generateInspectionBarcodeJpg(car: BarcodeCarData): Promise
 
   ctx.fillStyle = '#059669';
   ctx.font = 'bold 11px "Inter", sans-serif';
-  ctx.fillText('✓ Data Terverifikasi CekGarasi', qrX + qrSize + 18, qrBoxY + 95);
+  ctx.fillText('Data Terverifikasi CekGarasi', qrX + qrSize + 18, qrBoxY + 95);
 
   // OFFICIAL INSPECTION STAMP (Circular Seal)
   const stampCenterX = rightX + (rightW / 2);

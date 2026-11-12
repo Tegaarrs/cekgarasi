@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { heroConfig } from '@/config/hero';
 import {
-  heroDominantColor,
   heroLqip,
   heroSourceWidth,
   heroSourceHeight,
@@ -37,9 +36,8 @@ export function HeroBackground() {
 
   return (
     <div
-      className="absolute inset-0 overflow-hidden [isolation:isolate] pointer-events-none select-none"
+      className="absolute inset-0 overflow-hidden [isolation:isolate] pointer-events-none select-none bg-transparent dark:bg-[#070709]"
       aria-hidden="true"
-      style={{ backgroundColor: heroDominantColor }}
     >
       {/* 1. Low-Quality Image Placeholder (LQIP) blurred background */}
       <div
@@ -81,36 +79,9 @@ export function HeroBackground() {
         </picture>
       </motion.div>
 
-      {/* 3. Blue Filter Layer A: #0F2A5F Tint (mix-blend: multiply, opacity 0.55) */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundColor: heroConfig.blueFilter.tint.color,
-          mixBlendMode: heroConfig.blueFilter.tint.mixBlendMode,
-          opacity: heroConfig.blueFilter.tint.opacity,
-        }}
-      />
-
-      {/* 4. Blue Filter Layer B: Legibility Gradient (Desktop & Mobile) */}
-      {/* Desktop Gradient */}
-      <div
-        className="hidden md:block absolute inset-0"
-        style={{
-          backgroundImage: heroConfig.blueFilter.legibilityGradient.desktop,
-        }}
-      />
-      {/* Mobile Gradient */}
-      <div
-        className="block md:hidden absolute inset-0"
-        style={{
-          backgroundImage: heroConfig.blueFilter.legibilityGradient.mobile,
-        }}
-      />
-
-      {/* 5. Blue Filter Layer C: Film-grain noise layer (3% opacity) */}
+      {/* 3. Subtle Film-grain noise layer for rich photographic texture */}
       <svg
-        className="absolute inset-0 h-full w-full"
-        style={{ opacity: heroConfig.blueFilter.filmGrain.opacity }}
+        className="absolute inset-0 h-full w-full pointer-events-none select-none opacity-20"
         xmlns="http://www.w3.org/2000/svg"
       >
         <filter id="hero-film-grain-noise">

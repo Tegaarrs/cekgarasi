@@ -10,20 +10,20 @@ export const spring: Record<string, Transition> = {
   soft: { type: "spring", stiffness: 180, damping: 24 },
 };
 export const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: dur.base, ease: ease.out } },
+  hidden: { opacity: 0, y: 32 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.42, ease: ease.out } },
 };
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { duration: dur.base } },
 };
 export const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.96 },
+  hidden: { opacity: 0, scale: 0.94 },
   show: { opacity: 1, scale: 1, transition: spring.snappy },
 };
-export const stagger = (s = 0.06): Variants => ({
+export const stagger = (s = 0.08): Variants => ({
   hidden: {},
-  show: { transition: { staggerChildren: s, delayChildren: 0.05 } },
+  show: { transition: { staggerChildren: s, delayChildren: 0.08 } },
 });
 export const slideInRight: Variants = {
   hidden: { x: "100%" },

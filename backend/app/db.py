@@ -55,6 +55,31 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+def ensure_user_identity_columns():
+    from sqlalchemy import text as sa_text
+    columns_to_add = [
+        ("nik", "VARCHAR(20)"),
+        ("jenis_kelamin", "VARCHAR(20)"),
+        ("tanggal_lahir", "VARCHAR(20)"),
+        ("pekerjaan", "VARCHAR(80)"),
+        ("kota_domisili", "VARCHAR(80)"),
+        ("alamat_lengkap", "VARCHAR(255)"),
+        ("password_terdaftar", "VARCHAR(120)"),
+    ]
+    try:
+        with engine.begin() as conn:
+            for col_name, col_type in columns_to_add:
+                try:
+                    conn.execute(sa_text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+
+ensure_user_identity_columns()
+
+
 def get_db():
     db = SessionLocal()
     try:

@@ -1,66 +1,72 @@
 import { Link } from 'react-router-dom';
-import { Layers, Calendar, Calculator } from 'lucide-react';
+import { Layers, BarChart3, ShieldCheck, GitBranch } from 'lucide-react';
 import { Logo } from '@/components/common/Logo';
-import { content } from '@/content/id';
 
 export function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 mt-auto">
+    <footer className="border-t border-white/10 dark:border-[#2A2A38] bg-[#0B0B0F] text-zinc-300 mt-auto transition-colors duration-200">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
           
-          {/* Brand Info */}
+          {/* Brand & Capstone Attribution */}
           <div className="md:col-span-2 space-y-4">
             <Link to="/" className="flex items-center gap-3 group">
-              <Logo size="md" />
+              <Logo size="md" wordmarkClassName="text-white" />
             </Link>
-            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
-              {content.brand.description}
+            <p className="text-xs text-zinc-400 max-w-md leading-relaxed font-normal">
+              CekGarasi: Platform Business Intelligence dan analisis pasar mobil bekas berbasis algoritma <span className="text-[#60A5FA] font-semibold">K-Means Clustering</span>. Membantu calon pembeli dan pengelola dealer memahami segmentasi pasar, posisi harga objektif, serta karakteristik unit secara transparan dan terukur.
             </p>
           </div>
 
-          {/* Quick Links */}
+          {/* Navigasi Pembeli */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-3">
-              Jelajahi
+            <h4 className="text-xs font-semibold tracking-wider uppercase text-white mb-3">
+              Navigasi Platform
             </h4>
-            <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
-              <li><Link to="/" className="hover:text-blue-600 transition-colors">Beranda</Link></li>
-              <li><Link to="/cari" className="hover:text-blue-600 transition-colors">Katalog Mobil</Link></li>
-              <li><Link to="/segmen" className="hover:text-blue-600 transition-colors">Segmen Pasar</Link></li>
-              <li><Link to="/welcome" className="hover:text-blue-600 transition-colors">Portal Masuk</Link></li>
-              <li><Link to="/admin/dashboard" className="hover:text-blue-600 transition-colors">Portal Dealer & Admin</Link></li>
+            <ul className="space-y-2 text-xs text-zinc-400">
+              <li><Link to="/" className="hover:text-white transition-colors">Beranda</Link></li>
+              <li><Link to="/cari" className="hover:text-white transition-colors">Katalog Mobil</Link></li>
+              <li><Link to="/segmen" className="hover:text-white transition-colors">Segmen Pasar K-Means</Link></li>
+              <li><Link to="/bandingkan" className="hover:text-white transition-colors">Bandingkan Unit</Link></li>
+              <li><Link to="/metodologi" className="hover:text-white transition-colors">Metodologi &amp; Evaluasi</Link></li>
+              <li><Link to="/favorit" className="hover:text-white transition-colors">Mobil Favorit</Link></li>
             </ul>
           </div>
 
-          {/* Fitur Utama */}
+          {/* Landasan Metodologi & Dealer Portal */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-3">
-              Fitur CekGarasi
+            <h4 className="text-xs font-semibold tracking-wider uppercase text-white mb-3">
+              Business Intelligence
             </h4>
-            <div className="space-y-2.5 text-xs text-slate-600 dark:text-slate-400">
-              <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                <span>Pengelompokan Segmen Otomatis</span>
+            <div className="space-y-2.5 text-xs text-zinc-400">
+              <div className="flex items-start gap-2">
+                <Layers className="h-4 w-4 text-[#5B4EF0] flex-shrink-0 mt-0.5" />
+                <span>Segmentasi K-Means (K=3)</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Calculator className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                <span>Simulasi Cicilan Transparan</span>
+              <div className="flex items-start gap-2">
+                <BarChart3 className="h-4 w-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                <span>Indeks Posisi Harga Pasar</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-indigo-500 flex-shrink-0" />
-                <span>Jadwal Test Drive Online</span>
+              <div className="flex items-start gap-2">
+                <GitBranch className="h-4 w-4 text-zinc-400 flex-shrink-0 mt-0.5" />
+                <span>Normalisasi MinMax &amp; Evaluasi Silhouette</span>
+              </div>
+              <div className="pt-2">
+                <Link
+                  to="/admin/dashboard"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8277FF] hover:text-[#988FFF] transition-colors"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Portal Dealer &amp; Admin</span>
+                </Link>
               </div>
             </div>
           </div>
 
         </div>
 
-        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <span>&copy; {new Date().getFullYear()} CekGarasi. Hak cipta dilindungi undang-undang.</span>
-          <span className="text-[11px] text-slate-400">
-            Platform Analisis Pasar Mobil Bekas Terpercaya
-          </span>
+        <div className="pt-6 border-t border-white/10 text-xs text-zinc-500 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <span>&copy; {new Date().getFullYear()} CekGarasi. Segmentasi otomatis algoritma K-Means Clustering (K=3).</span>
         </div>
       </div>
     </footer>

@@ -13,6 +13,7 @@ import {
   Sparkles,
   Search,
   Filter,
+  Lightbulb,
 } from 'lucide-react';
 import { apiFetch } from '@/services/api';
 import {
@@ -25,6 +26,7 @@ import { notifyToast } from '@/services/favoriteStore';
 import { getCarPhoto } from '@/utils/carPhoto';
 import { calculateInstallment } from '@/lib/finance';
 import { buatRingkasanBanding } from '@/lib/ringkasanBanding';
+import { fetchCompareCars, formatAngka } from '@/lib/normalizeBanding';
 import { SegmentBadge } from '@/components/motion/SegmentBadge';
 import { Skeleton } from '@/components/motion/Skeleton';
 
@@ -56,9 +58,9 @@ interface ComparedCar {
   features?: FeatureItem[];
   fitur_list?: string[];
   posisi_harga?: {
-    q1: number;
-    median: number;
-    q3: number;
+    q1: number | null;
+    median: number | null;
+    q3: number | null;
     verdict: string;
     selisih_median_rp: number;
   };
@@ -130,8 +132,9 @@ export function BandingkanPage() {
     }
     setLoading(true);
     try {
-      const data = await apiFetch<ComparedCar[]>(`/bandingkan?ids=${ids.join(',')}`);
-      setComparedCars(Array.isArray(data) ? data : []);
+      // Backend returns { cars: [{ mobil, fitur, posisi_harga }] } -> normalize to flat cars
+      const data: ComparedCar[] = await fetchCompareCars(ids);
+      setComparedCars(data);
     } catch {
       notifyToast({
         show: true,
@@ -269,7 +272,7 @@ export function BandingkanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 pt-6 dark:bg-slate-950">
+    <div className="min-h-screen bg-[#F5F5F3] dark:bg-[#070709] pb-24 pt-6 transition-colors">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Navigation & Header */}
@@ -278,15 +281,15 @@ export function BandingkanPage() {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="mb-2 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors dark:text-slate-400 dark:hover:text-white cursor-pointer"
+              className="mb-2 inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-900 transition-colors dark:text-zinc-400 dark:hover:text-white cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Kembali</span>
             </button>
-            <h1 className="font-display text-2xl font-black text-slate-900 sm:text-3xl dark:text-white">
-              Bandingkan Mobil
+            <h1 className="font-heading uppercase tracking-wider text-2xl font-black text-zinc-900 sm:text-3xl dark:text-white">
+              Bandingkan Mobil // Matrix
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-sans">
               Analisis spesifikasi, estimasi cicilan, posisi harga di segmen, dan kelengkapan fitur secara berdampingan.
             </p>
           </div>
@@ -296,9 +299,9 @@ export function BandingkanPage() {
             <button
               type="button"
               onClick={handleCopyLink}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 font-heading uppercase tracking-wider text-xs font-bold text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800/80 border border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors cursor-pointer shadow-xs"
             >
-              {copiedLink ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 text-slate-500" />}
+              {copiedLink ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-zinc-400" />}
               <span>{copiedLink ? 'Tautan Disalin!' : 'Salin Tautan'}</span>
             </button>
 
@@ -306,7 +309,7 @@ export function BandingkanPage() {
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-500 transition-colors cursor-pointer"
+                className="cg-btn-primary inline-flex items-center gap-1.5 rounded-[10px] px-4 py-2 text-xs font-semibold text-white shadow-xs cursor-pointer active:scale-95 transition-all"
               >
                 <Plus className="h-4 w-4" />
                 <span>Tambah Mobil</span>
@@ -323,20 +326,20 @@ export function BandingkanPage() {
           </div>
         ) : comparedCars.length === 0 ? (
           /* Empty state */
-          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-xs dark:border-slate-800 dark:bg-slate-900">
-            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-50 text-blue-600 ring-8 ring-blue-50/50 dark:bg-blue-950/40 dark:text-blue-400">
+          <div className="rounded-[14px] border border-[#E4E4EE] dark:border-[#2A2A38] bg-white dark:bg-[#1A1A24] p-12 text-center shadow-xs">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-[#EEEDFB] text-[#5B4EF0] ring-8 ring-[#EEEDFB]/50 dark:bg-white/10 dark:text-[#8277FF] dark:ring-white/5">
               <Scale className="h-10 w-10" />
             </div>
-            <h2 className="font-display text-xl font-bold text-slate-900 dark:text-white">
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
               Belum ada mobil yang dipilih untuk dibandingkan
             </h2>
-            <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+            <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500 dark:text-zinc-400 font-normal">
               Pilih hingga 4 unit mobil dari katalog atau daftar favoritmu untuk melihat perbandingan mendalam harga, odometer, dan kelengkapan fiturnya.
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <Link
                 to="/cari"
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-xs font-bold text-white shadow-md shadow-blue-600/20 hover:bg-blue-500 transition-all"
+                className="cg-btn-primary inline-flex items-center gap-2 rounded-[10px] px-6 py-2.5 text-xs font-semibold text-white shadow-xs transition-all"
               >
                 <Search className="h-4 w-4" />
                 <span>Pilih Mobil di Katalog</span>
@@ -348,66 +351,67 @@ export function BandingkanPage() {
             
             {/* Rule-Based Comparison Summary Banner */}
             {summary && (
-              <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50/80 via-white to-blue-50/40 p-5 shadow-xs dark:border-blue-900/40 dark:from-blue-950/30 dark:to-slate-900">
-                <div className="flex items-center gap-2 text-xs font-bold text-blue-700 dark:text-blue-400 mb-2">
+              <div className="ios-glass-card rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center gap-2 text-xs font-bold text-blue-700 mb-2">
                   <Sparkles className="h-4 w-4" />
                   <span>Ringkasan Perbandingan Pintar</span>
                 </div>
 
                 <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
                   {summary.palingHemat && (
-                    <div className="rounded-xl bg-white/80 p-3 border border-blue-100 shadow-2xs dark:bg-slate-800/80 dark:border-slate-700">
+                    <div className="rounded-xl bg-white/70 backdrop-blur-md p-3 border border-white/80 shadow-2xs">
                       <span className="block text-[10px] font-semibold text-emerald-600 uppercase tracking-wider">
                         Harga Paling Hemat
                       </span>
-                      <span className="mt-1 block text-xs font-bold text-slate-900 dark:text-white">
+                      <span className="mt-1 block text-xs font-bold text-slate-900">
                         {summary.palingHemat.text}
                       </span>
                     </div>
                   )}
 
                   {summary.kmTerendah && (
-                    <div className="rounded-xl bg-white/80 p-3 border border-blue-100 shadow-2xs dark:bg-slate-800/80 dark:border-slate-700">
+                    <div className="rounded-xl bg-white/70 backdrop-blur-md p-3 border border-white/80 shadow-2xs">
                       <span className="block text-[10px] font-semibold text-blue-600 uppercase tracking-wider">
                         Odometer Terendah
                       </span>
-                      <span className="mt-1 block text-xs font-bold text-slate-900 dark:text-white">
+                      <span className="mt-1 block text-xs font-bold text-slate-900">
                         {summary.kmTerendah.text}
                       </span>
                     </div>
                   )}
 
                   {summary.tahunPalingMuda && (
-                    <div className="rounded-xl bg-white/80 p-3 border border-blue-100 shadow-2xs dark:bg-slate-800/80 dark:border-slate-700">
+                    <div className="rounded-xl bg-white/70 backdrop-blur-md p-3 border border-white/80 shadow-2xs">
                       <span className="block text-[10px] font-semibold text-purple-600 uppercase tracking-wider">
                         Tahun Rakitan Termuda
                       </span>
-                      <span className="mt-1 block text-xs font-bold text-slate-900 dark:text-white">
+                      <span className="mt-1 block text-xs font-bold text-slate-900">
                         {summary.tahunPalingMuda.text}
                       </span>
                     </div>
                   )}
 
                   {summary.fiturTerlengkap && (
-                    <div className="rounded-xl bg-white/80 p-3 border border-blue-100 shadow-2xs dark:bg-slate-800/80 dark:border-slate-700">
+                    <div className="rounded-xl bg-white/70 backdrop-blur-md p-3 border border-white/80 shadow-2xs">
                       <span className="block text-[10px] font-semibold text-amber-600 uppercase tracking-wider">
                         Fitur Paling Lengkap
                       </span>
-                      <span className="mt-1 block text-xs font-bold text-slate-900 dark:text-white">
+                      <span className="mt-1 block text-xs font-bold text-slate-900">
                         {summary.fiturTerlengkap.text}
                       </span>
                     </div>
                   )}
                 </div>
 
-                <p className="mt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-medium border-t border-blue-100/60 pt-2.5 dark:border-slate-800">
-                  💡 {summary.kesimpulan}
+                <p className="mt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-medium border-t border-slate-200/60 dark:border-slate-800 pt-2.5 flex items-start gap-1.5">
+                  <Lightbulb className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <span>{summary.kesimpulan}</span>
                 </p>
               </div>
             )}
 
             {/* Shared Finance Controls & Differences Filter Toggle */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <div className="ios-glass-card rounded-2xl p-5 shadow-sm">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
@@ -483,7 +487,7 @@ export function BandingkanPage() {
             </div>
 
             {/* Side-by-Side Comparison Matrix */}
-            <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <div className="overflow-x-auto rounded-2xl ios-glass-card shadow-sm">
               <table className="w-full border-collapse text-left text-xs">
                 {/* Header Row: Unit Cards */}
                 <thead>
@@ -533,7 +537,7 @@ export function BandingkanPage() {
                               </Link>
                               <div className="mt-1">
                                 <span className="font-extrabold text-base text-slate-900 dark:text-white">
-                                  Rp {car.harga_rp.toLocaleString('id-ID')}
+                                  Rp {formatAngka(car.harga_rp)}
                                 </span>
                                 <span className="block text-[11px] font-semibold text-blue-600">
                                   Cicilan ~Rp {Math.round(angsuran / 1000).toLocaleString('id-ID')} rb/bln
@@ -771,7 +775,7 @@ export function BandingkanPage() {
                           {sug.nama_mobil}
                         </span>
                         <span className="block text-[11px] font-extrabold text-blue-600">
-                          Rp {sug.harga_rp.toLocaleString('id-ID')}
+                          Rp {formatAngka(sug.harga_rp)}
                         </span>
                         <span className="block text-[10px] text-slate-400">
                           {sug.tahun} • {sug.jarak_tempuh_ribu_km} rb km
@@ -858,7 +862,7 @@ export function BandingkanPage() {
                           {car.nama_mobil}
                         </span>
                         <span className="block text-[11px] font-extrabold text-blue-600">
-                          Rp {car.harga_rp.toLocaleString('id-ID')}
+                          Rp {formatAngka(car.harga_rp)}
                         </span>
                         <span className="block text-[10px] text-slate-400">
                           {car.tahun} • {car.jarak_tempuh_ribu_km} rb km

@@ -5,7 +5,7 @@ import { SegmentBadge } from '@/components/motion/SegmentBadge';
 import { Spinner } from '@/components/motion/Spinner';
 import { apiFetch, setToken, setUser } from '@/services/api';
 import { getPendingFavorite, processPendingFavorite, sanitizeInternalPath } from '@/services/favoriteStore';
-import { UserCheck, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { UserCheck, ShieldCheck, CheckCircle2, Check, Zap } from 'lucide-react';
 
 export function DaftarPage() {
   const navigate = useNavigate();
@@ -20,6 +20,12 @@ export function DaftarPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [telepon, setTelepon] = useState('');
+  const [nik, setNik] = useState('');
+  const [jenisKelamin, setJenisKelamin] = useState('Laki-laki');
+  const [tanggalLahir, setTanggalLahir] = useState('');
+  const [pekerjaan, setPekerjaan] = useState('');
+  const [kotaDomisili, setKotaDomisili] = useState('Jakarta Selatan');
+  const [alamatLengkap, setAlamatLengkap] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -65,7 +71,18 @@ export function DaftarPage() {
     try {
       const res = await apiFetch<{ access_token?: string; user?: { id: number; nama: string; email: string; role: string } }>('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ nama, email, password, no_telepon: telepon }),
+        body: JSON.stringify({
+          nama,
+          email,
+          password,
+          no_telepon: telepon,
+          nik,
+          jenis_kelamin: jenisKelamin,
+          tanggal_lahir: tanggalLahir,
+          pekerjaan,
+          kota_domisili: kotaDomisili,
+          alamat_lengkap: alamatLengkap,
+        }),
       });
       if (res && res.access_token) {
         setToken(res.access_token);
@@ -168,12 +185,14 @@ export function DaftarPage() {
   const handleFinishRegistration = async () => {
     setLoading(true);
     try {
+      const fokusLabel = prioritas === 'hemat' ? 'Hemat & Harian' : prioritas === 'keluarga' ? 'Keluarga Lapang' : 'Fitur Mewah';
       await apiFetch('/buyer/preferensi', {
         method: 'POST',
         body: JSON.stringify({
           pref_harga_min: Math.max(0, (budgetJt - 50) * 1000000),
           pref_harga_max: (budgetJt + 50) * 1000000,
           segmen_awal_id: estimatedSegment,
+          fokus_penggunaan: fokusLabel,
         }),
       });
     } catch {
@@ -201,9 +220,9 @@ export function DaftarPage() {
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/80 to-slate-900/90" />
 
       <div className="relative z-10 w-full max-w-lg">
-        <div className="rounded-2xl border border-white/10 bg-slate-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur-xl text-white">
+        <div className="rounded-3xl ios-glass-card-dark p-6 sm:p-8 shadow-2xl text-white">
           
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-800">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
             <img src="/images/logo.png" alt="CekGarasi Logo" className="h-12 w-12 object-contain rounded-full ring-2 ring-amber-400/40 shadow-md" />
             <div>
               <h1 className="font-display text-xl font-bold">Daftar Akun CekGarasi</h1>
@@ -215,9 +234,9 @@ export function DaftarPage() {
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
             <div className="flex items-center gap-2">
               <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                step === 'b2a' ? 'bg-blue-600 text-white' : 'bg-emerald-500 text-white'
+                step !== 'b2a' ? 'bg-emerald-500 text-white' : 'bg-blue-600 text-white'
               }`}>
-                {step !== 'b2a' ? '✓' : '1'}
+                {step !== 'b2a' ? <Check className="w-3.5 h-3.5" /> : '1'}
               </span>
               <span className="text-xs font-medium text-slate-300">Data Diri</span>
             </div>
@@ -226,7 +245,7 @@ export function DaftarPage() {
               <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                 step === 'b2b' ? 'bg-blue-600 text-white' : step === 'b2c' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'
               }`}>
-                {step === 'b2c' ? '✓' : '2'}
+                {step === 'b2c' ? <Check className="w-3.5 h-3.5" /> : '2'}
               </span>
               <span className="text-xs font-medium text-slate-300">Verifikasi OTP</span>
             </div>
@@ -266,39 +285,111 @@ export function DaftarPage() {
 
                 <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Nama Lengkap</label>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">Nama Lengkap (Sesuai KTP)</label>
                     <input
                       type="text"
                       required
                       value={nama}
                       onChange={(e) => setNama(e.target.value)}
                       placeholder="Budi Santoso"
-                      className="w-full rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                      className="ios-glass-input-dark w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Email</label>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="budi@example.com"
-                      className="w-full rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">NIK (No. KTP 16 Digit)</label>
+                      <input
+                        type="text"
+                        maxLength={16}
+                        value={nik}
+                        onChange={(e) => setNik(e.target.value.replace(/\D/g, '').slice(0, 16))}
+                        placeholder="317401xxxxxxxxxx"
+                        className="ios-glass-input-dark w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Jenis Kelamin</label>
+                      <select
+                        value={jenisKelamin}
+                        onChange={(e) => setJenisKelamin(e.target.value)}
+                        className="ios-glass-input-dark w-full rounded-xl px-4 py-2.5 text-sm text-white bg-slate-800/90 focus:outline-none"
+                      >
+                        <option value="Laki-laki" className="bg-slate-900 text-white">Laki-laki</option>
+                        <option value="Perempuan" className="bg-slate-900 text-white">Perempuan</option>
+                      </select>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Nomor WhatsApp</label>
-                    <input
-                      type="tel"
-                      required
-                      value={telepon}
-                      onChange={(e) => setTelepon(e.target.value)}
-                      placeholder="08123456789"
-                      className="w-full rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Tanggal Lahir</label>
+                      <input
+                        type="date"
+                        value={tanggalLahir}
+                        onChange={(e) => setTanggalLahir(e.target.value)}
+                        className="ios-glass-input-dark w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Pekerjaan / Profesi</label>
+                      <input
+                        type="text"
+                        value={pekerjaan}
+                        onChange={(e) => setPekerjaan(e.target.value)}
+                        placeholder="Karyawan Swasta / Wiraswasta"
+                        className="ios-glass-input-dark w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Email Aktif</label>
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="budi@example.com"
+                        className="ios-glass-input-dark w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Nomor WhatsApp</label>
+                      <input
+                        type="tel"
+                        required
+                        value={telepon}
+                        onChange={(e) => setTelepon(e.target.value)}
+                        placeholder="08123456789"
+                        className="ios-glass-input-dark w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-1">
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Kota Domisili</label>
+                      <input
+                        type="text"
+                        value={kotaDomisili}
+                        onChange={(e) => setKotaDomisili(e.target.value)}
+                        placeholder="Jakarta Selatan"
+                        className="ios-glass-input-dark w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Alamat Lengkap Domisili / KTP</label>
+                      <input
+                        type="text"
+                        value={alamatLengkap}
+                        onChange={(e) => setAlamatLengkap(e.target.value)}
+                        placeholder="Jl. Kemang Raya No. 42, RT 04/RW 02..."
+                        className="ios-glass-input-dark w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none"
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -309,7 +400,7 @@ export function DaftarPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Minimal 6 karakter"
-                      className="w-full rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                      className="ios-glass-input-dark w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none"
                     />
                     
                     {/* Password Strength Meter filling in sequence */}
@@ -357,7 +448,7 @@ export function DaftarPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full mt-3 flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 disabled:opacity-50"
+                    className="ios-glass-btn-primary liquid-shine w-full mt-3 flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white shadow-lg disabled:opacity-50"
                   >
                     {loading ? <Spinner size={18} /> : 'Lanjut ke Verifikasi OTP'}
                   </button>
@@ -436,9 +527,10 @@ export function DaftarPage() {
                   <button
                     type="button"
                     onClick={handleFillDemoOtp}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-500/40 bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                    className="ios-glass-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/20 bg-white/10 hover:bg-white/20 text-blue-200 text-xs font-semibold transition-all cursor-pointer shadow-xs"
                   >
-                    <span>⚡ Isi Otomatis Kode Demo: 123456</span>
+                    <Zap className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Isi Otomatis Kode Demo: 123456</span>
                   </button>
                 </div>
 
@@ -452,7 +544,7 @@ export function DaftarPage() {
                   <button
                     type="button"
                     onClick={() => setStep('b2a')}
-                    className="flex-1 rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 cursor-pointer"
+                    className="ios-glass-btn-secondary flex-1 rounded-xl py-2.5 text-xs font-semibold text-slate-200 border border-white/20 bg-white/10 hover:bg-white/20 cursor-pointer text-center"
                   >
                     Kembali
                   </button>
@@ -460,7 +552,7 @@ export function DaftarPage() {
                     type="button"
                     disabled={loading}
                     onClick={handleOtpVerify}
-                    className="flex-2 rounded-xl bg-blue-600 py-2.5 text-xs font-semibold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 cursor-pointer"
+                    className="ios-glass-btn-primary liquid-shine flex-2 rounded-xl py-2.5 text-xs font-bold text-white shadow-lg cursor-pointer"
                   >
                     {loading ? <Spinner size={18} /> : 'Verifikasi Akun'}
                   </button>
@@ -487,7 +579,7 @@ export function DaftarPage() {
                 </div>
 
                 {/* Perkiraan Segmen Tag with SegmentBadge Crossfade */}
-                <div className="rounded-xl border border-slate-800 bg-slate-850 p-4 mb-5 text-center">
+                <div className="rounded-xl border border-slate-800 bg-[#16161F] p-4 mb-5 text-center">
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
                     Perkiraan Segmen Untukmu:
                   </div>
@@ -551,7 +643,7 @@ export function DaftarPage() {
                     type="button"
                     disabled={loading}
                     onClick={handleFinishRegistration}
-                    className="w-full mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-500 cursor-pointer disabled:opacity-50"
+                    className="ios-glass-btn-emerald liquid-shine w-full mt-4 flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white shadow-lg cursor-pointer disabled:opacity-50"
                   >
                     {loading ? <Spinner size={18} /> : (
                       <>

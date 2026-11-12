@@ -32,8 +32,8 @@ interface PredictionResponse {
 export function BuyerKmeansTester({
   onApplyFilters,
   compact = false,
-  title = "Simulasi Segmen Pasar (Publik / Tanpa Login)",
-  subtitle = "Uji langsung bagaimana karakteristik mobil dikelompokkan ke dalam segmen pasar berdasarkan 4 variabel data nyata.",
+  title = "Asisten Pintar Pencocok Mobil Impian (Analisis Cerdas Berbasis Data)",
+  subtitle = "Geser budget harga, tahun mobil, jarak tempuh, dan fitur yang Anda inginkan—sistem pintar kami mempelajari pola ratusan data pasar secara otomatis (real-time) untuk mencocokkan kelas mobil yang paling pas untuk Anda.",
 }: BuyerKmeansTesterProps) {
   const [harga, setHarga] = useState<number>(180000000);
   const [tahun, setTahun] = useState<number>(2020);
@@ -98,19 +98,19 @@ export function BuyerKmeansTester({
   };
 
   return (
-    <div className={`rounded-2xl border border-blue-200/90 bg-gradient-to-br from-blue-50/90 via-white to-indigo-50/80 shadow-sm ${compact ? 'p-3.5 sm:p-4 text-xs' : 'p-5 sm:p-6'}`}>
+    <div className={`ios-glass-card rounded-3xl ${compact ? 'p-3.5 sm:p-4 text-xs' : 'p-5 sm:p-6'}`}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-blue-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-xl bg-blue-600 text-white shadow-xs">
+            <span className="p-1.5 rounded-xl bg-blue-600/90 text-white shadow-xs backdrop-blur-md">
               <Sparkles className="w-4 h-4" />
             </span>
-            <h3 className="font-display text-base sm:text-lg font-bold text-slate-900">
+            <h3 className="font-display text-base sm:text-lg font-bold text-slate-900 dark:text-white">
               {title}
             </h3>
           </div>
-          <p className="text-xs text-slate-600 mt-1">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
             {subtitle}
           </p>
         </div>
@@ -119,7 +119,7 @@ export function BuyerKmeansTester({
           <button
             type="button"
             onClick={handleReset}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            className="ios-glass-btn-secondary inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset</span>
@@ -128,7 +128,7 @@ export function BuyerKmeansTester({
             <button
               type="button"
               onClick={handleApply}
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-xs transition-colors"
+              className="ios-glass-btn-primary liquid-shine inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white"
             >
               <span>Terapkan ke Filter</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -144,13 +144,13 @@ export function BuyerKmeansTester({
         <div className="lg:col-span-7 space-y-4">
           
           {/* 1. Harga OTR */}
-          <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
-            <div className="flex justify-between items-center text-xs font-bold mb-1.5">
-              <span className="flex items-center gap-1.5 text-slate-700">
-                <DollarSign className="w-3.5 h-3.5 text-blue-600" />
+          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 sm:p-5 shadow-sm">
+            <div className="flex justify-between items-center mb-2">
+              <span className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100">
+                <DollarSign className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <span>Estimasi Harga</span>
               </span>
-              <span className="font-mono text-blue-700 font-extrabold text-sm">
+              <span className="font-mono text-blue-700 dark:text-blue-400 font-black text-base sm:text-lg">
                 Rp {(harga / 1000000).toLocaleString('id-ID')} Juta
               </span>
             </div>
@@ -162,23 +162,23 @@ export function BuyerKmeansTester({
               value={harga}
               onChange={(e) => setHarga(Number(e.target.value))}
               aria-label="Estimasi Harga Listing"
-              className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
-            <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-              <span>Rp 70 Jt</span>
-              <span>Rp 250 Jt</span>
-              <span>Rp 550 Jt</span>
+            <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mt-2">
+              <span className="font-extrabold text-slate-900 dark:text-white">Rp 70 Jt</span>
+              <span className="font-medium text-slate-500 dark:text-slate-400">Rp 250 Jt</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">Rp 550 Jt</span>
             </div>
           </div>
 
           {/* 2. Tahun Pembuatan */}
-          <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
-            <div className="flex justify-between items-center text-xs font-bold mb-1.5">
-              <span className="flex items-center gap-1.5 text-slate-700">
-                <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 sm:p-5 shadow-sm">
+            <div className="flex justify-between items-center mb-2">
+              <span className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100">
+                <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Tahun Pembuatan</span>
               </span>
-              <span className="font-mono text-emerald-700 font-extrabold text-sm">
+              <span className="font-mono text-emerald-700 dark:text-emerald-400 font-black text-base sm:text-lg">
                 Tahun {tahun}
               </span>
             </div>
@@ -190,25 +190,25 @@ export function BuyerKmeansTester({
               value={tahun}
               onChange={(e) => setTahun(Number(e.target.value))}
               aria-label="Tahun Pembuatan"
-              className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+              className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-600"
             />
-            <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-              <span>2012</span>
-              <span>2018</span>
-              <span>2024</span>
+            <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mt-2">
+              <span className="font-extrabold text-slate-900 dark:text-white">2012</span>
+              <span className="font-medium text-slate-500 dark:text-slate-400">2018</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">2024</span>
             </div>
           </div>
 
           {/* 3 & 4: Jarak Tempuh & Fitur */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Odometer */}
-            <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
-              <div className="flex justify-between items-center text-xs font-bold mb-1.5">
-                <span className="flex items-center gap-1.5 text-slate-700">
-                  <Gauge className="w-3.5 h-3.5 text-amber-600" />
+            <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 sm:p-5 shadow-sm">
+              <div className="flex justify-between items-center mb-2">
+                <span className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100">
+                  <Gauge className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   <span>Jarak Tempuh</span>
                 </span>
-                <span className="font-mono text-amber-700 font-extrabold">
+                <span className="font-mono text-amber-700 dark:text-amber-400 font-black text-sm sm:text-base">
                   {km} rb km
                 </span>
               </div>
@@ -220,23 +220,23 @@ export function BuyerKmeansTester({
                 value={km}
                 onChange={(e) => setKm(Number(e.target.value))}
                 aria-label="Jarak Tempuh Odometer"
-                className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-amber-600"
+                className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-600"
               />
-              <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                <span>5 rb</span>
-                <span>90 rb</span>
-                <span>180 rb</span>
+              <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mt-2">
+                <span className="font-extrabold text-slate-900 dark:text-white">5 rb km</span>
+                <span className="font-medium text-slate-500 dark:text-slate-400">90 rb km</span>
+                <span className="font-extrabold text-slate-900 dark:text-white">180 rb km</span>
               </div>
             </div>
 
             {/* Kelengkapan Fitur */}
-            <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
-              <div className="flex justify-between items-center text-xs font-bold mb-1.5">
-                <span className="flex items-center gap-1.5 text-slate-700">
-                  <Sliders className="w-3.5 h-3.5 text-purple-600" />
+            <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 sm:p-5 shadow-sm">
+              <div className="flex justify-between items-center mb-2">
+                <span className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100">
+                  <Sliders className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                   <span>Kelengkapan Fitur</span>
                 </span>
-                <span className="font-mono text-purple-700 font-extrabold">
+                <span className="font-mono text-purple-700 dark:text-purple-400 font-black text-sm sm:text-base">
                   {fiturCount} / 11 Fitur
                 </span>
               </div>
@@ -248,12 +248,12 @@ export function BuyerKmeansTester({
                 value={fiturCount}
                 onChange={(e) => setFiturCount(Number(e.target.value))}
                 aria-label="Kelengkapan Fitur"
-                className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-600"
               />
-              <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                <span>Standar (0)</span>
-                <span>Menengah (5)</span>
-                <span>Lengkap (11)</span>
+              <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mt-2">
+                <span className="font-extrabold text-slate-900 dark:text-white">Standar (0)</span>
+                <span className="font-medium text-slate-500 dark:text-slate-400">Menengah (5)</span>
+                <span className="font-extrabold text-slate-900 dark:text-white">Lengkap (11)</span>
               </div>
             </div>
           </div>
@@ -261,62 +261,69 @@ export function BuyerKmeansTester({
         </div>
 
         {/* Right: Live Classification Output */}
-        <div className="lg:col-span-5 flex flex-col justify-between rounded-xl border border-blue-200/80 bg-white p-4 sm:p-5 shadow-xs">
+        <div className="lg:col-span-5 flex flex-col justify-between rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-6 shadow-sm">
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Perkiraan Segmen Pasar (Live)
-              </span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600" />
+                </span>
+                <span className="text-sm sm:text-base font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">
+                  Hasil Pencocokan Sistem Pintar (Live)
+                </span>
+              </div>
               {loading && (
-                <span className="text-[10px] text-blue-600 font-semibold animate-pulse">
-                  Mencocokkan segmen...
+                <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold animate-pulse">
+                  Menganalisis pola pasar...
                 </span>
               )}
             </div>
 
             {currentCluster ? (
-              <div className="space-y-3.5">
+              <div className="space-y-4">
                 <div 
-                  className="rounded-xl p-3.5 text-white shadow-xs"
+                  className="rounded-2xl p-5 sm:p-6 text-white shadow-lg relative overflow-hidden cg-ripple transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                   style={{ backgroundColor: currentCluster.warna_hex || '#2563EB' }}
                 >
-                  <div className="text-[11px] font-semibold opacity-90">
-                    Segmen {currentCluster.klaster}
+                  <span className="inline-block text-xs sm:text-sm font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-white/20 border border-white/30 backdrop-blur-md mb-2">
+                    Rekomendasi Pintar • Kelas #{currentCluster.klaster + 1}
+                  </span>
+                  <div className="text-xl sm:text-2xl font-black tracking-tight leading-snug">
+                    {currentCluster.nama_lengkap?.replace(/komuter/gi, 'Praktis')}
                   </div>
-                  <div className="text-base sm:text-lg font-black tracking-tight mt-0.5">
-                    {currentCluster.nama_lengkap}
+                  <div className="text-sm sm:text-base font-medium opacity-95 mt-2.5 leading-relaxed">
+                    {currentCluster.deskripsi?.replace(/komuter/gi, 'Praktis')}
                   </div>
-                  <div className="text-xs opacity-95 mt-1 leading-relaxed">
-                    {currentCluster.deskripsi}
-                  </div>
+                  <div className="absolute -bottom-6 -right-6 w-28 h-28 rounded-full bg-white/10 blur-sm pointer-events-none" />
                 </div>
 
-                <div className="rounded-xl bg-slate-50 border border-slate-200/80 p-3 space-y-2 text-xs text-slate-600">
-                  <div className="font-bold text-slate-800 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Analisis Karakteristik Unit:</span>
+                <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 p-4 sm:p-5 space-y-2.5 shadow-2xs">
+                  <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                    <span>Hasil Analisis Pola Pasar:</span>
                   </div>
-                  <p className="text-[11px] leading-relaxed text-slate-600">
-                    Kombinasi harga <strong>Rp {(harga/1000000).toLocaleString('id-ID')} Jt</strong>, tahun <strong>{tahun}</strong>, dan jarak tempuh <strong>{km} rb km</strong> paling cocok masuk ke dalam kategori <strong>{currentCluster.nama_pendek}</strong>.
+                  <p className="text-xs sm:text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                    Berdasarkan pembelajaran data dari ratusan unit di pasar, kombinasi budget <strong className="font-black text-slate-900 dark:text-white">Rp {(harga/1000000).toLocaleString('id-ID')} Jt</strong>, tahun <strong className="font-black text-slate-900 dark:text-white">{tahun}</strong>, dan jarak tempuh <strong className="font-black text-slate-900 dark:text-white">{km} rb km</strong> secara otomatis dikelompokkan oleh sistem pintar kami ke kategori <strong className="font-black text-blue-600 dark:text-blue-400">{currentCluster.nama_pendek?.replace(/komuter/gi, 'Praktis')}</strong> yang paling bernilai untuk Anda.
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="text-xs text-slate-400 py-6 text-center">
-                Memuat estimasi segmen pasar...
+              <div className="text-sm text-slate-400 py-8 text-center">
+                Menganalisis kecocokan kategori mobil...
               </div>
             )}
           </div>
 
           {onApplyFilters && currentCluster && (
-            <div className="pt-4 border-t border-slate-100 mt-4">
+            <div className="pt-5 border-t border-slate-200 dark:border-slate-800 mt-5">
               <button
                 type="button"
                 onClick={handleApply}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+                className="btn-luxury-primary cg-ripple w-full flex items-center justify-center gap-2.5 py-3 sm:py-3.5 px-5 rounded-2xl text-white font-extrabold text-sm sm:text-base shadow-md transition-all cursor-pointer group"
               >
-                <span>Terapkan Segmen ({currentCluster.nama_pendek}) ke Katalog</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Lihat Koleksi Mobil {currentCluster.nama_pendek?.replace(/komuter/gi, 'Praktis')} di Katalog</span>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:translate-x-1" />
               </button>
             </div>
           )}

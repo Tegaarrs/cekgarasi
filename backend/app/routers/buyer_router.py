@@ -6,6 +6,7 @@ import pandas as pd
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, func
 
@@ -24,6 +25,24 @@ SEGMEN_ID_TO_SLUG = {
     1: "keluarga-muda",
     2: "ekonomis"
 }
+
+
+def _clean_gallery(val):
+    if not val:
+        return []
+    if isinstance(val, str):
+        try:
+            parsed = json.loads(val)
+            if isinstance(parsed, str):
+                parsed = json.loads(parsed)
+            if isinstance(parsed, list):
+                return [p for p in parsed if p]
+            return [parsed] if parsed else []
+        except Exception:
+            return [val] if val else []
+    elif isinstance(val, list):
+        return [v for v in val if v]
+    return []
 
 
 def _format_car_list_item(car: models.Car, segment_names: dict) -> dict:
@@ -61,7 +80,8 @@ def _format_car_list_item(car: models.Car, segment_names: dict) -> dict:
         "warna_segmen": seg_info.get("warna_hex", "#2557D6"),
         "status": car.status,
         "foto_url": car.foto_url,
-        "foto_gallery": car.foto_gallery if isinstance(car.foto_gallery, list) else (json.loads(car.foto_gallery) if isinstance(car.foto_gallery, str) else [])
+        "foto": car.foto_url,
+        "foto_gallery": _clean_gallery(car.foto_gallery)
     }
 
 
@@ -818,6 +838,7 @@ def get_car_detail(car_id: int, db: Session = Depends(get_db)):
         "merek": brand_name,
         "merk": brand_name,
         "model_mobil": car.car_model.nama if car.car_model else "",
+        "tipe_bodi": car.car_model.tipe_bodi if car.car_model else None,
         "tahun": car.tahun,
         "jarak_tempuh_ribu_km": float(car.jarak_tempuh_ribu_km),
         "lokasi": car.lokasi,
@@ -836,7 +857,8 @@ def get_car_detail(car_id: int, db: Session = Depends(get_db)):
         "warna_segmen": seg_info.get("warna_hex", "#2557D6"),
         "status": car.status,
         "foto_url": car.foto_url,
-        "foto_gallery": car.foto_gallery if isinstance(car.foto_gallery, list) else (json.loads(car.foto_gallery) if isinstance(car.foto_gallery, str) else []),
+        "foto": car.foto_url,
+        "foto_gallery": _clean_gallery(car.foto_gallery),
         "features": features_out,
         "fitur_list": [f["nama_id"] for f in features_out if f["aktif"]],
         "posisi_harga": pos_harga,
@@ -1231,9 +1253,25 @@ def get_favorites_recommendations(
             "mobil_acuan_id": r["mobil_acuan_id"]
         } for r in reasons[:2]]
 
+        alasan_teks = []
+        for r in reasons[:2]:
+            if r["kode"] == "lebih_murah":
+                jt = round(r["nilai"] / 1_000_000)
+                alasan_teks.append(f"Lebih hemat Rp {jt} Jt" if jt > 0 else "Harga lebih terjangkau")
+            elif r["kode"] == "tahun_lebih_muda":
+                alasan_teks.append(f"{r['nilai']} tahun lebih muda")
+            elif r["kode"] == "km_lebih_rendah":
+                alasan_teks.append(f"Odometer {round(r['nilai'])} rb km lebih rendah")
+            elif r["kode"] == "fitur_lebih_banyak":
+                alasan_teks.append(f"{r['nilai']} fitur lebih lengkap")
+
+        car_formatted = _format_car_list_item(c, segments)
         results.append({
-            "mobil": _format_car_list_item(c, segments),
+            **car_formatted,
+            "mobil": car_formatted,
             "alasan": alasan,
+            "alasan_teks": alasan_teks if alasan_teks else ["Karakteristik sepadan"],
+            "alasan_detail": alasan,
             "jarak": round(dist, 4)
         })
 
@@ -1532,6 +1570,7 @@ def get_test_drive_by_code(kode: str, db: Session = Depends(get_db)):
 
 
 @router.post("/preferensi")
+@router.post("/buyer/preferensi")
 def save_buyer_preference(
     payload: schemas.BuyerPreference,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(auth.security),
@@ -1548,6 +1587,8 @@ def save_buyer_preference(
             user.pref_harga_min = payload.pref_harga_min
         if payload.pref_harga_max is not None:
             user.pref_harga_max = payload.pref_harga_max
+        if payload.fokus_penggunaan is not None:
+            user.fokus_penggunaan = payload.fokus_penggunaan
         db.commit()
         db.refresh(user)
 

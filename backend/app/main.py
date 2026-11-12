@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-from .routers import auth_router, buyer_router, admin_router, database_router
+from .routers import auth_router, buyer_router, admin_router, database_router, bi_router
 
 app = FastAPI(
     title="CekGarasi API",
@@ -28,6 +28,7 @@ app.include_router(auth_router.router)
 app.include_router(buyer_router.router)
 app.include_router(admin_router.router)
 app.include_router(database_router.router)
+app.include_router(bi_router.router)
 
 
 @app.api_route("/api/health", methods=["GET", "HEAD"], tags=["Sistem"])

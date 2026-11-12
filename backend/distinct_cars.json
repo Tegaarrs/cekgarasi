@@ -1,0 +1,1559 @@
+[
+  {
+    "nama_mobil": "AYLA X 1.2",
+    "brand": "Daihatsu",
+    "model": "AYLA",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2018,
+    "transmisi": "Manual",
+    "count": 2
+  },
+  {
+    "nama_mobil": "AGYA TRD SPORTIVO 1.0",
+    "brand": "Toyota",
+    "model": "AGYA",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2015,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "X-TRAIL 2.5",
+    "brand": "Nissan",
+    "model": "X-TRAIL",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2015,
+    "transmisi": "Automatic",
+    "count": 4
+  },
+  {
+    "nama_mobil": "YARIS S TRD 1.5",
+    "brand": "Toyota",
+    "model": "YARIS",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2020,
+    "transmisi": "Automatic",
+    "count": 9
+  },
+  {
+    "nama_mobil": "AGYA G 1.2",
+    "brand": "Toyota",
+    "model": "AGYA",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2019,
+    "transmisi": "Manual",
+    "count": 4
+  },
+  {
+    "nama_mobil": "AVANZA G 1.3",
+    "brand": "Toyota",
+    "model": "AVANZA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2021,
+    "transmisi": "Manual",
+    "count": 14
+  },
+  {
+    "nama_mobil": "AVANZA G 1.5",
+    "brand": "Toyota",
+    "model": "AVANZA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2022,
+    "transmisi": "Manual",
+    "count": 2
+  },
+  {
+    "nama_mobil": "OUTLANDER SPORT PX 2.0",
+    "brand": "Mitsubishi",
+    "model": "OUTLANDER",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "BRIO SATYA E 1.2",
+    "brand": "Honda",
+    "model": "BRIO",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2019,
+    "transmisi": "Manual",
+    "count": 48
+  },
+  {
+    "nama_mobil": "HR-V S 1.5",
+    "brand": "Honda",
+    "model": "HR-V",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 4
+  },
+  {
+    "nama_mobil": "AGYA G TRD 1.2",
+    "brand": "Toyota",
+    "model": "AGYA",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2018,
+    "transmisi": "Manual",
+    "count": 16
+  },
+  {
+    "nama_mobil": "AYLA R 1.2",
+    "brand": "Daihatsu",
+    "model": "AYLA",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2019,
+    "transmisi": "Manual",
+    "count": 19
+  },
+  {
+    "nama_mobil": "AYLA R DLX 1.2",
+    "brand": "Daihatsu",
+    "model": "AYLA",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 5
+  },
+  {
+    "nama_mobil": "ALMAZ LT LUX 1.5",
+    "brand": "Wuling",
+    "model": "ALMAZ",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 6
+  },
+  {
+    "nama_mobil": "TERIOS TX 1.5",
+    "brand": "Daihatsu",
+    "model": "TERIOS",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2015,
+    "transmisi": "Manual",
+    "count": 2
+  },
+  {
+    "nama_mobil": "MOBILIO E 1.5",
+    "brand": "Honda",
+    "model": "MOBILIO",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2018,
+    "transmisi": "Manual",
+    "count": 12
+  },
+  {
+    "nama_mobil": "ERTIGA GL 1.5",
+    "brand": "Suzuki",
+    "model": "ERTIGA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2022,
+    "transmisi": "Manual",
+    "count": 2
+  },
+  {
+    "nama_mobil": "CR-V TURBO 1.5",
+    "brand": "Honda",
+    "model": "CR-V",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "CONFERO 2WD 1.5",
+    "brand": "Wuling",
+    "model": "CONFERO",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2020,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "LIVINA VL 1.5",
+    "brand": "Nissan",
+    "model": "LIVINA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 6
+  },
+  {
+    "nama_mobil": "CALYA G 1.2",
+    "brand": "Toyota",
+    "model": "CALYA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 21
+  },
+  {
+    "nama_mobil": "TERIOS R 1.5",
+    "brand": "Daihatsu",
+    "model": "TERIOS",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2019,
+    "transmisi": "Manual",
+    "count": 6
+  },
+  {
+    "nama_mobil": "XPANDER ULTIMATE 1.5",
+    "brand": "Mitsubishi",
+    "model": "XPANDER",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 38
+  },
+  {
+    "nama_mobil": "AYLA X 1.0",
+    "brand": "Daihatsu",
+    "model": "AYLA",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2016,
+    "transmisi": "Manual",
+    "count": 9
+  },
+  {
+    "nama_mobil": "HR-V E 1.5",
+    "brand": "Honda",
+    "model": "HR-V",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 15
+  },
+  {
+    "nama_mobil": "OUTLANDER SPORT GLS 2.0",
+    "brand": "Mitsubishi",
+    "model": "OUTLANDER",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2014,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "HR-V SE 1.5",
+    "brand": "Honda",
+    "model": "HR-V",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 5
+  },
+  {
+    "nama_mobil": "ALMAZ S+T 1.5",
+    "brand": "Wuling",
+    "model": "ALMAZ",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "IGNIS GL 1.2",
+    "brand": "Suzuki",
+    "model": "IGNIS",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2018,
+    "transmisi": "Manual",
+    "count": 5
+  },
+  {
+    "nama_mobil": "KIJANG INNOVA REBORN G 2.0",
+    "brand": "Toyota",
+    "model": "KIJANG INNOVA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2017,
+    "transmisi": "Manual",
+    "count": 9
+  },
+  {
+    "nama_mobil": "MOBILIO RS 1.5",
+    "brand": "Honda",
+    "model": "MOBILIO",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 5
+  },
+  {
+    "nama_mobil": "KIJANG INNOVA V 2.0",
+    "brand": "Toyota",
+    "model": "KIJANG INNOVA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2014,
+    "transmisi": "Automatic",
+    "count": 5
+  },
+  {
+    "nama_mobil": "KIJANG INNOVA G 2.0",
+    "brand": "Toyota",
+    "model": "KIJANG INNOVA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 7
+  },
+  {
+    "nama_mobil": "AGYA GR SPORT 1.2",
+    "brand": "Toyota",
+    "model": "AGYA",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2022,
+    "transmisi": "Manual",
+    "count": 2
+  },
+  {
+    "nama_mobil": "TERIOS X DLX 1.5",
+    "brand": "Daihatsu",
+    "model": "TERIOS",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 4
+  },
+  {
+    "nama_mobil": "BRIO RS 1.2",
+    "brand": "Honda",
+    "model": "BRIO",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2020,
+    "transmisi": "Automatic",
+    "count": 17
+  },
+  {
+    "nama_mobil": "FORTUNER VRZ 2.4",
+    "brand": "Toyota",
+    "model": "FORTUNER",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "CX-5 ELITE 2.5",
+    "brand": "Mazda",
+    "model": "CX-5",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "GRAND LIVINA XV 1.5",
+    "brand": "Nissan",
+    "model": "GRAND LIVINA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "AGYA G 1.0",
+    "brand": "Toyota",
+    "model": "AGYA",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2017,
+    "transmisi": "Manual",
+    "count": 5
+  },
+  {
+    "nama_mobil": "IGNIS GX 1.2",
+    "brand": "Suzuki",
+    "model": "IGNIS",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2021,
+    "transmisi": "Manual",
+    "count": 8
+  },
+  {
+    "nama_mobil": "CORTEZ C T LUX 1.5",
+    "brand": "Wuling",
+    "model": "CORTEZ",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "ALMAZ RS LT LUX + SC CVT 1.5",
+    "brand": "Wuling",
+    "model": "ALMAZ",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "CONFERO S 1.5",
+    "brand": "Wuling",
+    "model": "CONFERO",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Manual",
+    "count": 3
+  },
+  {
+    "nama_mobil": "ALMAZ L TURBO 1.5",
+    "brand": "Wuling",
+    "model": "ALMAZ",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "KIJANG INNOVA REBORN VENTURER GASOLINE 2.0",
+    "brand": "Toyota",
+    "model": "KIJANG INNOVA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "BALENO HATCHBACK 1.4",
+    "brand": "Suzuki",
+    "model": "BALENO",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 6
+  },
+  {
+    "nama_mobil": "TERIOS X 1.5",
+    "brand": "Daihatsu",
+    "model": "TERIOS",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2015,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "ALMAZ LT LUX + SC CVT 1.5",
+    "brand": "Wuling",
+    "model": "ALMAZ",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "CITY RS HATCHBACK 1.5",
+    "brand": "Honda",
+    "model": "CITY",
+    "tipe_bodi": "Sedan",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 6
+  },
+  {
+    "nama_mobil": "AYLA X ELEGANT 1.0",
+    "brand": "Daihatsu",
+    "model": "AYLA",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2017,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "AVANZA E 1.3",
+    "brand": "Toyota",
+    "model": "AVANZA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "RUSH S TRD SPORTIVO 1.5",
+    "brand": "Toyota",
+    "model": "RUSH",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2020,
+    "transmisi": "Automatic",
+    "count": 18
+  },
+  {
+    "nama_mobil": "XENIA R STD 1.3",
+    "brand": "Daihatsu",
+    "model": "XENIA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Manual",
+    "count": 2
+  },
+  {
+    "nama_mobil": "CORTEZ S T LUX 1.5",
+    "brand": "Wuling",
+    "model": "CORTEZ",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "CORTEZ L T LUX 1.5",
+    "brand": "Wuling",
+    "model": "CORTEZ",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "PAJERO SPORT DAKAR 4X2 2.4",
+    "brand": "Mitsubishi",
+    "model": "PAJERO",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "XL7 ALPHA 1.5",
+    "brand": "Suzuki",
+    "model": "XL7",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2020,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "YARIS G 1.5",
+    "brand": "Toyota",
+    "model": "YARIS",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "RUSH S 1.5",
+    "brand": "Toyota",
+    "model": "RUSH",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2018,
+    "transmisi": "Manual",
+    "count": 2
+  },
+  {
+    "nama_mobil": "XENIA X 1.3",
+    "brand": "Daihatsu",
+    "model": "XENIA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2020,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "RUSH S GR SPORT 1.5",
+    "brand": "Toyota",
+    "model": "RUSH",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "CR-V 2.0",
+    "brand": "Honda",
+    "model": "CR-V",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "ROCKY R 1.0",
+    "brand": "Daihatsu",
+    "model": "ROCKY",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 4
+  },
+  {
+    "nama_mobil": "ERTIGA GL 1.4",
+    "brand": "Suzuki",
+    "model": "ERTIGA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2016,
+    "transmisi": "Manual",
+    "count": 3
+  },
+  {
+    "nama_mobil": "KIJANG INNOVA REBORN V 2.0",
+    "brand": "Toyota",
+    "model": "KIJANG INNOVA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2020,
+    "transmisi": "Automatic",
+    "count": 4
+  },
+  {
+    "nama_mobil": "ALMAZ LT LUX CVT 1.5",
+    "brand": "Wuling",
+    "model": "ALMAZ",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "CORTEZ T LUX 1.5",
+    "brand": "Wuling",
+    "model": "CORTEZ",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "XPANDER EXCEED 1.5",
+    "brand": "Mitsubishi",
+    "model": "XPANDER",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Manual",
+    "count": 6
+  },
+  {
+    "nama_mobil": "AGYA G TRD 1.0",
+    "brand": "Toyota",
+    "model": "AGYA",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2017,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "ECLIPSE CROSS ULTIMATE 1.5",
+    "brand": "Mitsubishi",
+    "model": "ECLIPSE",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2020,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "RUSH S TRD 1.5",
+    "brand": "Toyota",
+    "model": "RUSH",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "HR-V E PLUS 1.5",
+    "brand": "Honda",
+    "model": "HR-V",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 5
+  },
+  {
+    "nama_mobil": "2 GT SKYACTIV 1.5",
+    "brand": "Mazda",
+    "model": "MAZDA 2",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2015,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "X-TRAIL 2.0",
+    "brand": "Nissan",
+    "model": "X-TRAIL",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "ERTIGA GX 1.4",
+    "brand": "Suzuki",
+    "model": "ERTIGA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2017,
+    "transmisi": "Manual",
+    "count": 5
+  },
+  {
+    "nama_mobil": "SIENTA Q 1.5",
+    "brand": "Toyota",
+    "model": "SIENTA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 4
+  },
+  {
+    "nama_mobil": "CONFERO S L LUX 1.5",
+    "brand": "Wuling",
+    "model": "CONFERO",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2020,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "SX4 S-CROSS 1.5",
+    "brand": "Suzuki",
+    "model": "SX4",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 6
+  },
+  {
+    "nama_mobil": "ERTIGA SPORT GT 1.5",
+    "brand": "Suzuki",
+    "model": "ERTIGA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 5
+  },
+  {
+    "nama_mobil": "SIGRA R DLX 1.2",
+    "brand": "Daihatsu",
+    "model": "SIGRA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "SIGRA D 1.0",
+    "brand": "Daihatsu",
+    "model": "SIGRA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "2 R SKYACTIV 1.5",
+    "brand": "Mazda",
+    "model": "MAZDA 2",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 4
+  },
+  {
+    "nama_mobil": "XPANDER SPORT 1.5",
+    "brand": "Mitsubishi",
+    "model": "XPANDER",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 7
+  },
+  {
+    "nama_mobil": "BR-V E 1.5",
+    "brand": "Honda",
+    "model": "BR-V",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 6
+  },
+  {
+    "nama_mobil": "CITY E 1.5",
+    "brand": "Honda",
+    "model": "CITY",
+    "tipe_bodi": "Sedan",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "TERIOS R DLX 1.5",
+    "brand": "Daihatsu",
+    "model": "TERIOS",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "XENIA R DLX 1.3",
+    "brand": "Daihatsu",
+    "model": "XENIA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2013,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "BR-V E PRESTIGE 1.5",
+    "brand": "Honda",
+    "model": "BR-V",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "KIJANG INNOVA G LUX 2.0",
+    "brand": "Toyota",
+    "model": "KIJANG INNOVA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2010,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "SIGRA R STD 1.2",
+    "brand": "Daihatsu",
+    "model": "SIGRA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2018,
+    "transmisi": "Manual",
+    "count": 4
+  },
+  {
+    "nama_mobil": "RUSH G 1.5",
+    "brand": "Toyota",
+    "model": "RUSH",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "GO+ PANCA T 1.2",
+    "brand": "Datsun",
+    "model": "GO+",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2017,
+    "transmisi": "Manual",
+    "count": 2
+  },
+  {
+    "nama_mobil": "XENIA X STD 1.3",
+    "brand": "Daihatsu",
+    "model": "XENIA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2012,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "RAIZE TURBO G 1.0",
+    "brand": "Toyota",
+    "model": "RAIZE",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2022,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "KIJANG INNOVA Q 2.0",
+    "brand": "Toyota",
+    "model": "KIJANG INNOVA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "AVANZA VELOZ 1.3",
+    "brand": "Toyota",
+    "model": "AVANZA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2016,
+    "transmisi": "Manual",
+    "count": 2
+  },
+  {
+    "nama_mobil": "CX-3 GT 2.0",
+    "brand": "Mazda",
+    "model": "CX-3",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "BRIO E 1.2",
+    "brand": "Honda",
+    "model": "BRIO",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "PAJERO SPORT DAKAR ULTIMATE 4X2 2.4",
+    "brand": "Mitsubishi",
+    "model": "PAJERO",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "AGYA G TRD SPORTIVO 1.2",
+    "brand": "Toyota",
+    "model": "AGYA",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "ALMAZ S+T SMART ENJOY 1.5",
+    "brand": "Wuling",
+    "model": "ALMAZ",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "IGNIS GX AGS 1.2",
+    "brand": "Suzuki",
+    "model": "IGNIS",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "CRETA PRIME 1.5",
+    "brand": "Hyundai",
+    "model": "CRETA",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2022,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "RAIZE GR SPORT 1.0",
+    "brand": "Toyota",
+    "model": "RAIZE",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "ERTIGA DREZA 1.4",
+    "brand": "Suzuki",
+    "model": "ERTIGA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "SANTA FE CRDI 2.2",
+    "brand": "Hyundai",
+    "model": "SANTA FE",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "CX-5 GT 2.5",
+    "brand": "Mazda",
+    "model": "CX-5",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "XL7 BETA 1.5",
+    "brand": "Suzuki",
+    "model": "XL7",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "KIJANG INNOVA VENTURER 2.0",
+    "brand": "Toyota",
+    "model": "KIJANG INNOVA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "CONFERO S L 1.5",
+    "brand": "Wuling",
+    "model": "CONFERO",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "ERTIGA GX 1.5",
+    "brand": "Suzuki",
+    "model": "ERTIGA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "SIENTA V 1.5",
+    "brand": "Toyota",
+    "model": "SIENTA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 4
+  },
+  {
+    "nama_mobil": "BR-V PRESTIGE 1.5",
+    "brand": "Honda",
+    "model": "BR-V",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "ERTIGA DREZA GS 1.4",
+    "brand": "Suzuki",
+    "model": "ERTIGA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "BIANTE SKYACTIV 2.0",
+    "brand": "Mazda",
+    "model": "BIANTE",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "GRAND LIVINA SV 1.5",
+    "brand": "Nissan",
+    "model": "GRAND LIVINA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2015,
+    "transmisi": "Manual",
+    "count": 2
+  },
+  {
+    "nama_mobil": "CX-3 TOURING 2.0",
+    "brand": "Mazda",
+    "model": "CX-3",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "MARCH 1.2",
+    "brand": "Nissan",
+    "model": "MARCH",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 4
+  },
+  {
+    "nama_mobil": "XENIA R 1.3",
+    "brand": "Daihatsu",
+    "model": "XENIA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "XENIA R SPORTY 1.3",
+    "brand": "Daihatsu",
+    "model": "XENIA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "SIENTA G 1.5",
+    "brand": "Toyota",
+    "model": "SIENTA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "MOBILIO E PRESTIGE 1.5",
+    "brand": "Honda",
+    "model": "MOBILIO",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2014,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "MARCH 1.5",
+    "brand": "Nissan",
+    "model": "MARCH",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2014,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "FORTUNER VRZ GR SPORT 2.8",
+    "brand": "Toyota",
+    "model": "FORTUNER",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2022,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "S-PRESSO 1.0",
+    "brand": "Suzuki",
+    "model": "S-PRESSO",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2023,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "SERENA HIGHWAY STAR 2.0",
+    "brand": "Nissan",
+    "model": "SERENA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "FORTUNER VRZ 4X2 2.4",
+    "brand": "Toyota",
+    "model": "FORTUNER",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "TERIOS ADVENTURE R 1.5",
+    "brand": "Daihatsu",
+    "model": "TERIOS",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2015,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "SPARK PREMIER 1.4",
+    "brand": "Chevrolet",
+    "model": "SPARK",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "CARRY PICK UP 1.5",
+    "brand": "Suzuki",
+    "model": "CARRY",
+    "tipe_bodi": "Niaga",
+    "tahun_sample": 2021,
+    "transmisi": "Manual",
+    "count": 5
+  },
+  {
+    "nama_mobil": "CX-5 HIGH 2.5",
+    "brand": "Mazda",
+    "model": "CX-5",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2014,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "RAIZE GR 1.0",
+    "brand": "Toyota",
+    "model": "RAIZE",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "ECOSPORT TITANIUM 1.5",
+    "brand": "Ford",
+    "model": "ECOSPORT",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2014,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "GRAND LIVINA HIGHWAY STAR 1.5",
+    "brand": "Nissan",
+    "model": "GRAND LIVINA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2015,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "ROCKY X 1.2",
+    "brand": "Daihatsu",
+    "model": "ROCKY",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2022,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "SIRION 1.3",
+    "brand": "Daihatsu",
+    "model": "SIRION",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "GO PANCA T LIVE 1.2",
+    "brand": "Datsun",
+    "model": "GO",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "XPANDER CROSS 1.5",
+    "brand": "Mitsubishi",
+    "model": "XPANDER",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "GRAND LIVINA HIGHWAY STAR AUTECH 1.5",
+    "brand": "Nissan",
+    "model": "GRAND LIVINA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2014,
+    "transmisi": "Automatic",
+    "count": 3
+  },
+  {
+    "nama_mobil": "GRAND LIVINA X-GEAR 1.5",
+    "brand": "Nissan",
+    "model": "GRAND LIVINA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "KIJANG INNOVA REBORN G 2.4",
+    "brand": "Toyota",
+    "model": "KIJANG INNOVA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "CALYA E 1.2",
+    "brand": "Toyota",
+    "model": "CALYA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "2 GT 1.5",
+    "brand": "Mazda",
+    "model": "MAZDA 2",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "JAZZ RS 1.5",
+    "brand": "Honda",
+    "model": "JAZZ",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "FORTUNER G TRD 2.5",
+    "brand": "Toyota",
+    "model": "FORTUNER",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2014,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "KARIMUN GS 1.0",
+    "brand": "Suzuki",
+    "model": "KARIMUN",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2017,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "SIGRA X 1.2",
+    "brand": "Daihatsu",
+    "model": "SIGRA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2020,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "AVANZA VELOZ 1.5",
+    "brand": "Toyota",
+    "model": "AVANZA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2020,
+    "transmisi": "Manual",
+    "count": 4
+  },
+  {
+    "nama_mobil": "MOBILIO S 1.5",
+    "brand": "Honda",
+    "model": "MOBILIO",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2020,
+    "transmisi": "Manual",
+    "count": 2
+  },
+  {
+    "nama_mobil": "CIVIC FB2 1.8",
+    "brand": "Honda",
+    "model": "CIVIC",
+    "tipe_bodi": "Sedan",
+    "tahun_sample": 2015,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "RAIZE GR TWO TONE 1.0",
+    "brand": "Toyota",
+    "model": "RAIZE",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "XL7 ZETA GL 1.5",
+    "brand": "Suzuki",
+    "model": "XL7",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2020,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "X-TRAIL URBAN SELECTION 2.5",
+    "brand": "Nissan",
+    "model": "X-TRAIL",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2014,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "JUKE 1.5",
+    "brand": "Nissan",
+    "model": "JUKE",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2014,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "SIRION M602RS 1.3",
+    "brand": "Daihatsu",
+    "model": "SIRION",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2017,
+    "transmisi": "Automatic",
+    "count": 2
+  },
+  {
+    "nama_mobil": "FORTUNER G 2.5",
+    "brand": "Toyota",
+    "model": "FORTUNER",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2014,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "MARCH L 1.2",
+    "brand": "Nissan",
+    "model": "MARCH",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2016,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "KARIMUN GL 1.0",
+    "brand": "Suzuki",
+    "model": "KARIMUN",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2015,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "CROSS 1.2",
+    "brand": "Datsun",
+    "model": "CROSS",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "BRIO SATYA S 1.2",
+    "brand": "Honda",
+    "model": "BRIO",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2016,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "COLT L300 PICK UP 2.5",
+    "brand": "Mitsubishi",
+    "model": "COLT",
+    "tipe_bodi": "Niaga",
+    "tahun_sample": 2022,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "FREED E 1.5",
+    "brand": "Honda",
+    "model": "FREED",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2010,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "SIGRA M 1.0",
+    "brand": "Daihatsu",
+    "model": "SIGRA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2019,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "SIGRA R 1.2",
+    "brand": "Daihatsu",
+    "model": "SIGRA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2022,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "2 R 1.5",
+    "brand": "Mazda",
+    "model": "MAZDA 2",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "CR-V TURBO PRESTIGE 1.5",
+    "brand": "Honda",
+    "model": "CR-V",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2018,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "3 20I (CKD) 2.0",
+    "brand": "BMW",
+    "model": "BMW 3",
+    "tipe_bodi": "Sedan",
+    "tahun_sample": 2019,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "BRIO E 1.3",
+    "brand": "Honda",
+    "model": "BRIO",
+    "tipe_bodi": "Hatchback",
+    "tahun_sample": 2012,
+    "transmisi": "Manual",
+    "count": 1
+  },
+  {
+    "nama_mobil": "FREED S 1.5",
+    "brand": "Honda",
+    "model": "FREED",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2013,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "RAIZE GR SPORT TSS 1.0",
+    "brand": "Toyota",
+    "model": "RAIZE",
+    "tipe_bodi": "SUV",
+    "tahun_sample": 2021,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "STARGAZER PRIME 1.5",
+    "brand": "Hyundai",
+    "model": "STARGAZER",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2022,
+    "transmisi": "Automatic",
+    "count": 1
+  },
+  {
+    "nama_mobil": "Xenia Kalcer",
+    "brand": "Daihatsu",
+    "model": "XENIA",
+    "tipe_bodi": "MPV",
+    "tahun_sample": 2022,
+    "transmisi": "Manual",
+    "count": 1
+  }
+]

@@ -10,6 +10,12 @@ class UserRegister(BaseModel):
     password: str = Field(..., min_length=6)
     no_hp: Optional[str] = None
     no_telepon: Optional[str] = None
+    nik: Optional[str] = None
+    jenis_kelamin: Optional[str] = None
+    tanggal_lahir: Optional[str] = None
+    pekerjaan: Optional[str] = None
+    kota_domisili: Optional[str] = None
+    alamat_lengkap: Optional[str] = None
 
 
 class UserLogin(BaseModel):
@@ -33,6 +39,10 @@ class BuyerPreference(BaseModel):
     pref_harga_min: Optional[int] = None
     pref_harga_max: Optional[int] = None
     segmen_awal_id: Optional[int] = None
+    fokus_penggunaan: Optional[str] = None
+    tahun_min: Optional[int] = None
+    harga_min: Optional[int] = None
+    harga_max: Optional[int] = None
 
 
 class UserOut(BaseModel):
@@ -40,16 +50,62 @@ class UserOut(BaseModel):
     nama: str
     email: str
     no_hp: Optional[str] = None
+    nik: Optional[str] = None
+    jenis_kelamin: Optional[str] = None
+    tanggal_lahir: Optional[str] = None
+    pekerjaan: Optional[str] = None
+    kota_domisili: Optional[str] = None
+    alamat_lengkap: Optional[str] = None
     role: str
     hp_terverifikasi: int
     pref_harga_min: Optional[int] = None
     pref_harga_max: Optional[int] = None
     pref_tahun_min: Optional[int] = None
     segmen_awal_id: Optional[int] = None
+    fokus_penggunaan: Optional[str] = None
     cabang: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class AdminUserCreate(BaseModel):
+    nama: str
+    email: str
+    no_hp: Optional[str] = None
+    nik: Optional[str] = None
+    jenis_kelamin: Optional[str] = None
+    tanggal_lahir: Optional[str] = None
+    pekerjaan: Optional[str] = None
+    kota_domisili: Optional[str] = None
+    alamat_lengkap: Optional[str] = None
+    password: Optional[str] = "password123"
+    role: Optional[str] = "pembeli"
+    hp_terverifikasi: Optional[int] = 1
+    pref_harga_min: Optional[int] = None
+    pref_harga_max: Optional[int] = None
+    segmen_awal_id: Optional[int] = None
+    fokus_penggunaan: Optional[str] = None
+
+
+class AdminUserUpdate(BaseModel):
+    nama: Optional[str] = None
+    email: Optional[str] = None
+    no_hp: Optional[str] = None
+    nik: Optional[str] = None
+    jenis_kelamin: Optional[str] = None
+    tanggal_lahir: Optional[str] = None
+    pekerjaan: Optional[str] = None
+    kota_domisili: Optional[str] = None
+    alamat_lengkap: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[str] = None
+    hp_terverifikasi: Optional[int] = None
+    pref_harga_min: Optional[int] = None
+    pref_harga_max: Optional[int] = None
+    segmen_awal_id: Optional[int] = None
+    fokus_penggunaan: Optional[str] = None
+    is_active: Optional[int] = None
 
 
 class Token(BaseModel):
@@ -239,12 +295,6 @@ class AdminCarSaveIn(BaseModel):
 
 class AdminExperimentIn(BaseModel):
     k: int = Field(..., ge=2, le=6)
-
-
-class BuyerPreference(BaseModel):
-    tahun_min: Optional[int] = None
-    harga_min: Optional[int] = None
-    harga_max: Optional[int] = None
 
 
 class EksperimenKRequest(BaseModel):

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart,
@@ -23,6 +23,7 @@ import {
   ArrowLeft,
   RotateCcw,
   Plus,
+  Lightbulb,
 } from 'lucide-react';
 import { getToken, apiFetch } from '@/services/api';
 import {
@@ -30,6 +31,7 @@ import {
   subscribeFavorites,
   saveFavoriteNote,
   fetchFavoriteIds,
+  getFavoriteIds,
 } from '@/services/favoriteStore';
 import {
   getCompareIds,
@@ -43,6 +45,11 @@ import {
 import { getCarPhoto } from '@/utils/carPhoto';
 import { formatInstallment, calculateInstallment } from '@/lib/finance';
 import { buatRingkasanBanding } from '@/lib/ringkasanBanding';
+import {
+  fetchCompareCars,
+  normalizeAlternatives,
+  formatAngka,
+} from '@/lib/normalizeBanding';
 import { SegmentBadge } from '@/components/motion/SegmentBadge';
 import { Skeleton } from '@/components/motion/Skeleton';
 import { CarPlaceholder } from '@/components/common/CarPlaceholder';
@@ -59,6 +66,7 @@ interface CarItem {
   nama_segmen?: string;
   warna_segmen?: string;
   foto?: string | null;
+  foto_url?: string | null;
 }
 
 interface FavoriteItem {
@@ -114,7 +122,9 @@ interface RecommendationCar {
   nama_segmen?: string;
   warna_segmen?: string;
   foto?: string | null;
-  alasan?: string[];
+  foto_url?: string | null;
+  alasan?: Array<string | { kode: string; nilai: number }>;
+  alasan_teks?: string[];
 }
 
 interface CheaperAlternative {
@@ -157,22 +167,20 @@ interface ComparedCar {
   fitur_list?: string[];
   catatan?: string | null;
   posisi_harga?: {
-    q1: number;
-    median: number;
-    q3: number;
+    q1: number | null;
+    median: number | null;
+    q3: number | null;
     verdict: string;
     selisih_median_rp: number;
   };
 }
 
 export function FavoritPage() {
+  return <FavoritPageContent />;
+}
+
+function FavoritPageContent() {
   const token = getToken();
-
-  // If unauthenticated guest, immediately redirect to /masuk?next=/favorit
-  if (!token) {
-    return <Navigate to="/masuk?next=/favorit" replace />;
-  }
-
   // Active view tab: 'koleksi' (favorite cars list) vs 'bandingkan' (embedded compare session)
   const [activeTab, setActiveTab] = useState<'koleksi' | 'bandingkan'>('koleksi');
 
@@ -211,6 +219,12 @@ export function FavoritPage() {
 
   // Fetch summary and recommendations
   const loadSummaryAndRecs = useCallback(async () => {
+    const token = getToken();
+    if (!token) {
+      setSummary(null);
+      setRecommendations([]);
+      return;
+    }
     try {
       const [sumRes, recRes] = await Promise.all([
         apiFetch<SummaryData>('/favorit/ringkasan'),
@@ -227,6 +241,54 @@ export function FavoritPage() {
   const loadFavorites = useCallback(async () => {
     try {
       setLoading(true);
+      const token = getToken();
+      if (!token) {
+        // Guest mode: fetch details for locally stored favorite IDs
+        const localIds = getFavoriteIds();
+        if (localIds.length === 0) {
+          setItems([]);
+          setLoading(false);
+          return;
+        }
+        const miniCars = await fetchCompareCars(localIds);
+        const guestItems: FavoriteItem[] = miniCars.map((c) => ({
+          id: c.id,
+          nama_mobil: c.nama_mobil,
+          tahun: c.tahun || 2020,
+          harga_rp: c.harga_rp,
+          jarak_tempuh_ribu_km: c.jarak_tempuh_ribu_km || 30,
+          klaster: c.klaster || 0,
+          catatan: null,
+          disimpan_pada: new Date().toISOString(),
+          car: {
+            id: c.id,
+            nama_mobil: c.nama_mobil,
+            tahun: c.tahun || 2020,
+            harga_rp: c.harga_rp,
+            jarak_tempuh_ribu_km: c.jarak_tempuh_ribu_km || 30,
+            lokasi: c.lokasi || 'DKI Jakarta',
+            transmisi: c.transmisi || 'Automatic',
+            klaster: c.klaster || 0,
+            nama_segmen: c.nama_segmen,
+            warna_segmen: c.warna_segmen,
+            foto: c.foto,
+            foto_url: c.foto,
+          },
+          posisi_harga: c.posisi_harga
+            ? {
+                q1: c.posisi_harga.q1 || c.harga_rp * 0.95,
+                median: c.posisi_harga.median || c.harga_rp,
+                q3: c.posisi_harga.q3 || c.harga_rp * 1.05,
+                verdict: c.posisi_harga.verdict || 'Wajar',
+                selisih_median_rp: c.posisi_harga.selisih_median_rp || 0,
+              }
+            : undefined,
+        }));
+        setItems(guestItems);
+        setLoading(false);
+        return;
+      }
+
       const data = await apiFetch<FavoriteItem[]>(`/favorit?urut=${sort}`);
       const list = Array.isArray(data) ? data : [];
       setItems(list);
@@ -276,25 +338,24 @@ export function FavoritPage() {
     return unsub;
   }, [loadFavorites, loadSummaryAndRecs]);
 
-  // Load compared cars whenever compareList changes
+  // Load compared cars whenever compareList changes.
+  // Backend /bandingkan needs 2..4 ids and returns { cars: [{ mobil, fitur, posisi_harga }] },
+  // so the response is normalized into flat ComparedCar objects.
+  // Buyer notes are merged at render time (notesState), so typing a note no longer refetches.
+  const compareKey = compareList.join(',');
   useEffect(() => {
-    if (compareList.length === 0) {
+    const ids = compareKey ? compareKey.split(',').map(Number) : [];
+    if (ids.length < 2) {
       setComparedCars([]);
+      setLoadingCompare(false);
       return;
     }
 
     let isMounted = true;
     setLoadingCompare(true);
-    apiFetch<ComparedCar[]>(`/bandingkan?ids=${compareList.join(',')}`)
-      .then((data) => {
-        if (isMounted && Array.isArray(data)) {
-          // Enrich with local buyer notes
-          const enriched = data.map((c) => ({
-            ...c,
-            catatan: notesState[c.id] ?? items.find((it) => it.id === c.id)?.catatan ?? c.catatan ?? null,
-          }));
-          setComparedCars(enriched);
-        }
+    fetchCompareCars(ids)
+      .then((cars) => {
+        if (isMounted) setComparedCars(cars);
       })
       .catch((err) => {
         console.error('Failed to fetch compared cars:', err);
@@ -307,7 +368,7 @@ export function FavoritPage() {
     return () => {
       isMounted = false;
     };
-  }, [compareList, notesState, items]);
+  }, [compareKey]);
 
   // Note save on blur
   const handleNoteBlur = async (carId: number) => {
@@ -334,8 +395,10 @@ export function FavoritPage() {
     if (!current && !alternativesCache[carId]) {
       setLoadingAlt((prev) => ({ ...prev, [carId]: true }));
       try {
-        const alts = await apiFetch<CheaperAlternative[]>(`/mobil/${carId}/alternatif-hemat?n=3`);
-        setAlternativesCache((prev) => ({ ...prev, [carId]: alts || [] }));
+        // Backend returns [{ mobil: {...}, hemat_rp }] -> flatten before rendering
+        const raw = await apiFetch<unknown>(`/mobil/${carId}/alternatif-hemat?n=3`);
+        const alts: CheaperAlternative[] = normalizeAlternatives(raw);
+        setAlternativesCache((prev) => ({ ...prev, [carId]: alts }));
       } catch {
         setAlternativesCache((prev) => ({ ...prev, [carId]: [] }));
       } finally {
@@ -409,16 +472,16 @@ export function FavoritPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 pt-6">
+    <div className="min-h-screen bg-[#F5F5F3] dark:bg-[#070709] pb-24 pt-6 transition-colors">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Page Title & Main Header */}
         <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="font-display text-2xl font-black text-slate-900 sm:text-3xl dark:text-white">
-              Favorit Saya
+            <h1 className="font-heading uppercase tracking-wider text-2xl font-black text-zinc-900 sm:text-3xl dark:text-white">
+              Favorit Saya // Saved Vault
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-sans">
               Koleksi mobil pilihan kamu untuk dipantau, dicatat, dan dibandingkan langsung dalam satu halaman.
             </p>
           </div>
@@ -426,14 +489,39 @@ export function FavoritPage() {
             <div className="mt-2 sm:mt-0 flex items-center gap-2">
               <Link
                 to="/cari"
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-800/80 px-3.5 py-2 font-heading uppercase tracking-wider text-xs font-bold text-zinc-700 dark:text-zinc-200 shadow-xs hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
               >
-                <Search className="h-3.5 w-3.5 text-blue-600" />
+                <Search className="h-3.5 w-3.5 text-rose-500" />
                 <span>Cari Mobil Lain</span>
               </Link>
             </div>
           )}
         </div>
+
+        {/* Guest Banner if not logged in */}
+        {!token && items.length > 0 && (
+          <div className="mb-6 rounded-[14px] bg-[#EEEDFB] dark:bg-white/10 border border-[#E4E4EE] dark:border-white/15 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-[10px] bg-[#5B4EF0]/15 border border-[#5B4EF0]/30 flex items-center justify-center text-[#5B4EF0] dark:text-[#8277FF] flex-shrink-0">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white">
+                  Favorit Tersimpan di Perangkat Ini ({items.length} Unit)
+                </h4>
+                <p className="text-[11px] text-zinc-600 dark:text-zinc-300 font-normal">
+                  Daftar mobil tersimpan aman di browser Anda. Masuk untuk menyimpan secara permanen di akun Anda.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/welcome"
+              className="cg-btn-primary whitespace-nowrap text-xs font-semibold px-4 py-2 rounded-[10px] shadow-xs self-end sm:self-auto text-white"
+            >
+              Masuk Akun
+            </Link>
+          </div>
+        )}
 
         {/* Tab Navigation: Koleksi Favorit vs Bandingkan Langsung */}
         {items.length > 0 && (
@@ -569,7 +657,7 @@ export function FavoritPage() {
                   Pilih Minimal 2 Mobil Favorit untuk Dibandingkan
                 </h3>
                 <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                  Kamu saat ini baru memilih {comparedCars.length} mobil. Pilih 2 hingga 4 mobil dari koleksi favoritmu untuk melihat komparasi spesifikasi, cicilan, dan catatan pribadimu di sini.
+                  Kamu saat ini baru memilih {compareList.length} mobil. Pilih 2 hingga 4 mobil dari koleksi favoritmu untuk melihat komparasi spesifikasi, cicilan, dan catatan pribadimu di sini.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
                   {items.length >= 2 && (
@@ -648,8 +736,9 @@ export function FavoritPage() {
                       )}
                     </div>
 
-                    <p className="mt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-medium border-t border-blue-100/60 pt-2.5 dark:border-slate-800">
-                      💡 {comparisonSummary.kesimpulan}
+                    <p className="mt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-medium border-t border-blue-100/60 pt-2.5 dark:border-slate-800 flex items-start gap-1.5">
+                      <Lightbulb className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>{comparisonSummary.kesimpulan}</span>
                     </p>
                   </div>
                 )}
@@ -845,7 +934,7 @@ export function FavoritPage() {
                           {comparedCars.map((car) => (
                             <td key={car.id} className="p-4 font-extrabold text-slate-900 dark:text-white border-l border-slate-100 dark:border-slate-800">
                               <span className="text-base text-blue-600 dark:text-blue-400">
-                                Rp {car.harga_rp.toLocaleString('id-ID')}
+                                Rp {formatAngka(car.harga_rp)}
                               </span>
                             </td>
                           ))}
@@ -858,11 +947,12 @@ export function FavoritPage() {
                             Simulasi Cicilan ({tenorTahun} Thn, DP {dpPercent}%)
                           </td>
                           {comparedCars.map((car) => {
-                            const cicilan = calculateInstallment(car.harga_rp, dpPercent, tenorTahun);
+                            // calculateInstallment expects tenor in MONTHS
+                            const cicilan = calculateInstallment(car.harga_rp, dpPercent, tenorTahun * 12);
                             return (
                               <td key={car.id} className="p-4 font-bold text-slate-900 dark:text-white border-l border-slate-100 dark:border-slate-800">
                                 <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
-                                  Rp {cicilan.toLocaleString('id-ID')}/bln
+                                  Rp {formatAngka(Math.round(cicilan))}/bln
                                 </span>
                               </td>
                             );
@@ -1275,7 +1365,7 @@ export function FavoritPage() {
                     {/* Top Row: Photo, Badges & Quick Action */}
                     <div className="relative aspect-[16/10] w-full overflow-hidden rounded-t-2xl bg-slate-100 dark:bg-slate-800">
                       <img
-                        src={getCarPhoto(car.nama_mobil, car.foto || car.transmisi)}
+                        src={getCarPhoto(car.nama_mobil, ('foto' in car && car.foto) || ('foto_url' in car && car.foto_url) || ('transmisi' in car ? car.transmisi : null))}
                         alt={car.nama_mobil}
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         loading="lazy"
@@ -1334,10 +1424,10 @@ export function FavoritPage() {
                         </Link>
                         <div className="mt-1 flex items-baseline justify-between">
                           <span className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">
-                            Rp {car.harga_rp.toLocaleString('id-ID')}
+                            Rp {formatAngka(car.harga_rp)}
                           </span>
                           <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                            {formatInstallment(car.harga_rp)}
+                            ± Rp {formatInstallment(car.harga_rp || 0)}/bln
                           </span>
                         </div>
                       </div>
@@ -1470,7 +1560,7 @@ export function FavoritPage() {
                                             {alt.nama_mobil}
                                           </Link>
                                           <span className="block text-[10px] text-slate-400">
-                                            Rp {alt.harga_rp.toLocaleString('id-ID')} • {alt.tahun}
+                                            Rp {formatAngka(alt.harga_rp)} • {alt.tahun}
                                           </span>
                                         </div>
                                       </div>
@@ -1524,7 +1614,7 @@ export function FavoritPage() {
                     >
                       <div className="relative aspect-[16/10] w-full overflow-hidden rounded-t-xl bg-slate-100 dark:bg-slate-800">
                         <img
-                          src={getCarPhoto(rec.nama_mobil, rec.foto || rec.transmisi)}
+                          src={getCarPhoto(rec.nama_mobil, rec.foto || rec.foto_url || rec.transmisi)}
                           alt={rec.nama_mobil}
                           className="h-full w-full object-cover"
                           loading="lazy"
@@ -1551,22 +1641,35 @@ export function FavoritPage() {
                         </Link>
                         <div className="flex items-baseline justify-between text-xs">
                           <span className="font-extrabold text-blue-600">
-                            Rp {rec.harga_rp.toLocaleString('id-ID')}
+                            Rp {formatAngka(rec.harga_rp)}
                           </span>
                           <span className="text-[10px] text-slate-400">{rec.tahun}</span>
                         </div>
 
                         {/* Reason Chips */}
-                        {rec.alasan && rec.alasan.length > 0 && (
+                        {((rec.alasan_teks && rec.alasan_teks.length > 0) || (rec.alasan && rec.alasan.length > 0)) && (
                           <div className="flex flex-wrap gap-1 pt-1">
-                            {rec.alasan.map((reason, rIdx) => (
-                              <span
-                                key={rIdx}
-                                className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300"
-                              >
-                                {reason}
-                              </span>
-                            ))}
+                            {(rec.alasan_teks || rec.alasan || []).map((reason, rIdx) => {
+                              const text = typeof reason === 'string'
+                                ? reason
+                                : reason.kode === 'lebih_murah'
+                                ? `Lebih hemat Rp ${Math.round(reason.nilai / 1e6)} Jt`
+                                : reason.kode === 'tahun_lebih_muda' || reason.kode === 'lebih_baru'
+                                ? `${reason.nilai} tahun lebih muda`
+                                : reason.kode === 'km_lebih_rendah'
+                                ? `Odometer ${Math.round(reason.nilai)} rb km lebih rendah`
+                                : reason.kode === 'fitur_lebih_banyak'
+                                ? `${reason.nilai} fitur lebih lengkap`
+                                : 'Karakteristik sepadan';
+                              return (
+                                <span
+                                  key={rIdx}
+                                  className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+                                >
+                                  {text}
+                                </span>
+                              );
+                            })}
                           </div>
                         )}
 

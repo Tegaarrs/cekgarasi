@@ -130,7 +130,7 @@ export function SegmenPage() {
   const totalMobil = segmenData?.total_mobil || 609;
 
   return (
-    <div className="min-h-screen bg-slate-50 py-4 sm:py-8">
+    <div className="min-h-screen bg-transparent py-4 sm:py-8">
       <div className="max-w-4xl mx-auto px-4 space-y-6">
         
         {/* Header Title */}
@@ -148,14 +148,14 @@ export function SegmenPage() {
         </div>
 
         {/* 1. Mobile Scatter Plot Chart */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 shadow-xs space-y-3">
+        <div className="bg-white dark:bg-[#111D3D] rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-blue-600" />
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <span>Sebaran Pasar ({totalMobil} Mobil)</span>
               </h2>
-              <span className="text-[11px] text-slate-500 block">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
                 Sumbu X: Tahun Pembuatan (dengan jitter) • Sumbu Y: Harga Listing (Juta Rp)
               </span>
             </div>
@@ -172,8 +172,8 @@ export function SegmenPage() {
           {/* Scatter Chart Container */}
           <div className="h-64 sm:h-80 w-full pt-2">
             {loading ? (
-              <div className="h-full w-full flex items-center justify-center bg-slate-50 rounded-xl animate-pulse">
-                <span className="text-xs text-slate-400 font-medium">Memuat data sebaran 609 mobil...</span>
+              <div className="h-full w-full flex items-center justify-center bg-slate-200/80 dark:bg-zinc-800 rounded-xl animate-shimmer">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Memuat data sebaran 610 mobil...</span>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={280}>
@@ -220,12 +220,13 @@ export function SegmenPage() {
                   <Scatter name="Mobil" data={chartPoints} isAnimationActive={false}>
                     {chartPoints.map((entry) => {
                       const isHighlighted = entry.klaster === activeKlaster;
+                      const clusterColor = entry.klaster === 0 ? '#2563EB' : entry.klaster === 1 ? '#10B981' : '#F59E0B';
                       return (
                         <Cell
                           key={`cell-${entry.id}`}
-                          fill={entry.warna_hex}
-                          fillOpacity={isHighlighted ? 0.85 : 0.12}
-                          stroke={isHighlighted ? entry.warna_hex : 'transparent'}
+                          fill={clusterColor}
+                          fillOpacity={isHighlighted ? 0.85 : 0.15}
+                          stroke={isHighlighted ? clusterColor : 'transparent'}
                           strokeWidth={isHighlighted ? 1 : 0}
                           r={isHighlighted ? 3.5 : 2}
                         />
@@ -237,79 +238,93 @@ export function SegmenPage() {
             )}
           </div>
 
-          <div className="flex items-center justify-center gap-4 pt-1 text-[11px] text-slate-500">
+          <div className="flex items-center justify-center gap-4 pt-1 text-[11px] text-slate-500 dark:text-slate-400">
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#2557D6]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#2563EB]" />
               <span>Premium</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#0CA678]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
               <span>Keluarga Muda</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#AE3EC9]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
               <span>Ekonomis</span>
             </span>
           </div>
         </div>
 
         {/* 2. Segment Tabs Synced with URL */}
-        <div className="grid grid-cols-3 gap-2">
-          {segmenData?.segmen.map((seg) => {
-            const isSelected = activeSegment?.slug === seg.slug;
-            return (
-              <button
-                key={seg.slug}
-                onClick={() => handleTabClick(seg.slug)}
-                className={`p-3 rounded-2xl border text-center transition-all relative ${
-                  isSelected
-                    ? 'border-transparent text-white font-bold shadow-sm'
-                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
-                style={{
-                  backgroundColor: isSelected ? seg.warna_hex : undefined,
-                }}
-              >
-                {seg.terbesar && (
+        {loading ? (
+          <div className="grid grid-cols-3 gap-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 rounded-2xl bg-slate-200/80 dark:bg-zinc-800 animate-shimmer" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
+            {segmenData?.segmen.map((seg) => {
+              const isSelected = activeSegment?.slug === seg.slug;
+              return (
+                <button
+                  key={seg.slug}
+                  onClick={() => handleTabClick(seg.slug)}
+                  className={`p-3 rounded-2xl border text-center transition-all relative ${
+                    isSelected
+                      ? 'border-transparent text-white font-bold shadow-sm'
+                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
+                  }`}
+                  style={{
+                    backgroundColor: isSelected ? seg.warna_hex : undefined,
+                  }}
+                >
+                  {seg.terbesar && (
+                    <span
+                      className={`absolute -top-2 right-2 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5 shadow-2xs ${
+                        isSelected ? 'bg-amber-400 text-slate-900' : 'bg-amber-100 text-amber-800'
+                      }`}
+                    >
+                      <Crown className="w-2.5 h-2.5 fill-current" />
+                      <span>Terbesar</span>
+                    </span>
+                  )}
+                  <span className="text-xs sm:text-sm block leading-tight">{seg.nama_pendek}</span>
                   <span
-                    className={`absolute -top-2 right-2 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5 shadow-2xs ${
-                      isSelected ? 'bg-amber-400 text-slate-900' : 'bg-amber-100 text-amber-800'
+                    className={`text-[10px] block mt-0.5 ${
+                      isSelected ? 'text-white/80' : 'text-slate-400'
                     }`}
                   >
-                    <Crown className="w-2.5 h-2.5 fill-current" />
-                    <span>Terbesar</span>
+                    {seg.count} unit ({Math.round(seg.share * 100)}%)
                   </span>
-                )}
-                <span className="text-xs sm:text-sm block leading-tight">{seg.nama_pendek}</span>
-                <span
-                  className={`text-[10px] block mt-0.5 ${
-                    isSelected ? 'text-white/80' : 'text-slate-400'
-                  }`}
-                >
-                  {seg.count} unit ({Math.round(seg.share * 100)}%)
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* 3. Active Segment Detail Card */}
-        {activeSegment && (
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-5">
+        {loading ? (
+          <div className="bg-white dark:bg-[#111D3D] rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs space-y-4 animate-shimmer">
+            <div className="h-6 w-1/3 bg-slate-200/80 dark:bg-zinc-800 rounded-md" />
+            <div className="h-4 w-2/3 bg-slate-200/80 dark:bg-zinc-800 rounded-md" />
+            <div className="h-28 w-full bg-slate-200/80 dark:bg-zinc-800 rounded-xl" />
+          </div>
+        ) : activeSegment && (
+          <div className="bg-white dark:bg-[#111D3D] rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs space-y-5">
             
             {/* Title & Badge */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
               <div>
                 <div className="flex items-center gap-2">
                   <span
                     className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: activeSegment.warna_hex }}
                   />
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                     {activeSegment.nama_lengkap}
                   </h3>
                 </div>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                   {activeSegment.deskripsi}
                 </p>
               </div>
@@ -453,13 +468,13 @@ export function SegmenPage() {
         )}
 
         {/* 4. Truthful Methodology Accordion */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs">
+        <div className="bg-white dark:bg-[#111D3D] rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
           <button
             onClick={() => setShowMethodology(!showMethodology)}
-            className="w-full flex items-center justify-between text-left font-bold text-sm text-slate-900"
+            className="w-full flex items-center justify-between text-left font-bold text-sm text-slate-900 dark:text-white cursor-pointer"
           >
             <div className="flex items-center gap-2">
-              <Info className="w-4 h-4 text-blue-600" />
+              <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               <span>{content.segments.methodologyTitle}</span>
             </div>
             <ChevronDown
@@ -470,16 +485,16 @@ export function SegmenPage() {
           </button>
 
           {showMethodology && (
-            <div className="mt-3.5 pt-3.5 border-t border-slate-100 text-xs text-slate-600 space-y-3 leading-relaxed">
+            <div className="mt-3.5 pt-3.5 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-3 leading-relaxed">
               <p>
                 {content.segments.methodologyBody(totalMobil)}
               </p>
               
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60 space-y-1.5">
-                <span className="font-bold text-slate-800 block text-[11px]">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/60 dark:border-slate-700/60 space-y-1.5">
+                <span className="font-bold text-slate-800 dark:text-slate-200 block text-[11px]">
                   Variabel yang dianalisis:
                 </span>
-                <ul className="list-disc list-inside space-y-0.5 text-slate-600 text-[11px]">
+                <ul className="list-disc list-inside space-y-0.5 text-slate-600 dark:text-slate-400 text-[11px]">
                   <li>Harga listing (harga yang ditawarkan penjual)</li>
                   <li>Tahun pembuatan kendaraan</li>
                   <li>Jarak tempuh (sesuai data listing, belum diverifikasi fisik)</li>

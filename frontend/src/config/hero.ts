@@ -1,30 +1,30 @@
 // Hero Configuration & Visual Tuning Parameters
-// Allows tuning focal points, photo filters, tint, gradients, and film-grain
+// Crisp, sharp, realistic automotive presentation with gentle legibility gradient
 
 export const heroConfig = {
   focalPoints: {
-    desktop: '50% 63%',
-    mobile: '68% 60%',
+    desktop: '50% 60%',
+    mobile: '65% 58%',
   },
   photoFilter: {
-    saturate: 0.75,
-    contrast: 1.05,
-    blur: '0.6px', // Applied when sourceWidth < 1600px to soften upscale pixelation
+    saturate: 1.12,
+    contrast: 1.12,
+    blur: '', // Clear, sharp luxury vehicle image
   },
   blueFilter: {
     tint: {
-      color: '#0F2A5F',
+      color: '#070709',
       mixBlendMode: 'multiply' as const,
-      opacity: 0.65,
+      opacity: 0.22, // Deep luxury showroom tint
     },
     legibilityGradient: {
       desktop:
-        'linear-gradient(90deg, rgba(8,20,48,.88) 0%, rgba(8,20,48,.72) 38%, rgba(8,20,48,.40) 70%, rgba(8,20,48,.30) 100%)',
+        'linear-gradient(90deg, rgba(7,7,9,0.92) 0%, rgba(7,7,9,0.70) 50%, rgba(7,7,9,0.30) 80%, rgba(7,7,9,0.12) 100%)',
       mobile:
-        'linear-gradient(180deg, rgba(8,20,48,.98) 0%, rgba(8,20,48,.94) 55%, rgba(8,20,48,.96) 100%)',
+        'linear-gradient(180deg, rgba(7,7,9,0.92) 0%, rgba(7,7,9,0.72) 60%, rgba(7,7,9,0.45) 100%)',
     },
     filmGrain: {
-      opacity: 0.03,
+      opacity: 0.02,
     },
   },
 };

@@ -11,7 +11,7 @@ import {
   Plus, X, Search, Sparkles, 
   Download, ChevronRight, Edit2, ExternalLink,
   Camera, Verified, Trash2, QrCode, AlertTriangle, 
-  CheckCircle2, ArrowUpDown
+  CheckCircle2, ArrowUpDown, UploadCloud, ClipboardPaste, Check
 } from 'lucide-react';
 import { AlgorithmScenarioTester, ComparisonResult } from '@/components/algo/AlgorithmScenarioTester';
 import { generateInspectionBarcodeJpg } from '@/utils/inspectionBarcode';
@@ -123,6 +123,42 @@ export function AdminInventoriPage() {
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editGalleryPhotos, setEditGalleryPhotos] = useState<PhotoItem[]>([]);
   const editFileInputRef = useRef<HTMLInputElement>(null);
+  // Foto interior (disimpan di foto_gallery dengan prefix 'interior::')
+  const [editInteriorPhotos, setEditInteriorPhotos] = useState<string[]>([]);
+  const [uploadingInterior, setUploadingInterior] = useState(false);
+  const interiorFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadInterior = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    if (fileArray.length === 0) {
+      setToastMsg('Format file harus berupa gambar (PNG, JPG, WEBP).');
+      return;
+    }
+    setUploadingInterior(true);
+    const urls: string[] = [];
+    for (const file of fileArray) {
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const res = await apiFetch<{ status: string; url: string }>('/admin/upload-foto', {
+          method: 'POST',
+          body: formData,
+        });
+        if (res && res.url) urls.push(res.url);
+      } catch {
+        setToastMsg('Gagal mengunggah foto interior.');
+      }
+    }
+    if (urls.length > 0) {
+      setEditInteriorPhotos((prev) => [...prev, ...urls]);
+      setToastMsg(`Berhasil menambahkan ${urls.length} foto interior!`);
+    }
+    setUploadingInterior(false);
+    if (interiorFileInputRef.current) interiorFileInputRef.current.value = '';
+  };
+  const [isEditDragging, setIsEditDragging] = useState(false);
+  const [isAddDragging, setIsAddDragging] = useState(false);
 
   // 11 Checklist Features State (K-Means Input) for Tambah Unit
   const [features, setFeatures] = useState<{ [key: string]: boolean }>({
@@ -322,15 +358,20 @@ export function AdminInventoriPage() {
     return () => clearTimeout(timer);
   }, [editTahun, editKm, editHarga, editFeatureCount, editTipeBodi, isEditDrawerOpen]);
 
-  // Photo Upload Handler (supports multiple files)
-  const handleUploadFiles = async (files: FileList | null, isEdit = false) => {
+  // Photo Upload Handler (supports multiple files from file input, drag-and-drop, or clipboard paste)
+  const handleUploadFiles = async (files: FileList | File[] | null, isEdit = false) => {
     if (!files || files.length === 0) return;
-    setUploadingPhoto(true);
+    const fileArray = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    if (fileArray.length === 0) {
+      setToastMsg('Format file harus berupa gambar (PNG, JPG, WEBP).');
+      return;
+    }
 
+    setUploadingPhoto(true);
     const uploadedUrls: string[] = [];
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
       const formData = new FormData();
       formData.append('file', file);
 
@@ -376,11 +417,219 @@ export function AdminInventoriPage() {
           return [...prev, ...newItems];
         });
       }
-      setToastMsg(`Berhasil mengunggah ${uploadedUrls.length} foto kendaraan.`);
+      setToastMsg(`Berhasil menambahkan ${uploadedUrls.length} foto ke galeri!`);
     }
 
     setUploadingPhoto(false);
   };
+
+  // Add single photo to state helper
+  const addPhotoToGallery = (url: string, isEdit = false) => {
+    if (isEdit) {
+      setEditGalleryPhotos((prev) => {
+        const hasPrimary = prev.some((p) => p.isPrimary);
+        return [
+          ...prev,
+          {
+            id: `edit_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            url,
+            isPrimary: !hasPrimary && prev.length === 0,
+          },
+        ];
+      });
+    } else {
+      setGalleryPhotos((prev) => {
+        const hasPrimary = prev.some((p) => p.isPrimary);
+        return [
+          ...prev,
+          {
+            id: `add_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            url,
+            isPrimary: !hasPrimary && prev.length === 0,
+          },
+        ];
+      });
+    }
+  };
+
+  // Helper to extract clean original image URL from Google imgres links
+  const extractCleanImageUrl = (raw: string): string => {
+    let clean = raw.trim();
+    try {
+      if (clean.includes('google.com/imgres') || clean.includes('/imgres?')) {
+        const parsed = new URL(clean);
+        const imgurl = parsed.searchParams.get('imgurl');
+        if (imgurl) return decodeURIComponent(imgurl);
+      }
+    } catch {}
+    return clean;
+  };
+
+  // Upload/download photo from external URL (e.g. Google Images)
+  const handleUploadFromUrl = async (rawUrl: string, isEdit = false) => {
+    const imageUrl = extractCleanImageUrl(rawUrl);
+    if (!imageUrl) return;
+
+    setUploadingPhoto(true);
+    setToastMsg('Mengunduh & memproses foto dari Google/web...');
+
+    try {
+      const res = await apiFetch<{ status: string; url: string }>('/admin/upload-url', {
+        method: 'POST',
+        body: JSON.stringify({ url: imageUrl }),
+      });
+      if (res && res.url) {
+        addPhotoToGallery(res.url, isEdit);
+        setToastMsg('Foto dari Google/web berhasil disimpan ke katalog!');
+      } else {
+        addPhotoToGallery(imageUrl, isEdit);
+      }
+    } catch {
+      // Fallback: use image URL directly with referrer protection
+      addPhotoToGallery(imageUrl, isEdit);
+      setToastMsg('Foto web ditambahkan ke katalog.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  // Drag and Drop Handlers (supports files AND dragged web/Google images)
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e: React.DragEvent, isEdit: boolean) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isEdit) setIsEditDragging(true);
+    else setIsAddDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent, isEdit: boolean) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    if (isEdit) setIsEditDragging(false);
+    else setIsAddDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent, isEdit: boolean) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isEdit) setIsEditDragging(false);
+    else setIsAddDragging(false);
+
+    // 1. Files dropped directly from computer
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const droppedFiles = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
+      if (droppedFiles.length > 0) {
+        handleUploadFiles(droppedFiles, isEdit);
+        return;
+      }
+    }
+
+    // 2. Dragged from Google Images or another browser tab/page
+    let foundUrl = '';
+
+    // Check text/html for <img src="...">
+    const html = e.dataTransfer.getData('text/html');
+    if (html) {
+      try {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const img = doc.querySelector('img');
+        if (img && img.src) {
+          foundUrl = img.src;
+        }
+      } catch {}
+    }
+
+    // Check text/uri-list
+    if (!foundUrl) {
+      const uriList = e.dataTransfer.getData('text/uri-list');
+      if (uriList && (uriList.startsWith('http://') || uriList.startsWith('https://') || uriList.startsWith('data:image/'))) {
+        foundUrl = uriList.split('\n')[0].trim();
+      }
+    }
+
+    // Check text/plain
+    if (!foundUrl) {
+      const plain = e.dataTransfer.getData('text/plain')?.trim();
+      if (plain && (plain.startsWith('http://') || plain.startsWith('https://') || plain.startsWith('data:image/'))) {
+        foundUrl = plain;
+      }
+    }
+
+    if (foundUrl) {
+      await handleUploadFromUrl(foundUrl, isEdit);
+    } else {
+      setToastMsg('Format gambar tidak dikenali. Coba copy-paste gambarnya atau klik + Unggah.');
+    }
+  };
+
+  // Global Clipboard Paste (Ctrl+V) Handler for Drawers (supports files, blobs, and web/Google image URLs)
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      if (!isEditDrawerOpen && !isDrawerOpen) return;
+      const isEdit = isEditDrawerOpen;
+
+      // 1. Check physical files copied in File Explorer
+      if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+        const imageFiles = Array.from(e.clipboardData.files).filter((f) => f.type.startsWith('image/'));
+        if (imageFiles.length > 0) {
+          e.preventDefault();
+          handleUploadFiles(imageFiles, isEdit);
+          return;
+        }
+      }
+
+      // 2. Check binary image blob in clipboard (from "Copy Image")
+      if (e.clipboardData?.items) {
+        const imageFiles: File[] = [];
+        for (let i = 0; i < e.clipboardData.items.length; i++) {
+          const item = e.clipboardData.items[i];
+          if (item.type.startsWith('image/')) {
+            const file = item.getAsFile();
+            if (file) imageFiles.push(file);
+          }
+        }
+        if (imageFiles.length > 0) {
+          e.preventDefault();
+          handleUploadFiles(imageFiles, isEdit);
+          return;
+        }
+      }
+
+      // 3. Check HTML (from browser / Google Images)
+      let foundUrl = '';
+      const html = e.clipboardData?.getData('text/html');
+      if (html) {
+        try {
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const img = doc.querySelector('img');
+          if (img && img.src) {
+            foundUrl = img.src;
+          }
+        } catch {}
+      }
+
+      // 4. Check plain text (from "Copy Image Address" / copied URL)
+      if (!foundUrl) {
+        const text = e.clipboardData?.getData('text/plain')?.trim();
+        if (text && (text.startsWith('http://') || text.startsWith('https://') || text.startsWith('data:image/'))) {
+          foundUrl = text;
+        }
+      }
+
+      if (foundUrl) {
+        e.preventDefault();
+        await handleUploadFromUrl(foundUrl, isEdit);
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, [isEditDrawerOpen, isDrawerOpen]);
 
   const setPrimaryPhoto = (id: string, isEdit = false) => {
     if (isEdit) {
@@ -436,14 +685,19 @@ export function AdminInventoriPage() {
       photos.push({ id: 'primary', url: getCarPhoto(car.nama_mobil), isPrimary: true });
     }
 
+    const interiors: string[] = [];
     if (car.foto_gallery && Array.isArray(car.foto_gallery)) {
       car.foto_gallery.forEach((gUrl, idx) => {
-        if (gUrl && gUrl !== car.foto_url) {
+        if (!gUrl) return;
+        if (gUrl.startsWith('interior::')) {
+          interiors.push(gUrl.slice('interior::'.length));
+        } else if (gUrl !== car.foto_url) {
           photos.push({ id: `gallery_${idx}`, url: gUrl, isPrimary: false });
         }
       });
     }
 
+    setEditInteriorPhotos(interiors);
     setEditGalleryPhotos(photos);
     setIsEditDrawerOpen(true);
   };
@@ -495,7 +749,10 @@ export function AdminInventoriPage() {
 
     try {
       const primaryPhoto = editGalleryPhotos.find((p) => p.isPrimary) || editGalleryPhotos[0];
-      const allUrls = editGalleryPhotos.map((p) => p.url);
+      const allUrls = [
+        ...editGalleryPhotos.map((p) => p.url),
+        ...editInteriorPhotos.map((u) => `interior::${u}`),
+      ];
 
       await apiFetch(`/admin/mobil/${editingCar.id}`, {
         method: 'PUT',
@@ -727,22 +984,26 @@ export function AdminInventoriPage() {
 
         {/* Top Action Buttons */}
         <div className="flex items-center gap-3 shrink-0">
-          <button 
+          <motion.button 
             type="button"
             onClick={handleExportCsv}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-[#001540] text-xs font-bold shadow-xs hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
+            whileHover={{ y: -1.5, scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className="btn-liquid-secondary liquid-shine flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
           >
             <Download className="h-4 w-4 text-blue-600" />
             <span>Ekspor CSV</span>
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             type="button"
             onClick={() => setIsDrawerOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#001540] hover:bg-[#0F2A5F] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
+            whileHover={{ y: -2, scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className="btn-liquid-primary liquid-shine flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
           >
-            <Plus className="h-4 w-4 text-[#FE6A2B]" />
+            <Plus className="h-4 w-4 text-amber-300" />
             <span>Tambah Unit</span>
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -750,40 +1011,46 @@ export function AdminInventoriPage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-center">
         
         {/* Segment Tabs */}
-        <div className="xl:col-span-5 flex items-center bg-white p-1.5 rounded-xl border border-slate-200/80 shadow-xs gap-1">
-          <button
+        <div className="xl:col-span-5 flex items-center bg-white/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-200/80 shadow-2xs gap-1">
+          <motion.button
             type="button"
             onClick={() => setStatusTab('semua')}
-            className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center ${
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className={`btn-liquid-tab flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
               statusTab === 'semua'
-                ? 'bg-[#001540] text-white shadow-xs'
+                ? 'btn-liquid-primary'
                 : 'text-slate-600 hover:text-[#001540]'
             }`}
           >
             Semua ({kpiCounts.total})
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             type="button"
             onClick={() => setStatusTab('tayang')}
-            className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center ${
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className={`btn-liquid-tab flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
               statusTab === 'tayang'
-                ? 'bg-[#001540] text-white shadow-xs'
+                ? 'btn-liquid-success text-white'
                 : 'text-slate-600 hover:text-[#001540]'
             }`}
           >
             Tayang ({kpiCounts.tayang})
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             type="button"
             onClick={() => setStatusTab('draft')}
-            className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center ${
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className={`btn-liquid-tab flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
               statusTab === 'draft'
-                ? 'bg-[#001540] text-white shadow-xs'
+                ? 'btn-liquid-primary'
                 : 'text-slate-600 hover:text-[#001540]'
             }`}
           >
             Draft ({kpiCounts.draft})
-          </button>
+          </motion.button>
         </div>
 
         {/* Quick KPI Strip */}
@@ -1068,7 +1335,7 @@ export function AdminInventoriPage() {
                 <th className="py-3.5 px-4">Harga Listing</th>
                 <th className="py-3.5 px-4">Klaster ML</th>
                 <th className="py-3.5 px-4">Status Bursa</th>
-                <th className="py-3.5 px-4 text-center">Aksi</th>
+                <th className="py-3.5 px-4 text-center sticky right-0 z-10 bg-slate-50 shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -1112,19 +1379,27 @@ export function AdminInventoriPage() {
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-3">
+                        <a
+                          href={`/mobil/${car.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-3 group cursor-pointer"
+                          title="Buka Halaman Detail Mobil"
+                        >
                           <img
                             src={photoUrl}
                             alt={car.nama_mobil}
-                            className="w-14 h-10 rounded-lg object-cover bg-slate-100 shrink-0 border border-slate-200"
+                            className="w-14 h-10 rounded-lg object-cover bg-slate-100 shrink-0 border border-slate-200 group-hover:scale-105 transition-transform"
                           />
                           <div className="flex flex-col">
-                            <span className="font-bold text-[#001540]">{car.nama_mobil}</span>
+                            <span className="font-bold text-[#001540] group-hover:text-blue-600 transition-colors">
+                              {car.nama_mobil}
+                            </span>
                             <span className="text-[11px] text-slate-400 mt-0.5">
                               {car.tipe_plat || car.jenis_plat || 'B 1849 POF'} • {car.transmisi} • Bensin
                             </span>
                           </div>
-                        </div>
+                        </a>
                       </td>
 
                       <td className="py-3.5 px-4">
@@ -1192,16 +1467,17 @@ export function AdminInventoriPage() {
                       </td>
 
                       {/* Action Buttons Column */}
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-3.5 px-4 text-center sticky right-0 z-10 bg-white shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]">
                         <div className="flex items-center justify-center gap-1.5">
                           {/* Edit Button */}
                           <button
                             type="button"
                             onClick={() => openEditModal(car)}
-                            className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-colors shadow-2xs cursor-pointer"
-                            title="Edit & Perbarui Katalog Mobil"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 font-bold text-[11px] hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors shadow-2xs cursor-pointer"
+                            title="Edit foto eksterior, interior & data unit"
                           >
                             <Edit2 className="h-3.5 w-3.5" />
+                            Edit
                           </button>
 
                           {/* Print Barcode Inspeksi Button */}
@@ -1697,7 +1973,26 @@ export function AdminInventoriPage() {
                     </span>
                   </div>
 
-                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragEnter={(e) => handleDragEnter(e, true)}
+                    onDragLeave={(e) => handleDragLeave(e, true)}
+                    onDrop={(e) => handleDrop(e, true)}
+                    className={`relative p-3.5 rounded-xl border transition-all ${
+                      isEditDragging
+                        ? 'bg-blue-50/90 border-blue-500 ring-2 ring-blue-400/50 shadow-md scale-[1.005]'
+                        : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    {/* Drag Active Overlay */}
+                    {isEditDragging && (
+                      <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-blue-600/90 rounded-xl text-white backdrop-blur-xs transition-all pointer-events-none">
+                        <UploadCloud className="h-10 w-10 mb-1.5 animate-bounce" />
+                        <span className="font-extrabold text-sm">Lepaskan Foto Mobil di Sini</span>
+                        <span className="text-[11px] text-blue-100 font-medium">Bisa pilih &amp; lepas beberapa foto sekaligus</span>
+                      </div>
+                    )}
+
                     {/* Hidden File Input */}
                     <input
                       ref={editFileInputRef}
@@ -1717,7 +2012,14 @@ export function AdminInventoriPage() {
                           <img
                             src={photo.url}
                             alt="Foto Mobil"
+                            referrerPolicy="no-referrer"
+                            crossOrigin="anonymous"
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.currentTarget as HTMLImageElement;
+                              target.onerror = null;
+                              target.src = '/images/car_sedan.jpg';
+                            }}
                           />
                           {photo.isPrimary ? (
                             <span className="absolute bottom-1 right-1 bg-[#001540] text-[9px] text-white px-1.5 py-0.5 rounded font-bold shadow-xs">
@@ -1749,21 +2051,95 @@ export function AdminInventoriPage() {
                         type="button"
                         onClick={() => editFileInputRef.current?.click()}
                         disabled={uploadingPhoto}
-                        className="aspect-video rounded-lg bg-white border border-dashed border-blue-400 hover:border-blue-600 flex flex-col items-center justify-center text-blue-600 cursor-pointer hover:bg-blue-50/50 transition-colors shadow-2xs"
+                        className="aspect-video rounded-lg bg-white border border-dashed border-blue-400 hover:border-blue-600 flex flex-col items-center justify-center text-blue-600 cursor-pointer hover:bg-blue-50/60 transition-all shadow-2xs group"
+                        title="Klik untuk memilih foto, atau drag & drop ke sini"
                       >
                         {uploadingPhoto ? (
                           <Spinner size={16} />
                         ) : (
                           <>
-                            <Camera className="h-4 w-4 text-blue-600" />
+                            <Camera className="h-4 w-4 text-blue-600 group-hover:scale-110 transition-transform" />
                             <span className="text-[9px] mt-0.5 font-bold">+ Unggah</span>
+                            <span className="text-[8px] text-slate-400">atau drop</span>
                           </>
                         )}
                       </button>
                     </div>
 
-                    <p className="text-[10px] text-slate-400 text-center">
-                      Unggah foto mobil Anda sendiri. Klik foto untuk menjadikannya foto utama di bursa.
+                    {/* Helper text with badges for Drag & Drop and Copy-Paste */}
+                    <div className="pt-2 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-500">
+                      <p>
+                        Unggah foto mobil Anda sendiri. Klik foto untuk menjadikannya foto utama di bursa.
+                      </p>
+                      <div className="flex items-center gap-1.5 font-semibold">
+                        <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100">
+                          <UploadCloud className="h-3 w-3" />
+                          Bisa Drag &amp; Drop
+                        </span>
+                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-100">
+                          <ClipboardPaste className="h-3 w-3" />
+                          Bisa Paste (Ctrl+V)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Foto Interior */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block font-bold text-[#001540]">Foto Interior Unit</label>
+                    <span className="text-[10px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded">
+                      {editInteriorPhotos.length} Foto
+                    </span>
+                  </div>
+                  <div className="p-3.5 rounded-xl border bg-slate-50 border-slate-200">
+                    <input
+                      ref={interiorFileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      onChange={(e) => handleUploadInterior(e.target.files)}
+                      className="hidden"
+                    />
+                    <div className="grid grid-cols-4 gap-2">
+                      {editInteriorPhotos.map((url, i) => (
+                        <div
+                          key={`${url}_${i}`}
+                          className="group relative aspect-video rounded-lg overflow-hidden shadow-xs bg-slate-200 border border-slate-300"
+                        >
+                          <img src={url} alt="Foto Interior" className="w-full h-full object-cover" />
+                          <span className="absolute bottom-1 left-1 bg-[#001540] text-[9px] text-white px-1.5 py-0.5 rounded font-bold">
+                            Interior
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setEditInteriorPhotos((prev) => prev.filter((_, idx) => idx !== i))}
+                            className="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-xs"
+                            title="Hapus foto interior ini"
+                          >
+                            <Trash2 className="h-2.5 w-2.5" />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => interiorFileInputRef.current?.click()}
+                        disabled={uploadingInterior}
+                        className="aspect-video rounded-lg bg-white border border-dashed border-blue-400 hover:border-blue-600 flex flex-col items-center justify-center text-blue-600 cursor-pointer hover:bg-blue-50/60 transition-all shadow-2xs group"
+                      >
+                        {uploadingInterior ? (
+                          <Spinner size={16} />
+                        ) : (
+                          <>
+                            <Camera className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                            <span className="text-[9px] mt-0.5 font-bold">+ Interior</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <p className="pt-2 text-[10px] text-slate-500">
+                      Unggah foto dashboard, jok, dan kabin yang sesuai dengan merk &amp; model unit ini.
                     </p>
                   </div>
                 </div>
@@ -1814,8 +2190,9 @@ export function AdminInventoriPage() {
                       </span>
                     </div>
                     {editScenarioPred && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-emerald-100 text-emerald-800 border-emerald-300">
-                        ✓ Model Aktif
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-emerald-100 text-emerald-800 border-emerald-300 inline-flex items-center gap-1">
+                        <Check className="w-3 h-3" />
+                        <span>Model Aktif</span>
                       </span>
                     )}
                   </div>
@@ -2095,7 +2472,26 @@ export function AdminInventoriPage() {
                     </span>
                   </div>
 
-                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragEnter={(e) => handleDragEnter(e, false)}
+                    onDragLeave={(e) => handleDragLeave(e, false)}
+                    onDrop={(e) => handleDrop(e, false)}
+                    className={`relative p-3.5 rounded-xl border transition-all ${
+                      isAddDragging
+                        ? 'bg-blue-50/90 border-blue-500 ring-2 ring-blue-400/50 shadow-md scale-[1.005]'
+                        : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    {/* Drag Active Overlay */}
+                    {isAddDragging && (
+                      <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-blue-600/90 rounded-xl text-white backdrop-blur-xs transition-all pointer-events-none">
+                        <UploadCloud className="h-10 w-10 mb-1.5 animate-bounce" />
+                        <span className="font-extrabold text-sm">Lepaskan Foto Mobil di Sini</span>
+                        <span className="text-[11px] text-blue-100 font-medium">Bisa pilih &amp; lepas beberapa foto sekaligus</span>
+                      </div>
+                    )}
+
                     {/* Hidden input file */}
                     <input
                       ref={addFileInputRef}
@@ -2115,7 +2511,14 @@ export function AdminInventoriPage() {
                           <img
                             src={photo.url}
                             alt="Foto Mobil"
+                            referrerPolicy="no-referrer"
+                            crossOrigin="anonymous"
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.currentTarget as HTMLImageElement;
+                              target.onerror = null;
+                              target.src = '/images/car_sedan.jpg';
+                            }}
                           />
                           {photo.isPrimary ? (
                             <span className="absolute bottom-1 right-1 bg-[#001540] text-[9px] text-white px-1.5 py-0.5 rounded font-bold shadow-xs">
@@ -2147,22 +2550,37 @@ export function AdminInventoriPage() {
                         type="button"
                         onClick={() => addFileInputRef.current?.click()}
                         disabled={uploadingPhoto}
-                        className="aspect-video rounded-lg bg-white border border-dashed border-blue-400 hover:border-blue-600 flex flex-col items-center justify-center text-blue-600 cursor-pointer hover:bg-blue-50/50 transition-colors shadow-2xs"
+                        className="aspect-video rounded-lg bg-white border border-dashed border-blue-400 hover:border-blue-600 flex flex-col items-center justify-center text-blue-600 cursor-pointer hover:bg-blue-50/60 transition-all shadow-2xs group"
+                        title="Klik untuk memilih foto, atau drag & drop ke sini"
                       >
                         {uploadingPhoto ? (
                           <Spinner size={16} />
                         ) : (
                           <>
-                            <Camera className="h-4 w-4 text-blue-600" />
+                            <Camera className="h-4 w-4 text-blue-600 group-hover:scale-110 transition-transform" />
                             <span className="text-[9px] mt-0.5 font-bold">+ Unggah</span>
+                            <span className="text-[8px] text-slate-400">atau drop</span>
                           </>
                         )}
                       </button>
                     </div>
 
-                    <p className="text-[10px] text-slate-400 text-center">
-                      Unggah foto mobil yang ingin Anda tambahkan (PNG/JPG maksimal 8MB).
-                    </p>
+                    {/* Helper text with badges for Drag & Drop and Copy-Paste */}
+                    <div className="pt-2 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-500">
+                      <p>
+                        Unggah foto mobil yang ingin Anda tambahkan (PNG/JPG maksimal 8MB).
+                      </p>
+                      <div className="flex items-center gap-1.5 font-semibold">
+                        <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100">
+                          <UploadCloud className="h-3 w-3" />
+                          Bisa Drag &amp; Drop
+                        </span>
+                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-100">
+                          <ClipboardPaste className="h-3 w-3" />
+                          Bisa Paste (Ctrl+V)
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -2212,12 +2630,22 @@ export function AdminInventoriPage() {
                       </span>
                     </div>
                     {scenarioPred && (
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border inline-flex items-center gap-1 ${
                         scenarioPred.evaluasi.apakah_akurat
                           ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                           : 'bg-amber-100 text-amber-800 border-amber-300'
                       }`}>
-                        {scenarioPred.evaluasi.apakah_akurat ? '✓ Akurat 100%' : '⚠ Beda Prediksi'}
+                        {scenarioPred.evaluasi.apakah_akurat ? (
+                          <>
+                            <Check className="w-3 h-3" />
+                            <span>Akurat 100%</span>
+                          </>
+                        ) : (
+                          <>
+                            <AlertTriangle className="w-3 h-3" />
+                            <span>Beda Prediksi</span>
+                          </>
+                        )}
                       </span>
                     )}
                   </div>

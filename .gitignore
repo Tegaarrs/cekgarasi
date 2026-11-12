@@ -21,3 +21,7 @@ frontend/build/
 frontend/test-results/
 frontend/playwright-report/
 *.tsbuildinfo
+
+# Binaries & temp
+cloudflared.exe
+*.log

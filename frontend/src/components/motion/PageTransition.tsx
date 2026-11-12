@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { dur, ease } from '@/lib/motion';
+import { ease } from '@/lib/motion';
 
 interface PageTransitionProps {
   children: React.ReactNode;
@@ -23,15 +23,16 @@ export function PageTransition({ children }: PageTransitionProps) {
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={location.pathname}
-        initial={{ opacity: 0, y: 6 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{
           opacity: 1,
           y: 0,
-          transition: { duration: 0.18, ease: ease.out },
+          transition: { duration: 0.32, ease: ease.out },
         }}
         exit={{
           opacity: 0,
-          transition: { duration: dur.fast, ease: ease.inOut },
+          y: -10,
+          transition: { duration: 0.18, ease: ease.inOut },
         }}
         className="w-full"
       >

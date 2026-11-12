@@ -1,5 +1,6 @@
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { dur } from '@/lib/motion';
+import { getSegmentMeta } from '@/utils/segmentConstants';
 
 interface SegmentBadgeProps {
   klaster: number;
@@ -7,31 +8,8 @@ interface SegmentBadgeProps {
   warnaHex?: string;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  showIcon?: boolean;
 }
-
-const SEGMENT_COLORS: Record<number, { bg: string; text: string; border: string; dot: string; label: string }> = {
-  0: {
-    bg: 'bg-blue-50 dark:bg-blue-950/40',
-    text: 'text-blue-700 dark:text-blue-300',
-    border: 'border-blue-200 dark:border-blue-800',
-    dot: '#2557D6',
-    label: 'Segmen 0 - Premium & Eksekutif',
-  },
-  1: {
-    bg: 'bg-emerald-50 dark:bg-emerald-950/40',
-    text: 'text-emerald-700 dark:text-emerald-300',
-    border: 'border-emerald-200 dark:border-emerald-800',
-    dot: '#0CA678',
-    label: 'Segmen 1 - Keluarga Muda',
-  },
-  2: {
-    bg: 'bg-purple-50 dark:bg-purple-950/40',
-    text: 'text-purple-700 dark:text-purple-300',
-    border: 'border-purple-200 dark:border-purple-800',
-    dot: '#AE3EC9',
-    label: 'Segmen 2 - Ekonomis & Komuter',
-  },
-};
 
 export function SegmentBadge({
   klaster,
@@ -39,35 +17,47 @@ export function SegmentBadge({
   warnaHex,
   className = '',
   size = 'md',
+  showIcon = true,
 }: SegmentBadgeProps) {
   const shouldReduce = useReducedMotion();
-  const cfg = SEGMENT_COLORS[klaster] || {
-    bg: 'bg-slate-50',
-    text: 'text-slate-700',
-    border: 'border-slate-200',
-    dot: warnaHex || '#64748B',
-    label: `Segmen ${klaster}`,
-  };
+  const meta = getSegmentMeta(klaster);
+  const Icon = meta.icon;
 
-  const displayText = nama || cfg.label;
-  const dotColor = warnaHex || cfg.dot;
+  const displayText = nama || meta.nama;
+  const dotColor = warnaHex || meta.colorHex;
 
   const sizeClasses = {
-    sm: 'text-xs px-2 py-0.5 gap-1.5',
-    md: 'text-xs font-semibold px-2.5 py-1 gap-2',
-    lg: 'text-sm font-semibold px-3 py-1.5 gap-2.5',
+    sm: 'text-[11px] px-2 py-0.5 gap-1.5 font-semibold',
+    md: 'text-xs font-semibold px-2.5 py-1 gap-1.5',
+    lg: 'text-sm font-semibold px-3 py-1.5 gap-2',
   };
 
-  if (shouldReduce) {
-    return (
-      <span
-        className={`inline-flex items-center rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border} ${sizeClasses[size]} ${className}`}
-      >
+  const iconSizes = {
+    sm: 'w-3 h-3',
+    md: 'w-3.5 h-3.5',
+    lg: 'w-4 h-4',
+  };
+
+  const badgeContent = (
+    <>
+      {showIcon ? (
+        <Icon className={`${iconSizes[size]} flex-shrink-0`} style={{ color: dotColor }} />
+      ) : (
         <span
           className="h-2 w-2 rounded-full flex-shrink-0"
           style={{ backgroundColor: dotColor }}
         />
-        <span>{displayText}</span>
+      )}
+      <span>{displayText}</span>
+    </>
+  );
+
+  if (shouldReduce) {
+    return (
+      <span
+        className={`inline-flex items-center rounded-full border shadow-2xs ${meta.badgeBg} ${meta.badgeText} ${meta.badgeBorder} ${sizeClasses[size]} ${className}`}
+      >
+        {badgeContent}
       </span>
     );
   }
@@ -80,14 +70,9 @@ export function SegmentBadge({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.94 }}
         transition={{ duration: dur.fast }}
-        className={`inline-flex items-center rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border} ${sizeClasses[size]} ${className}`}
+        className={`inline-flex items-center rounded-full border shadow-2xs ${meta.badgeBg} ${meta.badgeText} ${meta.badgeBorder} ${sizeClasses[size]} ${className}`}
       >
-        <motion.span
-          className="h-2 w-2 rounded-full flex-shrink-0"
-          animate={{ backgroundColor: dotColor }}
-          transition={{ duration: 0.25 }}
-        />
-        <span>{displayText}</span>
+        {badgeContent}
       </motion.span>
     </AnimatePresence>
   );

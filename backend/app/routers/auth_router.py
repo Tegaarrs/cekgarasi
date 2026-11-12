@@ -18,11 +18,25 @@ def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)):
             # User previously started registration but hasn't verified OTP yet
             if user_in.password:
                 existing.password_hash = auth.hash_password(user_in.password)
+                existing.password_terdaftar = user_in.password
             if user_in.nama:
                 existing.nama = user_in.nama.strip()
             phone = (user_in.no_hp or user_in.no_telepon or "").strip() or None
             if phone:
                 existing.no_hp = phone
+            if user_in.nik:
+                existing.nik = user_in.nik.strip()
+            if user_in.jenis_kelamin:
+                existing.jenis_kelamin = user_in.jenis_kelamin.strip()
+            if user_in.tanggal_lahir:
+                existing.tanggal_lahir = user_in.tanggal_lahir.strip()
+            if user_in.pekerjaan:
+                existing.pekerjaan = user_in.pekerjaan.strip()
+            if user_in.kota_domisili:
+                existing.kota_domisili = user_in.kota_domisili.strip()
+                existing.cabang = user_in.kota_domisili.strip()
+            if user_in.alamat_lengkap:
+                existing.alamat_lengkap = user_in.alamat_lengkap.strip()
             db.commit()
             db.refresh(existing)
             token = auth.create_access_token({"sub": str(existing.id), "role": existing.role})
@@ -45,10 +59,19 @@ def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)):
         )
 
     phone = (user_in.no_hp or user_in.no_telepon or "").strip() or None
+    kota = (user_in.kota_domisili or "").strip() or None
     new_user = models.User(
         nama=user_in.nama.strip(),
         email=clean_email,
         no_hp=phone,
+        nik=(user_in.nik or "").strip() or None,
+        jenis_kelamin=(user_in.jenis_kelamin or "").strip() or None,
+        tanggal_lahir=(user_in.tanggal_lahir or "").strip() or None,
+        pekerjaan=(user_in.pekerjaan or "").strip() or None,
+        kota_domisili=kota,
+        alamat_lengkap=(user_in.alamat_lengkap or "").strip() or None,
+        cabang=kota,
+        password_terdaftar=user_in.password,
         password_hash=auth.hash_password(user_in.password),
         role="pembeli",
         hp_terverifikasi=0,
@@ -94,6 +117,10 @@ def login(login_in: schemas.UserLogin, db: Session = Depends(get_db)):
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Akun ini telah dinonaktifkan."
         )
+
+    if login_in.password and user.password_terdaftar != login_in.password:
+        user.password_terdaftar = login_in.password
+        db.commit()
 
     token = auth.create_access_token({"sub": str(user.id), "role": user.role})
     return {

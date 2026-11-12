@@ -4,9 +4,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>CekGarasi: Cek dulu harganya, baru nego</title>
+  <title>CekGarasi: Platform Business Intelligence & Segmentasi Mobil Bekas</title>
   <meta name="description"
-    content="Bandingkan harga mobil bekas dengan mobil sejenis, hitung perkiraan cicilan, lalu jadwalkan test drive." />
+    content="Platform analisis pasar mobil bekas berbasis algoritma K-Means Clustering. Bandingkan harga wajar, spesifikasi, dan hitung estimasi cicilan secara transparan." />
+  <!-- Theme Init Script (anti-flicker) -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('cekgarasi_theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (saved === 'dark' || (!saved && prefersDark)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <!-- Google Fonts: Plus Jakarta Sans & Inter fallback -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Preload Hero Background Image (Main Variant) -->
   <link rel="preload" as="image" type="image/avif" imagesrcset="/images/hero/hero-640.avif 640w, /images/hero/hero-720.avif 720w" imagesizes="100vw" fetchpriority="high" />
   <!-- Favicon -->
@@ -14,10 +32,10 @@
   <link rel="apple-touch-icon" href="/images/logo.png" />
 </head>
 
-<body>
+<body class="bg-[#F6F8FB] dark:bg-[#0B0F19] text-[#0F172A] dark:text-[#E5E7EB] transition-colors duration-200">
   <div id="root">
     <div
-      style="min-h-screen; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f8fafc; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a;">
+      style="min-height: 100vh; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0B192C; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #ffffff;">
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
         <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="CekGarasi">
           <rect width="40" height="40" rx="10" fill="#2563EB"/>
@@ -27,22 +45,21 @@
           <path d="M15 15H25L26.5 20H13.5L15 15Z" fill="#93C5FD"/>
         </svg>
         <span style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Cek<span
-            style="color: #2563eb;">Garasi</span></span>
+            style="color: #60a5fa;">Garasi</span></span>
       </div>
-      <div style="display: flex; align-items: center; gap: 10px; color: #64748b; font-size: 14px; font-weight: 500;">
-        <svg style="animation: cgSpin 0.9s linear infinite; width: 20px; height: 20px; color: #2563eb;"
+      <div style="display: flex; align-items: center; gap: 10px; color: #94a3b8; font-size: 14px; font-weight: 500;">
+        <svg style="animation: cgSpin 0.9s linear infinite; width: 20px; height: 20px; color: #3b82f6;"
           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <circle cx="12" cy="12" r="10" stroke-opacity="0.2"></circle>
           <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
         </svg>
-        <span>Memuat Pasar Mobil CekGarasi...</span>
+        <span>Memuat CekGarasi Intelligence...</span>
       </div>
       <style>
         @keyframes cgSpin {
           from {
             transform: rotate(0deg);
           }
-
           to {
             transform: rotate(360deg);
           }
