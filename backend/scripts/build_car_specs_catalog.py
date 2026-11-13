@@ -2850,7 +2850,10 @@ SPECS = {
 print(f"Total defined model keys in authoritative database: {len(SPECS)}")
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-json_path = os.path.join(CURRENT_DIR, "distinct_cars.json")
+BACKEND_DIR = os.path.dirname(CURRENT_DIR) if os.path.basename(CURRENT_DIR) == "scripts" else CURRENT_DIR
+json_path = os.path.join(BACKEND_DIR, "data", "distinct_cars.json")
+if not os.path.exists(json_path):
+    json_path = os.path.join(CURRENT_DIR, "distinct_cars.json")
 cars = json.load(open(json_path, encoding="utf-8"))
 unmatched = []
 
@@ -2890,7 +2893,7 @@ else:
     print("ALL 173 CAR VARIANTS SUCCESSFULLY VALIDATED AGAINST AUTHENTIC OEM SPECS!")
 
 # Emit TypeScript file to frontend/src/utils/carSpecsData.ts
-ts_target = os.path.abspath(os.path.join(CURRENT_DIR, "..", "frontend", "src", "utils", "carSpecsData.ts"))
+ts_target = os.path.abspath(os.path.join(BACKEND_DIR, "..", "frontend", "src", "utils", "carSpecsData.ts"))
 ts_code = '''/**
  * CekGarasi - Authoritative Indonesian Automotive OEM Specifications Database
  * Real manufacturer specifications for all 59 car models & 173 unique variants in Indonesia.

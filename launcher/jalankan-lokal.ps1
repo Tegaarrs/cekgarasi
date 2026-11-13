@@ -2,8 +2,10 @@
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-$baseDir = $PSScriptRoot
-if (-not $baseDir) { $baseDir = (Get-Location).Path }
+$scriptDir = $PSScriptRoot
+if (-not $scriptDir) { $scriptDir = (Get-Location).Path }
+$baseDir = Split-Path -Parent $scriptDir
+if (-not (Test-Path (Join-Path $baseDir "frontend"))) { $baseDir = $scriptDir }
 Set-Location $baseDir
 
 Clear-Host

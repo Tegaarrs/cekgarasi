@@ -24,7 +24,6 @@ import { SegmenPage } from './pages/buyer/SegmenPage';
 import { PlaceholderPage } from './pages/buyer/PlaceholderPage';
 import { FavoritPage } from './pages/buyer/FavoritPage';
 import { BandingkanPage } from './pages/buyer/BandingkanPage';
-import { MetodologiPage } from './pages/buyer/MetodologiPage';
 import { CompareTray } from './components/common/CompareTray';
 
 // Admin Pages A1 - A5 & Database
@@ -33,6 +32,7 @@ import { AdminLayout } from './components/layout/AdminLayout';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminBIPage } from './pages/admin/AdminBIPage';
 import { AdminSegmentasiPage } from './pages/admin/AdminSegmentasiPage';
+import { MetodologiPage } from './pages/admin/MetodologiPage';
 import { AdminInventoriPage } from './pages/admin/AdminInventoriPage';
 import { AdminLeadsPage } from './pages/admin/AdminLeadsPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';

@@ -3,7 +3,8 @@ import urllib.request
 import json
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SCRATCH_DIR = os.path.dirname(BASE_DIR)
+BACKEND_DIR = os.path.dirname(BASE_DIR) if os.path.basename(BASE_DIR) == "scripts" else BASE_DIR
+SCRATCH_DIR = os.path.dirname(BACKEND_DIR)
 DEST_DIRS = [
     os.path.join(SCRATCH_DIR, "frontend", "public", "images", "cars"),
     os.path.join(SCRATCH_DIR, "frontend", "images", "cars"),
