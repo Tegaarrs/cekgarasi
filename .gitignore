@@ -24,4 +24,5 @@ frontend/playwright-report/
 
 # Binaries & temp
 cloudflared.exe
+launcher/cloudflared.exe
 *.log

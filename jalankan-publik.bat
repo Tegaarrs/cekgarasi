@@ -7,13 +7,15 @@ echo          CEKGARASI - AKSES ONLINE PUBLIK
 echo =======================================================
 echo.
 echo Menjalankan proses Cloudflare Tunnel...
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0start_public.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0launcher\start_public.ps1"
 
 if %ERRORLEVEL% neq 0 (
     echo.
     echo Terjadi kendala saat menjalankan script.
     echo Mencoba menjalankan cloudflared langsung...
-    if exist "C:\Program Files (x86)\cloudflared\cloudflared.exe" (
+    if exist "%~dp0launcher\cloudflared.exe" (
+        "%~dp0launcher\cloudflared.exe" tunnel --url http://localhost:8000
+    ) else if exist "C:\Program Files (x86)\cloudflared\cloudflared.exe" (
         "C:\Program Files (x86)\cloudflared\cloudflared.exe" tunnel --url http://localhost:8000
     ) else (
         cloudflared tunnel --url http://localhost:8000

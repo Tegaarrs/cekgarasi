@@ -2,8 +2,10 @@
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-$baseDir = $PSScriptRoot
-if (-not $baseDir) { $baseDir = (Get-Location).Path }
+$scriptDir = $PSScriptRoot
+if (-not $scriptDir) { $scriptDir = (Get-Location).Path }
+$baseDir = Split-Path -Parent $scriptDir
+if (-not (Test-Path (Join-Path $baseDir "frontend"))) { $baseDir = $scriptDir }
 Set-Location $baseDir
 
 Clear-Host
@@ -71,7 +73,10 @@ else {
 Write-Host ""
 Write-Host "[3/3] Membuka Cloudflare Tunnel HTTPS publik..." -ForegroundColor Yellow
 
-$cloudflaredPath = Join-Path $baseDir "cloudflared.exe"
+$cloudflaredPath = Join-Path $scriptDir "cloudflared.exe"
+if (-not (Test-Path $cloudflaredPath)) {
+    $cloudflaredPath = Join-Path $baseDir "cloudflared.exe"
+}
 if (-not (Test-Path $cloudflaredPath)) {
     $cloudflaredPath = "C:\Program Files (x86)\cloudflared\cloudflared.exe"
 }
