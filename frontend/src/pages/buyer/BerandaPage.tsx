@@ -285,7 +285,7 @@ export function BerandaPage() {
                       </span>
                     </div>
                     <span className="text-[10px] text-white/85 font-mono block mt-0.5">
-                      {count ? `${count} unit` : 'Klaster ML'}
+                      {count ? `${count} unit` : 'Pilihan Unit'}
                     </span>
                   </div>
                   <span className="relative z-10 text-[9px] text-white/90 font-medium leading-tight line-clamp-2">
@@ -617,10 +617,10 @@ export function BerandaPage() {
               </p>
             </div>
             <Link
-              to="/metodologi"
+              to="/segmen"
               className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-semibold text-[#5B4EF0] dark:text-[#8277FF] hover:underline group"
             >
-              <span>Pelajari Metodologi &amp; Evaluasi ML</span>
+              <span>Lihat Detail Kategori Pasar</span>
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -781,8 +781,8 @@ export function BerandaPage() {
           className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
         >
           <BuyerKmeansTester
-            title="Asisten Pintar Pencocok Mobil Impian (Analisis Cerdas Berbasis Data)"
-            subtitle="Geser budget harga, tahun mobil, jarak tempuh, dan fitur yang Anda inginkan—sistem pintar kami mempelajari pola ratusan data pasar secara otomatis (real-time) untuk mencocokkan kelas mobil yang paling pas untuk Anda."
+            title="Cari Kategori Mobil Sesuai Budget & Kriteria Anda"
+            subtitle="Atur kisaran harga, tahun pembuatan, jarak tempuh, dan kelengkapan fitur untuk menemukan kategori mobil yang paling pas untuk kebutuhan Anda."
             onApplyFilters={(applied) => {
               const params = new URLSearchParams();
               if (applied.segmen) params.set('segmen', applied.segmen);

@@ -111,17 +111,17 @@ export function PreferensiPage() {
             </div>
             <div className="flex flex-col">
               <span className="text-base font-extrabold tracking-tight text-white leading-none">
-                CekGarasi ML-Engine
+                Panduan CekGarasi
               </span>
               <span className="text-[11px] text-blue-300 uppercase tracking-wider mt-1 font-semibold">
-                Algoritma Penilai Objektif
+                Pencocokan Kebutuhan Mobil
               </span>
             </div>
           </div>
 
           <div className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-[11px] font-bold tracking-wider flex items-center gap-2 backdrop-blur-sm border border-blue-400/30">
             <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-            <span>REALTIME CLUSTERING</span>
+            <span>PANDUAN INTERAKTIF</span>
           </div>
         </div>
 
@@ -129,15 +129,15 @@ export function PreferensiPage() {
         <div className="relative z-10 my-auto py-8 max-w-lg">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-blue-300 text-xs font-semibold mb-4 border border-white/10">
             <BrainCircuit className="h-3.5 w-3.5" />
-            <span>Pengelompokan Otomatis K-Means</span>
+            <span>3 Kategori Mobil Pilihan</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight mb-3">
-            Rekomendasi Cerdas Sesuai Profil Anda
+            Rekomendasi Mobil Sesuai Profil Anda
           </h1>
 
           <p className="text-sm text-slate-300 leading-relaxed mb-6">
-            Sistem CekGarasi memproses parameter riil dari 610 unit mobil, mengelompokkannya secara objektif berdasarkan kesesuaian anggaran, usia kendaraan, dan kebutuhan mobilitas Anda.
+            CekGarasi membantu Anda menyaring lebih dari 600 unit mobil bekas secara objektif berdasarkan kesesuaian anggaran, usia kendaraan, dan kebutuhan mobilitas harian Anda.
           </p>
 
           {/* 3 Segmen Pasar Overview Cards */}
@@ -211,10 +211,10 @@ export function PreferensiPage() {
         <div className="relative z-10 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
           <div className="flex items-center gap-2">
             <Database className="h-4 w-4 text-blue-400" />
-            <span className="font-semibold text-white">3 Segmen Pasar • 610 Data Mobil Terverifikasi</span>
+            <span className="font-semibold text-white">3 Kategori Pasar • 610 Data Mobil Terverifikasi</span>
           </div>
           <div className="font-mono text-[11px] text-blue-300">
-            KLUSTERISASI K-MEANS
+            KATALOG TERVERIFIKASI
           </div>
         </div>
       </div>
@@ -235,14 +235,14 @@ export function PreferensiPage() {
               <span>Kembali ke Katalog</span>
             </Link>
             <span className="font-mono text-[11px] font-bold text-slate-500 dark:text-slate-400 px-2.5 py-1 bg-slate-200/80 dark:bg-slate-800 rounded-lg">
-              K-MEANS PREFERENCES
+              PANDUAN PREFERENSI
             </span>
           </div>
 
           {/* Progress Indicator Tag */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs font-bold w-fit">
             <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400" />
-            <span>Personalisasi Segmen Cerdas</span>
+            <span>Pencarian Sesuai Budget &amp; Kebutuhan</span>
           </div>
 
           {/* Headings */}
@@ -251,7 +251,7 @@ export function PreferensiPage() {
               Bantu Kami Menemukan Mobil yang Tepat
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
-              Atur anggaran dan kriteria utama Anda untuk mencocokkan segmen K-Means yang paling relevan.
+              Atur anggaran dan kriteria utama Anda untuk menemukan kategori mobil yang paling sesuai.
             </p>
           </div>
 
@@ -381,18 +381,17 @@ export function PreferensiPage() {
 
           </div>
 
-          {/* Machine Learning Segment Live Prediction Box */}
+          {/* Segment Live Recommendation Box */}
           <div className="p-5 rounded-2xl bg-white dark:bg-[#0E172A] border-2 border-blue-500/70 dark:border-blue-400/70 shadow-soft dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative overflow-hidden transition-all space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 text-xs font-bold">
                 <Sparkles className="h-4 w-4" />
-                <span>Prediksi Segmen K-Means:</span>
+                <span>Rekomendasi Kategori Mobil:</span>
               </div>
 
-              {/* Tooltip ML Chip */}
               <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-bold border border-blue-200 dark:border-blue-800">
-                <BrainCircuit className="h-3 w-3" />
-                <span>Klaster K-Means</span>
+                <ShieldCheck className="h-3 w-3" />
+                <span>Pilihan Ideal</span>
               </div>
             </div>
 

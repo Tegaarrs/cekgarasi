@@ -11,8 +11,8 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 SQLITE_PATH = os.path.join(DATA_DIR, "cekgarasi.db").replace("\\", "/")
 
-DEFAULT_MYSQL_URL = "mysql+pymysql://cekgarasi:cekgarasipassword@localhost:3306/cekgarasi"
-DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_MYSQL_URL)
+DEFAULT_MYSQL_URL = f"sqlite:///{SQLITE_PATH}"
+DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip() or DEFAULT_MYSQL_URL
 
 
 def is_mysql_available(host="127.0.0.1", port=3306) -> bool:

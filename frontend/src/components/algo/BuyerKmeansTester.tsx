@@ -32,8 +32,8 @@ interface PredictionResponse {
 export function BuyerKmeansTester({
   onApplyFilters,
   compact = false,
-  title = "Asisten Pintar Pencocok Mobil Impian (Analisis Cerdas Berbasis Data)",
-  subtitle = "Geser budget harga, tahun mobil, jarak tempuh, dan fitur yang Anda inginkan—sistem pintar kami mempelajari pola ratusan data pasar secara otomatis (real-time) untuk mencocokkan kelas mobil yang paling pas untuk Anda.",
+  title = "Cari Kategori Mobil Sesuai Budget & Kriteria Anda",
+  subtitle = "Atur kisaran harga, tahun pembuatan, jarak tempuh, dan kelengkapan fitur untuk menemukan kategori mobil yang paling pas untuk kebutuhan Anda.",
 }: BuyerKmeansTesterProps) {
   const [harga, setHarga] = useState<number>(180000000);
   const [tahun, setTahun] = useState<number>(2020);

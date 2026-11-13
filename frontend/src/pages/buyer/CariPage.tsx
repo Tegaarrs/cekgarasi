@@ -551,7 +551,7 @@ export function CariPage() {
                 Katalog Mobil Bekas Pilihan
               </h1>
               <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 max-w-2xl leading-relaxed">
-                Telusuri 610 unit mobil bekas terverifikasi dengan klasifikasi segmen objektif K-Means, kepastian harga pasar, dan spesifikasi terstandarisasi.
+                Telusuri 610 unit mobil bekas terverifikasi dengan panduan kategori pasar, perbandingan harga wajar, dan spesifikasi lengkap.
               </p>
             </div>
             {data && (
@@ -606,7 +606,7 @@ export function CariPage() {
               {/* Segmen Klaster Pasar Mobil */}
               <div>
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-2.5">
-                  Klaster Segmen Pasar
+                  Kategori Segmen Pasar
                 </span>
                 <div className="space-y-1.5">
                   {[

@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>CekGarasi: Platform Business Intelligence & Segmentasi Mobil Bekas</title>
+  <title>CekGarasi — Katalog & Panduan Harga Mobil Bekas</title>
   <meta name="description"
-    content="Platform analisis pasar mobil bekas berbasis algoritma K-Means Clustering. Bandingkan harga wajar, spesifikasi, dan hitung estimasi cicilan secara transparan." />
+    content="Temukan mobil bekas berkualitas dengan panduan harga pasar yang wajar, perbandingan spesifikasi lengkap, dan simulasi cicilan transparan." />
   <!-- Theme Init Script (anti-flicker) -->
   <script>
     (function () {
@@ -24,443 +24,226 @@
   <!-- Google Fonts: Plus Jakarta Sans & Inter fallback -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Preload Hero Background Image (Main Variant) -->
   <link rel="preload" as="image" type="image/avif" imagesrcset="/images/hero/hero-640.avif 640w, /images/hero/hero-720.avif 720w" imagesizes="100vw" fetchpriority="high" />
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/images/logo.png" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
+
+  <style>
+    #cg-preloader {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #000000;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999999;
+      font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      transition: opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.28s ease;
+    }
+
+    #cg-preloader.cg-preloader-hide {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .cg-stage {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.14em;
+      font-size: clamp(36px, 5.2vw, 60px);
+      font-weight: 700;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      color: #FFFFFF;
+    }
+
+    /* Wordmark "CekGarasi" with vertical mask reveal like "layer" */
+    .cg-word-mask {
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      padding: 0.08em 0.02em;
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 84%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 84%, transparent 100%);
+    }
+
+    .cg-word-text {
+      display: inline-block;
+      transform: translateY(0%);
+      animation: cgWordReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    }
+
+    @keyframes cgWordReveal {
+      0% {
+        transform: translateY(65%);
+        opacity: 0;
+      }
+      100% {
+        transform: translateY(0%);
+        opacity: 1;
+      }
+    }
+
+    /* Odometer-style Vertical Rolling Slot for Car Logos */
+    .cg-slot-window {
+      position: relative;
+      height: 1.15em;
+      width: 1.22em;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: flex-start;
+      justify-content: center;
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 78%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 78%, transparent 100%);
+    }
+
+    .cg-slot-track {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      will-change: transform;
+      /* Rolls through 6 car icons and locks onto the final icon over 1.25s within the 1.5s screen duration */
+      animation: cgCarRoll 1.28s cubic-bezier(0.15, 0.85, 0.25, 1) forwards;
+    }
+
+    .cg-slot-item {
+      height: 1.15em;
+      width: 1.22em;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cg-car-svg {
+      width: 0.96em;
+      height: 0.96em;
+      display: block;
+      color: #FFFFFF;
+    }
+
+    @keyframes cgCarRoll {
+      0% {
+        transform: translateY(0%);
+      }
+      20% {
+        transform: translateY(-16.6667%);
+      }
+      42% {
+        transform: translateY(-33.3333%);
+      }
+      64% {
+        transform: translateY(-50.0%);
+      }
+      82% {
+        transform: translateY(-66.6667%);
+      }
+      100% {
+        transform: translateY(-83.3333%);
+      }
+    }
+  </style>
 </head>
 
 <body class="bg-[#F6F8FB] dark:bg-[#0B0F19] text-[#0F172A] dark:text-[#E5E7EB] transition-colors duration-200">
-  <div id="root">
-    <div class="cg-loader-root">
-      <!-- Ambient Background Lights & Grid -->
-      <div class="cg-bg-mesh">
-        <div class="cg-glow cg-glow-1"></div>
-        <div class="cg-glow cg-glow-2"></div>
-        <div class="cg-glow cg-glow-3"></div>
-        <div class="cg-cyber-grid"></div>
-        <div class="cg-particle-field">
-          <span class="cg-pt cg-pt-1"></span>
-          <span class="cg-pt cg-pt-2"></span>
-          <span class="cg-pt cg-pt-3"></span>
-          <span class="cg-pt cg-pt-4"></span>
-          <span class="cg-pt cg-pt-5"></span>
+  <!-- Minimalist Black Loading Screen ("CekGarasi" + Rolling Car Logo, 1.5s duration) -->
+  <div id="cg-preloader" role="status" aria-label="Memuat CekGarasi">
+    <div class="cg-stage">
+      <div class="cg-word-mask">
+        <span class="cg-word-text">CekGarasi</span>
+      </div>
+      <div class="cg-slot-window" aria-hidden="true">
+        <div class="cg-slot-track">
+          <!-- Item 1: Sports Coupe Profile -->
+          <div class="cg-slot-item">
+            <svg class="cg-car-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+              <circle cx="7" cy="17" r="2" />
+              <path d="M9 17h6" />
+              <circle cx="17" cy="17" r="2" />
+            </svg>
+          </div>
+          <!-- Item 2: Front Showroom Car Emblem -->
+          <div class="cg-slot-item">
+            <svg class="cg-car-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11" />
+              <rect x="3" y="11" width="18" height="6" rx="2" />
+              <path d="M5 17v2" />
+              <path d="M19 17v2" />
+              <circle cx="7.5" cy="14" r="1" fill="currentColor" />
+              <circle cx="16.5" cy="14" r="1" fill="currentColor" />
+            </svg>
+          </div>
+          <!-- Item 3: SUV / MPV Silhouette -->
+          <div class="cg-slot-item">
+            <svg class="cg-car-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 16v-4l2-5h11l3 4 2 1v4h-2" />
+              <path d="M5 16H3" />
+              <path d="M9 16h6" />
+              <circle cx="7" cy="16" r="2" />
+              <circle cx="17" cy="16" r="2" />
+            </svg>
+          </div>
+          <!-- Item 4: Executive Sedan Front -->
+          <div class="cg-slot-item">
+            <svg class="cg-car-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2" />
+              <circle cx="6.5" cy="16.5" r="2.5" />
+              <circle cx="16.5" cy="16.5" r="2.5" />
+            </svg>
+          </div>
+          <!-- Item 5: Dynamic Fast Car -->
+          <div class="cg-slot-item">
+            <svg class="cg-car-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11" />
+              <rect x="3" y="11" width="18" height="6" rx="2" />
+              <path d="M5 17v2" />
+              <path d="M19 17v2" />
+              <path d="M10 14h4" />
+            </svg>
+          </div>
+          <!-- Item 6 (Final Locked Position): Signature Car Logo -->
+          <div class="cg-slot-item">
+            <svg class="cg-car-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+              <circle cx="7" cy="17" r="2" />
+              <path d="M9 17h6" />
+              <circle cx="17" cy="17" r="2" />
+            </svg>
+          </div>
         </div>
       </div>
-
-      <!-- Core Glassmorphism Innovation Card -->
-      <div class="cg-loader-card">
-        <!-- Logo Container with Glowing Hologram Ring -->
-        <div class="cg-logo-orbit">
-          <div class="cg-orbit-ring cg-ring-outer"></div>
-          <div class="cg-orbit-ring cg-ring-inner"></div>
-          <div class="cg-logo-wrapper">
-            <img src="/images/logo.png" alt="CekGarasi" class="cg-logo-img" onerror="if(!this.src.endsWith('/logo.png'))this.src='/logo.png';" />
-          </div>
-          <div class="cg-energy-pulse"></div>
-        </div>
-
-        <!-- Brand Name with Liquid Gradient -->
-        <div class="cg-brand-badge">
-          <h1 class="cg-brand-title">Cek<span>Garasi</span></h1>
-          <div class="cg-badge-pill">
-            <span class="cg-status-dot"></span>
-            <span>Intelligent Car Market</span>
-          </div>
-        </div>
-
-        <!-- Futuristic Cyber Progress Bar -->
-        <div class="cg-progress-wrapper">
-          <div class="cg-progress-bar">
-            <div class="cg-progress-fill"></div>
-            <div class="cg-progress-light"></div>
-          </div>
-          <div class="cg-loading-meta">
-            <span class="cg-loading-text">Menyiapkan pengalaman terbaik...</span>
-            <span class="cg-loading-percent">99%</span>
-          </div>
-        </div>
-
-        <!-- Innovation Tagline Micro-Pills -->
-        <div class="cg-features-tags">
-          <span class="cg-tag">✨ Transparansi Pasar</span>
-          <span class="cg-tag">⚡ K-Means Engine</span>
-          <span class="cg-tag">🛡️ Unit Terinspeksi</span>
-        </div>
-      </div>
-
-      <style>
-        .cg-loader-root {
-          position: fixed;
-          inset: 0;
-          min-height: 100vh;
-          width: 100vw;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #070B14;
-          font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          color: #ffffff;
-          overflow: hidden;
-          z-index: 99999;
-          perspective: 1000px;
-        }
-
-        /* Ambient Mesh & Cyber Grid */
-        .cg-bg-mesh {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
-          pointer-events: none;
-        }
-
-        .cg-cyber-grid {
-          position: absolute;
-          inset: 0;
-          background-image: 
-            linear-gradient(to right, rgba(59, 130, 246, 0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
-          background-size: 40px 40px;
-          mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
-          -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
-        }
-
-        .cg-glow {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(80px);
-          opacity: 0.5;
-          animation: cgFloat 10s ease-in-out infinite alternate;
-        }
-
-        .cg-glow-1 {
-          width: 380px;
-          height: 380px;
-          background: radial-gradient(circle, #2563EB 0%, rgba(37, 99, 235, 0) 70%);
-          top: 15%;
-          left: 20%;
-          animation-duration: 8s;
-        }
-
-        .cg-glow-2 {
-          width: 420px;
-          height: 420px;
-          background: radial-gradient(circle, #7C3AED 0%, rgba(124, 58, 237, 0) 70%);
-          bottom: 10%;
-          right: 18%;
-          animation-duration: 11s;
-        }
-
-        .cg-glow-3 {
-          width: 300px;
-          height: 300px;
-          background: radial-gradient(circle, #06B6D4 0%, rgba(6, 182, 212, 0) 70%);
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          opacity: 0.25;
-        }
-
-        @keyframes cgFloat {
-          0% { transform: translateY(0px) scale(1); }
-          50% { transform: translateY(-30px) scale(1.1); }
-          100% { transform: translateY(20px) scale(0.95); }
-        }
-
-        /* Floating Light Particles */
-        .cg-particle-field {
-          position: absolute;
-          inset: 0;
-        }
-        .cg-pt {
-          position: absolute;
-          width: 4px;
-          height: 4px;
-          background: #60A5FA;
-          border-radius: 50%;
-          box-shadow: 0 0 10px #60A5FA;
-          animation: cgRise 7s infinite linear;
-        }
-        .cg-pt-1 { left: 15%; top: 80%; animation-delay: 0s; }
-        .cg-pt-2 { left: 35%; top: 90%; animation-delay: 2s; width: 6px; height: 6px; }
-        .cg-pt-3 { left: 65%; top: 85%; animation-delay: 1.5s; }
-        .cg-pt-4 { left: 80%; top: 75%; animation-delay: 3s; width: 5px; height: 5px; }
-        .cg-pt-5 { left: 50%; top: 95%; animation-delay: 4.5s; }
-
-        @keyframes cgRise {
-          0% { transform: translateY(0) scale(0.5); opacity: 0; }
-          40% { opacity: 0.8; }
-          100% { transform: translateY(-300px) scale(1.2); opacity: 0; }
-        }
-
-        /* Glass Innovation Card */
-        .cg-loader-card {
-          position: relative;
-          z-index: 10;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 38px 44px;
-          border-radius: 28px;
-          background: rgba(13, 20, 36, 0.72);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(37, 99, 235, 0.2);
-          backdrop-filter: blur(24px);
-          -webkit-backdrop-filter: blur(24px);
-          max-width: 420px;
-          width: 90%;
-          animation: cgCardIntro 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        @keyframes cgCardIntro {
-          0% { opacity: 0; transform: translateY(20px) scale(0.96); }
-          100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        /* Logo Orbit Ring & Energy */
-        .cg-logo-orbit {
-          position: relative;
-          width: 96px;
-          height: 96px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 20px;
-        }
-
-        .cg-logo-wrapper {
-          position: relative;
-          z-index: 3;
-          width: 72px;
-          height: 72px;
-          border-radius: 50%;
-          padding: 3px;
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(37, 99, 235, 0.6));
-          box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45);
-          animation: cgLogoFloat 3s ease-in-out infinite;
-        }
-
-        .cg-logo-img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          border-radius: 50%;
-          background: #0B0F19;
-          display: block;
-        }
-
-        @keyframes cgLogoFloat {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-6px); }
-        }
-
-        .cg-orbit-ring {
-          position: absolute;
-          border-radius: 50%;
-          border: 1.5px dashed rgba(96, 165, 250, 0.5);
-          pointer-events: none;
-        }
-
-        .cg-ring-outer {
-          inset: -4px;
-          border-color: rgba(96, 165, 250, 0.35);
-          border-style: solid;
-          border-top-color: #38BDF8;
-          border-right-color: transparent;
-          animation: cgSpin 3s linear infinite;
-        }
-
-        .cg-ring-inner {
-          inset: 4px;
-          border-color: rgba(168, 85, 247, 0.4);
-          border-style: dashed;
-          border-bottom-color: #C084FC;
-          animation: cgSpinReverse 5s linear infinite;
-        }
-
-        .cg-energy-pulse {
-          position: absolute;
-          inset: 6px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, transparent 70%);
-          animation: cgPulse 2s ease-in-out infinite;
-          z-index: 1;
-        }
-
-        @keyframes cgSpin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-
-        @keyframes cgSpinReverse {
-          from { transform: rotate(360deg); }
-          to { transform: rotate(0deg); }
-        }
-
-        @keyframes cgPulse {
-          0%, 100% { transform: scale(0.9); opacity: 0.3; }
-          50% { transform: scale(1.3); opacity: 0.8; }
-        }
-
-        /* Brand Typography */
-        .cg-brand-badge {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          margin-bottom: 22px;
-          text-align: center;
-        }
-
-        .cg-brand-title {
-          font-size: 28px;
-          font-weight: 800;
-          letter-spacing: -0.03em;
-          margin: 0;
-          line-height: 1.2;
-          color: #FFFFFF;
-        }
-
-        .cg-brand-title span {
-          background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-
-        .cg-badge-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          margin-top: 6px;
-          padding: 4px 12px;
-          border-radius: 999px;
-          background: rgba(37, 99, 235, 0.18);
-          border: 1px solid rgba(59, 130, 246, 0.3);
-          font-size: 11px;
-          font-weight: 600;
-          color: #93C5FD;
-          letter-spacing: 0.02em;
-        }
-
-        .cg-status-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #34D399;
-          box-shadow: 0 0 8px #34D399;
-          animation: cgBlink 1.4s ease-in-out infinite;
-        }
-
-        @keyframes cgBlink {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(0.85); }
-        }
-
-        /* Cyber Progress Bar */
-        .cg-progress-wrapper {
-          width: 100%;
-          margin-bottom: 20px;
-        }
-
-        .cg-progress-bar {
-          position: relative;
-          width: 100%;
-          height: 6px;
-          border-radius: 999px;
-          background: rgba(255, 255, 255, 0.08);
-          overflow: hidden;
-          border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .cg-progress-fill {
-          position: absolute;
-          top: 0;
-          left: 0;
-          bottom: 0;
-          width: 100%;
-          background: linear-gradient(90deg, #2563EB, #60A5FA, #A855F7, #38BDF8);
-          background-size: 200% 100%;
-          border-radius: 999px;
-          animation: cgGradientMove 2s linear infinite, cgIndeterminate 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-        }
-
-        .cg-progress-light {
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          width: 40px;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
-          filter: blur(2px);
-          animation: cgScan 1.6s ease-in-out infinite;
-        }
-
-        @keyframes cgGradientMove {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 200% 50%; }
-        }
-
-        @keyframes cgIndeterminate {
-          0% { transform: translateX(-100%); }
-          50% { transform: translateX(20%); }
-          100% { transform: translateX(110%); }
-        }
-
-        @keyframes cgScan {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(380px); }
-        }
-
-        .cg-loading-meta {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-top: 8px;
-          font-size: 11px;
-          color: #94A3B8;
-        }
-
-        .cg-loading-text {
-          font-weight: 500;
-          letter-spacing: 0.01em;
-          animation: cgFadeInOut 2.5s ease-in-out infinite alternate;
-        }
-
-        .cg-loading-percent {
-          font-family: monospace;
-          color: #60A5FA;
-          font-weight: 700;
-        }
-
-        @keyframes cgFadeInOut {
-          0% { opacity: 0.6; }
-          100% { opacity: 1; }
-        }
-
-        /* Feature Pills */
-        .cg-features-tags {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 6px;
-          width: 100%;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
-          padding-top: 14px;
-        }
-
-        .cg-tag {
-          font-size: 10px;
-          font-weight: 600;
-          color: #CBD5E1;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          padding: 3px 9px;
-          border-radius: 6px;
-          transition: all 0.2s ease;
-        }
-      </style>
     </div>
   </div>
+
+  <div id="root"></div>
+
+  <script>
+    (function () {
+      var preloader = document.getElementById('cg-preloader');
+      if (!preloader) return;
+      // Durasi loading screen tepat 1,5 detik (1500ms)
+      setTimeout(function () {
+        preloader.classList.add('cg-preloader-hide');
+        setTimeout(function () {
+          if (preloader && preloader.parentNode) {
+            preloader.parentNode.removeChild(preloader);
+          }
+        }, 300);
+      }, 1500);
+    })();
+  </script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
