@@ -10,7 +10,7 @@ import { apiFetch } from '@/services/api';
 import { content } from '@/content/id';
 import { 
   Search, SlidersHorizontal, ArrowUpDown, Sparkles, 
-  ChevronDown, RotateCcw, X, ChevronLeft, ChevronRight, Filter, Car
+  ChevronDown, RotateCcw, X, ChevronLeft, ChevronRight, Filter, Car, AlertCircle
 } from 'lucide-react';
 import { BuyerKmeansTester } from '@/components/algo/BuyerKmeansTester';
 import {
@@ -23,6 +23,8 @@ import {
 interface SearchResponse {
   total: number;
   page: number;
+  page_size?: number;
+  total_pages?: number;
   limit: number;
   items: CarCardData[];
   segmen_cocok?: {
@@ -34,6 +36,19 @@ interface SearchResponse {
   };
   rekomendasi_alternatif?: CarCardData[];
   diagnosis?: DiagnosisData;
+}
+
+function getPaginationItems(currentPage: number, totalPages: number): Array<number | 'ellipsis-left' | 'ellipsis-right'> {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, 'ellipsis-right', totalPages];
+  }
+  if (currentPage >= totalPages - 3) {
+    return [1, 'ellipsis-left', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+  }
+  return [1, 'ellipsis-left', currentPage - 1, currentPage, currentPage + 1, 'ellipsis-right', totalPages];
 }
 
 export function CariPage() {
@@ -51,11 +66,13 @@ export function CariPage() {
   const transmisi = searchParams.get('transmisi') || '';
   const model = searchParams.get('model') || '';
   const urut = searchParams.get('urut') || 'sesuai';
-  const halaman = parseInt(searchParams.get('halaman') || '1', 10);
+  const rawPage = parseInt(searchParams.get('halaman') || searchParams.get('page') || '1', 10);
+  const halaman = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
 
   // Component State
   const [data, setData] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState<boolean>(false);
   const [showGuestSheet, setShowGuestSheet] = useState<boolean>(false);
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
@@ -85,6 +102,7 @@ export function CariPage() {
   // Fetch search results from real backend
   const fetchCars = useCallback(() => {
     setLoading(true);
+    setFetchError(null);
     const params = new URLSearchParams();
     if (q) params.set('q', q);
     if (merk) params.set('merk', merk);
@@ -97,6 +115,7 @@ export function CariPage() {
     if (transmisi && transmisi !== 'Semua') params.set('transmisi', transmisi);
     if (model) params.set('model', model);
     if (urut) params.set('urut', urut);
+    params.set('page', String(halaman));
     params.set('halaman', String(halaman));
     params.set('page_size', '12');
 
@@ -107,6 +126,7 @@ export function CariPage() {
       .catch((err) => {
         console.error('Failed to load cars:', err);
         setData(null);
+        setFetchError('Gagal memuat daftar katalog mobil. Periksa koneksi Anda lalu coba lagi.');
       })
       .finally(() => {
         setLoading(false);
@@ -200,13 +220,22 @@ export function CariPage() {
 
   // Pagination Change
   const handlePageChange = (newPage: number) => {
+    const safeMax = data ? Math.max(1, Math.ceil(data.total / 12)) : 1;
+    const targetPage = Math.min(Math.max(1, newPage), safeMax);
+    if (targetPage === halaman) return;
     const newParams = new URLSearchParams(searchParams);
-    newParams.set('halaman', String(newPage));
+    newParams.set('halaman', String(targetPage));
+    newParams.delete('page');
     setSearchParams(newParams);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const totalPages = data ? Math.ceil(data.total / 12) : 1;
+  const pageSize = 12;
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
+  const currentPage = Math.min(Math.max(1, halaman), totalPages);
+  const paginationItems = useMemo(() => getPaginationItems(currentPage, totalPages), [currentPage, totalPages]);
+  const startItem = data && data.total > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+  const endItem = data && data.total > 0 ? Math.min(currentPage * pageSize, data.total) : 0;
 
   const currentFiltersForSheet: FilterState = {
     q,
@@ -343,7 +372,7 @@ export function CariPage() {
                 <BuyerKmeansTester
                   compact
                   title="Asisten Pintar Pencocok Mobil"
-                  subtitle="Geser budget dan kriteria Anda—sistem pintar kami mempelajari ratusan data pasar secara otomatis untuk mencocokkan mobil paling ideal."
+                  subtitle="Geser budget dan kriteria Anda, lalu sistem akan mencocokkan kategori mobil yang paling sesuai."
                   onApplyFilters={(applied) => {
                     const newParams = new URLSearchParams(searchParams);
                     if (applied.segmen) newParams.set('segmen', applied.segmen);
@@ -460,8 +489,23 @@ export function CariPage() {
           {/* Loading State */}
           {loading && <CarListSkeleton count={4} />}
 
+          {/* Error State */}
+          {!loading && fetchError && (
+            <div role="alert" className="rounded-2xl bg-white dark:bg-[#1A1A24] border border-red-200 dark:border-red-900/60 p-6 text-center space-y-3">
+              <AlertCircle className="w-8 h-8 text-red-500 mx-auto" aria-hidden="true" />
+              <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{fetchError}</p>
+              <button
+                type="button"
+                onClick={fetchCars}
+                className="min-h-[44px] px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              >
+                Muat Ulang Katalog
+              </button>
+            </div>
+          )}
+
           {/* Zero Results State */}
-          {!loading && data && data.total === 0 && (
+          {!loading && !fetchError && data && data.total === 0 && (
             <CariKosong
               keyword={q}
               diagnosis={data.diagnosis}
@@ -471,9 +515,9 @@ export function CariPage() {
           )}
 
           {/* Results List with Staggered Cascading Animation */}
-          {!loading && data && data.total > 0 && (
+          {!loading && !fetchError && data && data.total > 0 && (
             <>
-              <Stagger className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <Stagger key={`mobile-grid-${currentPage}-${urut}-${q}-${merk}-${segmen}-${transmisi}`} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {data.items.map((car, idx) => (
                   <StaggerItem key={car.id} index={idx}>
                     <CarCard
@@ -512,25 +556,34 @@ export function CariPage() {
 
               {/* Mobile Pagination Controls */}
               {totalPages > 1 && (
-                <div className="pt-6 flex items-center justify-between text-xs">
-                  <button
-                    disabled={halaman <= 1}
-                    onClick={() => handlePageChange(halaman - 1)}
-                    className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700"
-                  >
-                    Sebelumnya
-                  </button>
-                  <span className="text-slate-500 dark:text-slate-400 font-medium">
-                    Halaman {halaman} dari {totalPages}
-                  </span>
-                  <button
-                    disabled={halaman >= totalPages}
-                    onClick={() => handlePageChange(halaman + 1)}
-                    className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700"
-                  >
-                    Selanjutnya
-                  </button>
-                </div>
+                <nav aria-label="Navigasi halaman katalog mobile" className="pt-6 space-y-2.5">
+                  <div className="text-center text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                    Menampilkan {startItem} - {endItem} dari {data.total} mobil
+                  </div>
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <button
+                      type="button"
+                      disabled={currentPage <= 1}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      aria-label="Halaman sebelumnya"
+                      className="min-h-[44px] px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors"
+                    >
+                      Sebelumnya
+                    </button>
+                    <span className="text-slate-700 dark:text-slate-200 font-semibold whitespace-nowrap">
+                      Hal {currentPage} / {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={currentPage >= totalPages}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      aria-label="Halaman selanjutnya"
+                      className="min-h-[44px] px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors"
+                    >
+                      Selanjutnya
+                    </button>
+                  </div>
+                </nav>
               )}
             </>
           )}
@@ -861,16 +914,35 @@ export function CariPage() {
 
             {/* Total Results */}
             {data && (
-              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                {content.search.resultsCount(data.total)}
+              <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-medium">
+                <span>
+                  {data.total > 0
+                    ? `Menampilkan ${startItem} - ${endItem} dari ${data.total} mobil (Halaman ${currentPage} dari ${totalPages})`
+                    : content.search.resultsCount(data.total)}
+                </span>
               </div>
             )}
 
             {/* Desktop Loading */}
             {loading && <CarListSkeleton count={6} />}
 
+            {/* Desktop Error State */}
+            {!loading && fetchError && (
+              <div role="alert" className="rounded-2xl bg-white dark:bg-[#1A1A24] border border-red-200 dark:border-red-900/60 p-8 text-center space-y-3">
+                <AlertCircle className="w-10 h-10 text-red-500 mx-auto" aria-hidden="true" />
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{fetchError}</p>
+                <button
+                  type="button"
+                  onClick={fetchCars}
+                  className="min-h-[44px] px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                >
+                  Muat Ulang Katalog
+                </button>
+              </div>
+            )}
+
             {/* Desktop Empty State */}
-            {!loading && data && data.total === 0 && (
+            {!loading && !fetchError && data && data.total === 0 && (
               <CariKosong
                 keyword={q}
                 diagnosis={data.diagnosis}
@@ -880,9 +952,9 @@ export function CariPage() {
             )}
 
             {/* Desktop Results Grid with Staggered Cascading Animation */}
-            {!loading && data && data.total > 0 && (
+            {!loading && !fetchError && data && data.total > 0 && (
               <>
-                <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <Stagger key={`desktop-grid-${currentPage}-${urut}-${q}-${merk}-${segmen}-${transmisi}`} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {data.items.map((car, idx) => (
                     <StaggerItem key={car.id} index={idx}>
                       <CarCard
@@ -919,50 +991,60 @@ export function CariPage() {
                   </div>
                 )}
 
-                {/* Desktop Pagination Bar with Numbers */}
+                {/* Desktop Pagination Bar with Sliding Window */}
                 {totalPages > 1 && (
-                  <div className="pt-8 flex items-center justify-between text-xs border-t border-slate-200/80 dark:border-slate-800">
+                  <nav aria-label="Navigasi halaman katalog" className="pt-8 flex flex-wrap items-center justify-between gap-4 text-xs border-t border-slate-200/80 dark:border-slate-800">
                     <button
-                      disabled={halaman <= 1}
-                      onClick={() => handlePageChange(halaman - 1)}
-                      className="ios-glass-btn-secondary inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-slate-700 dark:text-slate-200 font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+                      type="button"
+                      disabled={currentPage <= 1}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      aria-label="Halaman sebelumnya"
+                      className="ios-glass-btn-secondary min-h-[40px] inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-slate-800 dark:text-slate-100 font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
-                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <ChevronLeft className="w-3.5 h-3.5" aria-hidden="true" />
                       <span>Sebelumnya</span>
                     </button>
                     
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
-                        const pageNum = i + 1;
-                        const isCurrent = pageNum === halaman;
+                    <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                      {paginationItems.map((item) => {
+                        if (typeof item !== 'number') {
+                          return (
+                            <span key={item} aria-hidden="true" className="px-2 text-slate-500 dark:text-slate-400 select-none font-semibold">
+                              ...
+                            </span>
+                          );
+                        }
+                        const isCurrent = item === currentPage;
                         return (
                           <button
-                            key={pageNum}
-                            onClick={() => handlePageChange(pageNum)}
-                            className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            key={item}
+                            type="button"
+                            onClick={() => handlePageChange(item)}
+                            aria-label={`Halaman ${item}`}
+                            aria-current={isCurrent ? 'page' : undefined}
+                            className={`min-w-[40px] h-10 px-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                               isCurrent
-                                ? 'bg-blue-600 text-white shadow-xs'
-                                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                ? 'bg-[#2563EB] text-white shadow-xs'
+                                : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                             }`}
                           >
-                            {pageNum}
+                            {item}
                           </button>
                         );
                       })}
-                      {totalPages > 5 && (
-                        <span className="px-2 text-slate-400">...</span>
-                      )}
                     </div>
 
                     <button
-                      disabled={halaman >= totalPages}
-                      onClick={() => handlePageChange(halaman + 1)}
-                      className="ios-glass-btn-secondary inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-slate-700 dark:text-slate-200 font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+                      type="button"
+                      disabled={currentPage >= totalPages}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      aria-label="Halaman selanjutnya"
+                      className="ios-glass-btn-secondary min-h-[40px] inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-slate-800 dark:text-slate-100 font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
                       <span>Selanjutnya</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
-                  </div>
+                  </nav>
                 )}
               </>
             )}

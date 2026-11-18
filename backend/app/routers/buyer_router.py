@@ -514,11 +514,13 @@ def search_cars(
     klaster: Optional[int] = None,
     urut: Optional[str] = None,
     sort: Optional[str] = None,
-    page: int = Query(1, ge=1),
+    page: Optional[int] = Query(None, ge=1),
+    halaman: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = None,
     limit: Optional[int] = None,
     db: Session = Depends(get_db)
 ):
+    effective_page = halaman or page or 1
     effective_limit = page_size or limit or 12
     if effective_limit > 100:
         effective_limit = 100
@@ -570,7 +572,7 @@ def search_cars(
         query = query.order_by(models.Car.id.asc())
 
     total_exact = query.count()
-    offset = (page - 1) * effective_limit
+    offset = (effective_page - 1) * effective_limit
     cars_page = query.offset(offset).limit(effective_limit).all()
 
     # Pre-cache segment names
@@ -770,7 +772,8 @@ def search_cars(
         "hasil": formatted_items,
         "items": formatted_items,
         "total": total_exact,
-        "page": page,
+        "page": effective_page,
+        "halaman": effective_page,
         "page_size": effective_limit,
         "limit": effective_limit,
         "total_pages": math.ceil(total_exact / effective_limit) if total_exact > 0 else 1,
