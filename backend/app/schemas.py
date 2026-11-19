@@ -51,17 +51,34 @@ class SocialAuthRequest(BaseModel):
 
 
 class EmailOtpRequest(BaseModel):
-    email: str
+    email: Optional[str] = None
+    no_hp: Optional[str] = None
     purpose: Optional[str] = "register"
-    provider: Optional[str] = "email"
+    provider: Optional[str] = "whatsapp"
+
+
+class WhatsAppOtpRequest(BaseModel):
+    no_hp: str
+    email: Optional[str] = None
+    purpose: Optional[str] = "register"
+
+
+class WhatsAppConfigRequest(BaseModel):
+    api_url: Optional[str] = "https://api.fonnte.com/send"
+    api_token: str
+    sender_number: Optional[str] = None
+    provider_name: Optional[str] = "fonnte"
+    test_phone: Optional[str] = None
 
 
 class ForgotPasswordRequest(BaseModel):
-    email: str
+    email: Optional[str] = None
+    no_hp: Optional[str] = None
 
 
 class ResetPasswordRequest(BaseModel):
-    email: str
+    email: Optional[str] = None
+    no_hp: Optional[str] = None
     kode_otp: str
     new_password: str = Field(..., min_length=6)
     confirm_password: Optional[str] = None

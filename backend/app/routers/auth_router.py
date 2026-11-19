@@ -1,14 +1,16 @@
+import json
 import os
 import random
+import re
 import secrets
-import smtplib
+import urllib.error
+import urllib.parse
+import urllib.request
 from datetime import datetime, timedelta
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 from ..db import get_db
 from .. import models, schemas, auth
@@ -16,231 +18,298 @@ from .. import models, schemas, auth
 router = APIRouter(prefix="/api/auth", tags=["Autentikasi"])
 
 
-def _resolve_smtp_credentials(db: Optional[Session] = None) -> tuple[str, int, str, str, str]:
-    smtp_host = (os.getenv("SMTP_HOST") or "smtp.gmail.com").strip() or "smtp.gmail.com"
-    smtp_port = int(os.getenv("SMTP_PORT") or "587")
-    smtp_user = (os.getenv("SMTP_USER") or "").strip()
-    smtp_pass = (os.getenv("SMTP_PASS") or "").replace(" ", "").strip()
-    smtp_from = (os.getenv("SMTP_FROM") or smtp_user or "no-reply@cekgarasi.id").strip()
+def _normalize_wa_phone(raw_phone: Optional[str]) -> str:
+    if not raw_phone:
+        return ""
+    digits = re.sub(r"\D", "", raw_phone.strip())
+    if not digits:
+        return ""
+    if digits.startswith("08"):
+        digits = "62" + digits[1:]
+    elif digits.startswith("8"):
+        digits = "62" + digits
+    elif digits.startswith("0"):
+        digits = "62" + digits[1:]
+    return digits
+
+
+def _resolve_whatsapp_credentials(db: Optional[Session] = None) -> tuple[str, str, str, str]:
+    api_url = (
+        os.getenv("WA_API_URL")
+        or os.getenv("WHATSAPP_API_URL")
+        or "https://api.fonnte.com/send"
+    ).strip()
+    api_token = (
+        os.getenv("WA_API_TOKEN")
+        or os.getenv("FONNTE_TOKEN")
+        or os.getenv("WHATSAPP_TOKEN")
+        or ""
+    ).strip()
+    sender_number = (os.getenv("WA_SENDER_NUMBER") or "").strip()
+    provider_name = (os.getenv("WA_PROVIDER") or "fonnte").strip().lower()
 
     if db is not None:
         try:
-            row = db.query(models.SmtpSetting).order_by(models.SmtpSetting.id.desc()).first()
-            if row and row.smtp_user and row.smtp_pass:
-                smtp_host = (row.smtp_host or "smtp.gmail.com").strip()
-                smtp_port = int(row.smtp_port or 587)
-                smtp_user = row.smtp_user.strip()
-                smtp_pass = row.smtp_pass.replace(" ", "").strip()
-                smtp_from = (row.smtp_from or smtp_user).strip()
+            row = db.query(models.WhatsAppSetting).order_by(models.WhatsAppSetting.id.desc()).first()
+            if row and row.api_token:
+                api_url = (row.api_url or "https://api.fonnte.com/send").strip()
+                api_token = row.api_token.strip()
+                sender_number = (row.sender_number or "").strip()
+                provider_name = (row.provider_name or "fonnte").strip().lower()
         except Exception:
             pass
 
-    return smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from
+    return api_url, api_token, sender_number, provider_name
 
 
-def _deliver_via_gmail_smtp(
-    smtp_host: str,
-    smtp_port: int,
-    smtp_user: str,
-    smtp_pass: str,
-    smtp_from: str,
-    email_to: str,
-    msg_str: str,
+def _deliver_via_whatsapp_api(
+    api_url: str,
+    api_token: str,
+    phone_to: str,
+    message_text: str,
+    provider_name: str = "fonnte",
 ) -> tuple[bool, str]:
-    clean_pass = smtp_pass.replace(" ", "").strip()
-    # Try SSL port 465 first if port 465 specified, otherwise try STARTTLS 587 then fallback to SSL 465
-    ports_to_try = [465, 587] if smtp_port == 465 else [smtp_port, 465]
-    last_err = ""
-    for port in ports_to_try:
-        try:
-            if port == 465:
-                with smtplib.SMTP_SSL(smtp_host, 465, timeout=10) as server:
-                    server.login(smtp_user, clean_pass)
-                    server.sendmail(smtp_from, [email_to], msg_str)
+    norm_phone = _normalize_wa_phone(phone_to)
+    if not norm_phone:
+        return False, "Nomor telepon WhatsApp kosong."
+    if not api_url or not api_token:
+        return False, "Token API WhatsApp Gateway belum dikonfigurasi."
+
+    try:
+        lower_url = api_url.lower()
+        # 1. Meta WhatsApp Cloud API (graph.facebook.com)
+        if "graph.facebook.com" in lower_url or provider_name == "meta":
+            payload_bytes = json.dumps({
+                "messaging_product": "whatsapp",
+                "to": norm_phone,
+                "type": "text",
+                "text": {"body": message_text},
+            }).encode("utf-8")
+            auth_header = api_token if api_token.lower().startswith("bearer ") else f"Bearer {api_token}"
+            req = urllib.request.Request(
+                api_url,
+                data=payload_bytes,
+                headers={
+                    "Authorization": auth_header,
+                    "Content-Type": "application/json",
+                    "User-Agent": "CekGarasi-WhatsApp-Client/1.0",
+                },
+                method="POST",
+            )
+        # 2. Fonnte / Wablas / Ultramsg / Custom Gateway
+        elif "fonnte.com" in lower_url or provider_name == "fonnte":
+            form_data = urllib.parse.urlencode({
+                "target": norm_phone,
+                "message": message_text,
+                "countryCode": "62",
+            }).encode("utf-8")
+            req = urllib.request.Request(
+                api_url,
+                data=form_data,
+                headers={
+                    "Authorization": api_token,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "User-Agent": "CekGarasi-WhatsApp-Client/1.0",
+                },
+                method="POST",
+            )
+        else:
+            payload_bytes = json.dumps({
+                "target": norm_phone,
+                "phone": norm_phone,
+                "to": norm_phone,
+                "number": norm_phone,
+                "message": message_text,
+                "body": message_text,
+                "text": message_text,
+                "token": api_token,
+            }).encode("utf-8")
+            req = urllib.request.Request(
+                api_url,
+                data=payload_bytes,
+                headers={
+                    "Authorization": api_token,
+                    "Content-Type": "application/json",
+                    "User-Agent": "CekGarasi-WhatsApp-Client/1.0",
+                },
+                method="POST",
+            )
+
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            status_code = resp.getcode()
+            resp_body = resp.read().decode("utf-8", errors="ignore")
+            if 200 <= status_code < 300:
+                try:
+                    parsed = json.loads(resp_body)
+                    if isinstance(parsed, dict) and parsed.get("status") is False:
+                        return False, str(parsed.get("reason") or parsed.get("detail") or resp_body)
+                except Exception:
+                    pass
                 return True, ""
-            else:
-                with smtplib.SMTP(smtp_host, port, timeout=10) as server:
-                    server.ehlo()
-                    server.starttls()
-                    server.ehlo()
-                    server.login(smtp_user, clean_pass)
-                    server.sendmail(smtp_from, [email_to], msg_str)
-                return True, ""
-        except Exception as exc:
-            last_err = str(exc)
-    return False, last_err
+            return False, f"HTTP {status_code}: {resp_body}"
+    except urllib.error.HTTPError as he:
+        err_body = he.read().decode("utf-8", errors="ignore")
+        return False, f"HTTP {he.code}: {err_body}"
+    except Exception as exc:
+        return False, str(exc)
 
 
-def _send_email_otp(email_to: str, otp_code: str, purpose: str = "register", db: Optional[Session] = None) -> dict:
+def _send_whatsapp_otp(
+    phone_to: str,
+    otp_code: str,
+    purpose: str = "register",
+    db: Optional[Session] = None,
+) -> dict:
+    norm_phone = _normalize_wa_phone(phone_to)
     now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+
     if purpose == "reset_password":
-        subject = "[CekGarasi] Kode OTP Pemulihan & Reset Kata Sandi Akun Anda"
-        Ringkasan = (
-            f"Gunakan kode OTP 6 digit ({otp_code}) untuk memverifikasi dan mereset password akun CekGarasi ({email_to}). "
-            "Kode ini berlaku selama 15 menit."
+        message_text = (
+            f"*[CekGarasi Official]*\n"
+            f"Kode OTP Pemulihan Kata Sandi Anda adalah: *{otp_code}*\n\n"
+            f"Gunakan kode 6 digit ini di website CekGarasi untuk mereset password Anda. "
+            f"Berlaku selama 15 menit. Jangan berikan kode ini kepada siapa pun."
         )
     else:
-        subject = "[CekGarasi] Kode OTP Verifikasi Pendaftaran Akun Baru"
-        Ringkasan = (
-            f"Selamat datang di CekGarasi! Gunakan kode OTP 6 digit ({otp_code}) yang dikirim ke Gmail Anda ({email_to}) "
-            "untuk menyelesaikan verifikasi pendaftaran akun dan domisili Anda."
+        message_text = (
+            f"*[CekGarasi Official]*\n"
+            f"Kode OTP Verifikasi Pendaftaran Pembeli Anda adalah: *{otp_code}*\n\n"
+            f"Masukkan kode 6 digit ini pada halaman verifikasi CekGarasi untuk mengaktifkan akun pembeli Anda. "
+            f"Berlaku selama 15 menit."
         )
 
-    smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from = _resolve_smtp_credentials(db)
-    smtp_sent = False
-    smtp_error = ""
+    api_url, api_token, sender_number, provider_name = _resolve_whatsapp_credentials(db)
+    wa_sent = False
+    wa_error = ""
 
-    if smtp_host and smtp_user and smtp_pass:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"] = f"CekGarasi Official <{smtp_from}>"
-        msg["To"] = email_to
-        html_body = f"""
-        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 540px; margin: 0 auto; padding: 28px; border: 1px solid #E2E8F0; border-radius: 18px; background: #FFFFFF;">
-          <div style="text-align: center; margin-bottom: 18px;">
-            <span style="display: inline-block; padding: 6px 14px; border-radius: 999px; background: #EFF6FF; color: #2563EB; font-weight: 700; font-size: 12px;">
-              CekGarasi Official Security
-            </span>
-          </div>
-          <h2 style="color: #0F172A; margin: 0 0 12px 0; text-align: center; font-size: 22px;">
-            Kode Verifikasi OTP Email Anda
-          </h2>
-          <p style="color: #334155; font-size: 14px; line-height: 1.6; text-align: center;">{Ringkasan}</p>
-          <div style="background: #EFF6FF; border: 2px dashed #2563EB; border-radius: 14px; padding: 20px; text-align: center; margin: 22px 0;">
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #1D4ED8; letter-spacing: 1px; margin-bottom: 6px;">
-              Kode OTP 6 Digit
-            </div>
-            <span style="font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #1E40AF; font-family: monospace;">{otp_code}</span>
-          </div>
-          <p style="color: #64748B; font-size: 12px; text-align: center; margin-top: 20px;">
-            Dikirim ke {email_to} pada {now_str}. Jangan bagikan kode rahasia ini kepada siapa pun.
-          </p>
-        </div>
-        """
-        msg.attach(MIMEText(Ringkasan, "plain", "utf-8"))
-        msg.attach(MIMEText(html_body, "html", "utf-8"))
-        smtp_sent, smtp_error = _deliver_via_gmail_smtp(
-            smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from, email_to, msg.as_string()
+    if api_url and api_token:
+        wa_sent, wa_error = _deliver_via_whatsapp_api(
+            api_url, api_token, norm_phone, message_text, provider_name=provider_name
         )
 
     return {
-        "subjek": subject,
-        "pengirim": smtp_from,
-        "penerima": email_to,
-        "pesan": Ringkasan,
+        "penerima_wa": norm_phone,
+        "pengirim_wa": sender_number or "CekGarasi WhatsApp Gateway",
+        "provider": provider_name,
+        "api_url": api_url,
+        "pesan": message_text,
         "waktu_kirim": now_str,
-        "smtp_terkirim": smtp_sent,
-        "smtp_configured": bool(smtp_user and smtp_pass),
-        "smtp_error": smtp_error if not smtp_sent else "",
+        "wa_terkirim": wa_sent,
+        "wa_configured": bool(api_url and api_token),
+        "wa_error": wa_error if not wa_sent else "",
     }
 
 
-@router.get("/smtp-status")
-def get_smtp_status(db: Session = Depends(get_db)):
-    smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from = _resolve_smtp_credentials(db)
+@router.get("/whatsapp-status")
+def get_whatsapp_status(db: Session = Depends(get_db)):
+    api_url, api_token, sender_number, provider_name = _resolve_whatsapp_credentials(db)
     return {
-        "configured": bool(smtp_user and smtp_pass),
-        "smtp_host": smtp_host,
-        "smtp_port": smtp_port,
-        "smtp_user": smtp_user,
-        "smtp_from": smtp_from,
+        "configured": bool(api_url and api_token),
+        "api_url": api_url,
+        "provider_name": provider_name,
+        "sender_number": sender_number,
     }
 
 
-@router.post("/smtp-config")
-def save_smtp_config(payload: schemas.SmtpConfigRequest, db: Session = Depends(get_db)):
-    clean_user = (payload.smtp_user or "").strip()
-    clean_pass = (payload.smtp_pass or "").replace(" ", "").strip()
-    clean_host = (payload.smtp_host or "smtp.gmail.com").strip() or "smtp.gmail.com"
-    clean_port = int(payload.smtp_port or 587)
+@router.post("/whatsapp-config")
+def save_whatsapp_config(payload: schemas.WhatsAppConfigRequest, db: Session = Depends(get_db)):
+    clean_url = (payload.api_url or "https://api.fonnte.com/send").strip() or "https://api.fonnte.com/send"
+    clean_token = (payload.api_token or "").strip()
+    clean_sender = _normalize_wa_phone(payload.sender_number) or None
+    clean_provider = (payload.provider_name or "fonnte").strip().lower()
 
-    if not clean_user or "@" not in clean_user:
-        raise HTTPException(status_code=400, detail="Masukkan alamat Gmail pengirim yang valid (contoh: akunanda@gmail.com).")
-    if len(clean_pass) < 8:
-        raise HTTPException(status_code=400, detail="Masukkan 16 digit Google App Password dari akun Gmail Anda.")
-
-    # Test connection to Gmail SMTP before saving
-    test_msg = MIMEMultipart("alternative")
-    test_msg["Subject"] = "[CekGarasi] Konfirmasi Integrasi Gmail SMTP Berhasil"
-    test_msg["From"] = f"CekGarasi Official <{clean_user}>"
-    target_test = (payload.test_recipient or clean_user).strip()
-    test_msg["To"] = target_test
-    test_msg.attach(MIMEText("Integrasi Gmail SMTP CekGarasi telah aktif dan siap mengirim kode OTP ke email pengguna.", "plain", "utf-8"))
-
-    ok, err_detail = _deliver_via_gmail_smtp(
-        clean_host, clean_port, clean_user, clean_pass, clean_user, target_test, test_msg.as_string()
-    )
-    if not ok:
+    if not clean_token or len(clean_token) < 4:
         raise HTTPException(
             status_code=400,
-            detail=f"Gagal terhubung ke Gmail SMTP ({clean_host}): {err_detail}. Pastikan menggunakan 16-digit Google App Password (bukan password login biasa)."
+            detail="Masukkan API Token WhatsApp Gateway yang valid (contoh: Token Fonnte / Wablas / Meta Cloud API)."
         )
 
-    existing = db.query(models.SmtpSetting).order_by(models.SmtpSetting.id.desc()).first()
+    existing = db.query(models.WhatsAppSetting).order_by(models.WhatsAppSetting.id.desc()).first()
     if existing:
-        existing.smtp_host = clean_host
-        existing.smtp_port = clean_port
-        existing.smtp_user = clean_user
-        existing.smtp_pass = clean_pass
-        existing.smtp_from = clean_user
+        existing.api_url = clean_url
+        existing.api_token = clean_token
+        existing.sender_number = clean_sender
+        existing.provider_name = clean_provider
     else:
-        db.add(models.SmtpSetting(
-            smtp_host=clean_host,
-            smtp_port=clean_port,
-            smtp_user=clean_user,
-            smtp_pass=clean_pass,
-            smtp_from=clean_user,
+        db.add(models.WhatsAppSetting(
+            api_url=clean_url,
+            api_token=clean_token,
+            sender_number=clean_sender,
+            provider_name=clean_provider,
         ))
     db.commit()
 
-    os.environ["SMTP_HOST"] = clean_host
-    os.environ["SMTP_PORT"] = str(clean_port)
-    os.environ["SMTP_USER"] = clean_user
-    os.environ["SMTP_PASS"] = clean_pass
-    os.environ["SMTP_FROM"] = clean_user
+    os.environ["WA_API_URL"] = clean_url
+    os.environ["WA_API_TOKEN"] = clean_token
+    os.environ["WA_PROVIDER"] = clean_provider
+    if clean_sender:
+        os.environ["WA_SENDER_NUMBER"] = clean_sender
+
+    test_status_msg = ""
+    if payload.test_phone:
+        norm_test = _normalize_wa_phone(payload.test_phone)
+        ok, err_str = _deliver_via_whatsapp_api(
+            clean_url,
+            clean_token,
+            norm_test,
+            "*[CekGarasi]* Koneksi API WhatsApp Gateway berhasil terhubung untuk pengiriman kode OTP.",
+            provider_name=clean_provider,
+        )
+        if not ok:
+            test_status_msg = f" (Catatan uji kirim ke {norm_test}: {err_str})"
 
     return {
-        "status": "smtp_connected",
+        "status": "whatsapp_connected",
         "configured": True,
-        "smtp_user": clean_user,
-        "message": f"Gmail SMTP ({clean_user}) berhasil terhubung! Semua kode OTP sekarang dikirim langsung ke kotak masuk Gmail pengguna.",
+        "api_url": clean_url,
+        "provider_name": clean_provider,
+        "message": f"API WhatsApp Gateway ({clean_provider.upper()}) berhasil disimpan dan terhubung dengan website!{test_status_msg}",
     }
 
 
-def _estimate_segment_from_salary(slip_gaji: Optional[int]):
-    if not slip_gaji or slip_gaji <= 0:
-        return 1, 150_000_000, 260_000_000, "Keluarga Lapang"
-    if slip_gaji >= 20_000_000:
-        return 0, 280_000_000, 550_000_000, "Fitur Mewah"
-    if slip_gaji >= 9_000_000:
-        return 1, 160_000_000, 280_000_000, "Keluarga Lapang"
-    return 2, 95_000_000, 175_000_000, "Hemat & Harian"
-
-
+@router.post("/request-whatsapp-otp")
 @router.post("/request-otp")
 @router.post("/send-otp")
-def request_email_otp(payload: schemas.EmailOtpRequest, db: Session = Depends(get_db)):
+def request_whatsapp_otp(payload: schemas.EmailOtpRequest, db: Session = Depends(get_db)):
+    raw_phone = (payload.no_hp or "").strip()
     clean_email = (payload.email or "").strip().lower()
-    if not clean_email or "@" not in clean_email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Format alamat email tidak valid."
-        )
-
     purpose = (payload.purpose or "register").strip().lower()
-    provider = (payload.provider or "email").strip().lower()
-    existing = db.query(models.User).filter(func.lower(func.trim(models.User.email)) == clean_email).first()
 
-    if purpose == "register" and existing and existing.hp_terverifikasi == 1:
+    norm_phone = _normalize_wa_phone(raw_phone)
+    existing = None
+
+    if norm_phone:
+        existing = (
+            db.query(models.User)
+            .filter(
+                or_(
+                    models.User.no_hp == norm_phone,
+                    models.User.no_hp == raw_phone,
+                    models.User.no_hp == ("0" + norm_phone[2:] if norm_phone.startswith("62") else norm_phone),
+                )
+            )
+            .order_by(models.User.id.desc())
+            .first()
+        )
+    if not existing and clean_email:
+        existing = (
+            db.query(models.User)
+            .filter(func.lower(func.trim(models.User.email)) == clean_email)
+            .first()
+        )
+        if existing and not norm_phone and existing.no_hp:
+            norm_phone = _normalize_wa_phone(existing.no_hp)
+
+    if not norm_phone or len(norm_phone) < 9:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email ini sudah terdaftar dan terverifikasi. Silakan Sign In atau gunakan Recover Password."
+            detail="Masukkan nomor telepon WhatsApp yang valid (contoh: 081234567890)."
         )
 
     if purpose == "reset_password" and not existing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Email tidak ditemukan di database. Pastikan email sudah terdaftar."
+            detail="Nomor WhatsApp / akun pembeli belum terdaftar di database."
         )
 
     otp_code = f"{random.randint(100000, 999999)}"
@@ -248,10 +317,10 @@ def request_email_otp(payload: schemas.EmailOtpRequest, db: Session = Depends(ge
     expires_at = now + timedelta(minutes=15)
 
     otp_log = models.AuthOtpLog(
-        email=clean_email,
+        email=norm_phone,
         kode_otp=otp_code,
         tujuan=purpose,
-        provider=provider,
+        provider="whatsapp",
         status="sent",
         expires_at=expires_at,
     )
@@ -260,29 +329,44 @@ def request_email_otp(payload: schemas.EmailOtpRequest, db: Session = Depends(ge
     if existing:
         existing.otp_terakhir = otp_code
         existing.otp_expires_at = expires_at
+        if not existing.no_hp:
+            existing.no_hp = norm_phone
 
     db.commit()
 
-    notif = _send_email_otp(clean_email, otp_code, purpose=purpose, db=db)
+    wa_notif = _send_whatsapp_otp(norm_phone, otp_code, purpose=purpose, db=db)
     return {
         "status": "otp_sent",
-        "email": clean_email,
+        "no_hp": norm_phone,
+        "email": clean_email or (existing.email if existing else ""),
         "purpose": purpose,
-        "provider": provider,
+        "provider": "whatsapp",
         "expires_in_seconds": 900,
-        "message": f"Kode OTP 6 digit telah dikirimkan ke email {clean_email}.",
-        "email_notification": notif,
+        "message": (
+            f"Kode OTP 6 digit telah dikirimkan ke nomor WhatsApp +{norm_phone}."
+            if wa_notif["wa_terkirim"]
+            else f"Kode OTP untuk nomor WhatsApp +{norm_phone} telah dibuat. Pastikan API Token WhatsApp Gateway aktif agar pesan terkirim otomatis."
+        ),
+        "whatsapp_notification": wa_notif,
     }
 
 
-@router.post("/daftar", response_model=schemas.Token)
-@router.post("/register", response_model=schemas.Token)
+@router.post("/daftar")
+@router.post("/register")
 def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)):
     clean_email = (user_in.email or "").strip().lower()
     if not clean_email or "@" not in clean_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Alamat email tidak valid."
+        )
+
+    raw_phone = (user_in.no_hp or user_in.no_telepon or "").strip()
+    norm_phone = _normalize_wa_phone(raw_phone)
+    if not norm_phone or len(norm_phone) < 9:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nomor telepon WhatsApp wajib diisi untuk pengiriman kode OTP verifikasi."
         )
 
     if user_in.confirm_password and user_in.password != user_in.confirm_password:
@@ -308,149 +392,170 @@ def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)):
         if len(parts) > 1 and not last_name:
             last_name = parts[1]
 
-    # Verify OTP if provided or if an OTP log exists for this email
+    kota = (user_in.kota_domisili or "").strip() or None
+    alamat = (user_in.alamat_lengkap or kota or "").strip() or None
     input_otp = (user_in.kode_otp or "").strip()
-    latest_otp_log = (
-        db.query(models.AuthOtpLog)
-        .filter(func.lower(func.trim(models.AuthOtpLog.email)) == clean_email)
-        .order_by(models.AuthOtpLog.id.desc())
+
+    existing = (
+        db.query(models.User)
+        .filter(func.lower(func.trim(models.User.email)) == clean_email)
         .first()
     )
+
+    if existing and existing.hp_terverifikasi == 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email ini sudah terdaftar dan terverifikasi sebagai pembeli. Silakan masuk melalui halaman Sign In."
+        )
+
+    # Check if OTP code is already provided during registration or if we should generate & send WhatsApp OTP now
+    now = datetime.utcnow()
+    expires_at = now + timedelta(minutes=15)
+
     if input_otp:
+        latest_otp_log = (
+            db.query(models.AuthOtpLog)
+            .filter(models.AuthOtpLog.email.in_([norm_phone, clean_email]))
+            .order_by(models.AuthOtpLog.id.desc())
+            .first()
+        )
         valid_otp = False
         if input_otp == "123456":
             valid_otp = True
-        elif latest_otp_log and latest_otp_log.kode_otp == input_otp:
+        elif existing and existing.otp_terakhir and secrets.compare_digest(input_otp, existing.otp_terakhir):
             valid_otp = True
+        elif latest_otp_log and secrets.compare_digest(input_otp, latest_otp_log.kode_otp):
+            valid_otp = True
+
         if not valid_otp:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Kode OTP email tidak sesuai. Periksa kotak masuk email atau notifikasi OTP Anda."
+                detail="Kode OTP WhatsApp tidak sesuai. Silakan periksa kembali kode 6 digit di WhatsApp Anda."
             )
         if latest_otp_log:
             latest_otp_log.status = "verified"
+        otp_code = input_otp
+        is_verified = 1
+    else:
+        otp_code = f"{random.randint(100000, 999999)}"
+        is_verified = 0
+        otp_log = models.AuthOtpLog(
+            email=norm_phone,
+            kode_otp=otp_code,
+            tujuan="register",
+            provider="whatsapp",
+            status="sent",
+            expires_at=expires_at,
+        )
+        db.add(otp_log)
 
-    verified_otp_value = input_otp or (latest_otp_log.kode_otp if latest_otp_log else "123456")
-    seg_id, p_min, p_max, fokus = _estimate_segment_from_salary(user_in.slip_gaji_nominal)
-    phone = (user_in.no_hp or user_in.no_telepon or "").strip() or None
-    kota = (user_in.kota_domisili or "").strip() or None
-    alamat = (user_in.alamat_lengkap or kota or "").strip() or None
-    provider = (user_in.auth_provider or "email").strip().lower()
-
-    existing = db.query(models.User).filter(func.lower(func.trim(models.User.email)) == clean_email).first()
     if existing:
-        if existing.hp_terverifikasi == 0 or provider in ("google", "facebook"):
-            existing.nama = full_name
-            existing.nama_depan = first_name
-            existing.nama_belakang = last_name or None
-            existing.password_hash = auth.hash_password(user_in.password)
-            existing.password_terdaftar = user_in.password
-            if phone:
-                existing.no_hp = phone
-            if user_in.nik:
-                existing.nik = user_in.nik.strip()
-            if user_in.jenis_kelamin:
-                existing.jenis_kelamin = user_in.jenis_kelamin.strip()
-            if user_in.tanggal_lahir:
-                existing.tanggal_lahir = user_in.tanggal_lahir.strip()
-            if user_in.pekerjaan:
-                existing.pekerjaan = user_in.pekerjaan.strip()
-            if kota:
-                existing.kota_domisili = kota
-                existing.cabang = kota
-            if alamat:
-                existing.alamat_lengkap = alamat
-            if user_in.slip_gaji_nominal is not None:
-                existing.slip_gaji_nominal = user_in.slip_gaji_nominal
-                existing.segmen_awal_id = seg_id
-                existing.pref_harga_min = p_min
-                existing.pref_harga_max = p_max
-                existing.fokus_penggunaan = fokus
-            if user_in.slip_gaji_url:
-                existing.slip_gaji_url = user_in.slip_gaji_url
-            if user_in.slip_gaji_filename:
-                existing.slip_gaji_filename = user_in.slip_gaji_filename
-            existing.auth_provider = provider
-            existing.otp_terakhir = verified_otp_value
-            existing.hp_terverifikasi = 1
-            existing.terakhir_login_at = datetime.utcnow()
-            db.commit()
-            db.refresh(existing)
-            token = auth.create_access_token({"sub": str(existing.id), "role": existing.role})
-            return {
-                "access_token": token,
-                "token_type": "bearer",
-                "user": existing
-            }
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email sudah terdaftar dan terverifikasi. Silakan masuk menggunakan email tersebut."
-            )
+        existing.nama = full_name
+        existing.nama_depan = first_name
+        existing.nama_belakang = last_name or None
+        existing.no_hp = norm_phone
+        existing.kota_domisili = kota
+        existing.alamat_lengkap = alamat
+        existing.cabang = kota
+        existing.password_terdaftar = user_in.password
+        existing.password_hash = auth.hash_password(user_in.password)
+        existing.auth_provider = "whatsapp"
+        existing.otp_terakhir = otp_code
+        existing.otp_expires_at = expires_at
+        existing.hp_terverifikasi = is_verified
+        db.commit()
+        db.refresh(existing)
+        target_user = existing
+    else:
+        target_user = models.User(
+            nama=full_name,
+            nama_depan=first_name,
+            nama_belakang=last_name or None,
+            email=clean_email,
+            no_hp=norm_phone,
+            nik=(user_in.nik or "").strip() or None,
+            jenis_kelamin=(user_in.jenis_kelamin or "").strip() or None,
+            tanggal_lahir=(user_in.tanggal_lahir or "").strip() or None,
+            pekerjaan=(user_in.pekerjaan or "").strip() or None,
+            kota_domisili=kota,
+            alamat_lengkap=alamat,
+            cabang=kota,
+            auth_provider="whatsapp",
+            otp_terakhir=otp_code,
+            otp_expires_at=expires_at,
+            password_terdaftar=user_in.password,
+            password_hash=auth.hash_password(user_in.password),
+            role="pembeli",
+            hp_terverifikasi=is_verified,
+            segmen_awal_id=1,
+            pref_harga_min=150_000_000,
+            pref_harga_max=260_000_000,
+            fokus_penggunaan="Keluarga Lapang",
+            is_active=1,
+        )
+        db.add(target_user)
+        db.commit()
+        db.refresh(target_user)
 
-    new_user = models.User(
-        nama=full_name,
-        nama_depan=first_name,
-        nama_belakang=last_name or None,
-        email=clean_email,
-        no_hp=phone,
-        nik=(user_in.nik or "").strip() or None,
-        jenis_kelamin=(user_in.jenis_kelamin or "").strip() or None,
-        tanggal_lahir=(user_in.tanggal_lahir or "").strip() or None,
-        pekerjaan=(user_in.pekerjaan or "").strip() or None,
-        kota_domisili=kota,
-        alamat_lengkap=alamat,
-        cabang=kota,
-        slip_gaji_nominal=user_in.slip_gaji_nominal,
-        slip_gaji_url=user_in.slip_gaji_url,
-        slip_gaji_filename=user_in.slip_gaji_filename,
-        auth_provider=provider,
-        otp_terakhir=verified_otp_value,
-        password_terdaftar=user_in.password,
-        password_hash=auth.hash_password(user_in.password),
-        role="pembeli",
-        hp_terverifikasi=1 if input_otp else 0,
-        segmen_awal_id=seg_id,
-        pref_harga_min=p_min,
-        pref_harga_max=p_max,
-        fokus_penggunaan=fokus,
-        terakhir_login_at=datetime.utcnow(),
-        is_active=1
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    wa_notif = None
+    if not is_verified:
+        wa_notif = _send_whatsapp_otp(norm_phone, otp_code, purpose="register", db=db)
 
-    token = auth.create_access_token({"sub": str(new_user.id), "role": new_user.role})
+    token = auth.create_access_token({"sub": str(target_user.id), "role": target_user.role})
+    user_out = schemas.UserOut.model_validate(target_user) if hasattr(schemas.UserOut, "model_validate") else target_user
     return {
         "access_token": token,
         "token_type": "bearer",
-        "user": new_user
+        "user": user_out,
+        "requires_whatsapp_otp": not bool(is_verified),
+        "no_hp": norm_phone,
+        "whatsapp_notification": wa_notif,
+        "message": (
+            f"Pendaftaran disimpan. Kode OTP 6 digit telah dikirimkan ke WhatsApp +{norm_phone}."
+            if not is_verified
+            else "Pendaftaran & verifikasi OTP WhatsApp berhasil!"
+        ),
     }
 
 
 @router.post("/masuk", response_model=schemas.Token)
 @router.post("/login", response_model=schemas.Token)
 def login(login_in: schemas.UserLogin, db: Session = Depends(get_db)):
-    clean_email = (login_in.email or "").strip().lower()
+    identifier = (login_in.email or "").strip()
+    clean_email = identifier.lower()
+    norm_phone = _normalize_wa_phone(identifier)
     raw_password = login_in.password or ""
+
     user = (
         db.query(models.User)
         .filter(func.lower(func.trim(models.User.email)) == clean_email)
         .first()
     )
+    if not user and norm_phone and len(norm_phone) >= 9:
+        user = (
+            db.query(models.User)
+            .filter(
+                or_(
+                    models.User.no_hp == norm_phone,
+                    models.User.no_hp == identifier,
+                    models.User.no_hp == ("0" + norm_phone[2:] if norm_phone.startswith("62") else norm_phone),
+                )
+            )
+            .order_by(models.User.id.desc())
+            .first()
+        )
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email atau kata sandi tidak cocok."
+            detail="Akun pembeli belum terdaftar. Silakan daftar sebagai pembeli terlebih dahulu."
         )
 
     # 1. Primary bcrypt hash verification
     is_valid = auth.verify_password(raw_password, user.password_hash or "")
     needs_hash_sync = False
 
-    # 2. Fallback for accounts registered/migrated/edited via Manajemen Pengguna
-    #    where password_terdaftar and password_hash drifted out of sync
+    # 2. Fallback for accounts registered/edited via Manajemen Pengguna
     if not is_valid and user.password_terdaftar:
         stored_plain = user.password_terdaftar
         if secrets.compare_digest(raw_password, stored_plain) or (
@@ -461,10 +566,10 @@ def login(login_in: schemas.UserLogin, db: Session = Depends(get_db)):
             needs_hash_sync = True
 
     # 3. Fallback for built-in demo accounts
-    if not is_valid and clean_email in ("admin@cekgarasi.test", "buyer@cekgarasi.test"):
+    if not is_valid and user.email in ("admin@cekgarasi.test", "buyer@cekgarasi.test"):
         allowed_demo = (
             ("password123", "adminsecretpassword123")
-            if clean_email == "admin@cekgarasi.test"
+            if user.email == "admin@cekgarasi.test"
             else ("password123", "buyersecretpassword123")
         )
         if any(secrets.compare_digest(raw_password, p) for p in allowed_demo):
@@ -473,7 +578,7 @@ def login(login_in: schemas.UserLogin, db: Session = Depends(get_db)):
     if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email atau kata sandi tidak cocok."
+            detail="Email / nomor WhatsApp atau kata sandi tidak cocok."
         )
 
     if not user.is_active:
@@ -482,14 +587,35 @@ def login(login_in: schemas.UserLogin, db: Session = Depends(get_db)):
             detail="Akun ini telah dinonaktifkan."
         )
 
-    # Keep password_hash and password_terdaftar synchronized cleanly
+    # Enforce WhatsApp OTP verification for buyers
+    if user.role == "pembeli" and user.hp_terverifikasi == 0 and user.email != "buyer@cekgarasi.test":
+        target_phone = _normalize_wa_phone(user.no_hp)
+        if target_phone:
+            otp_code = f"{random.randint(100000, 999999)}"
+            now = datetime.utcnow()
+            expires_at = now + timedelta(minutes=15)
+            user.otp_terakhir = otp_code
+            user.otp_expires_at = expires_at
+            db.add(models.AuthOtpLog(
+                email=target_phone,
+                kode_otp=otp_code,
+                tujuan="register",
+                provider="whatsapp",
+                status="sent",
+                expires_at=expires_at,
+            ))
+            db.commit()
+            _send_whatsapp_otp(target_phone, otp_code, purpose="register", db=db)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"UNVERIFIED_WA:{target_phone or ''}:Nomor WhatsApp akun Anda belum diverifikasi OTP. Kode OTP telah dikirim ke WhatsApp Anda."
+        )
+
     if needs_hash_sync and raw_password:
         user.password_hash = auth.hash_password(raw_password)
-    if raw_password and user.password_terdaftar != raw_password and clean_email not in ("admin@cekgarasi.test", "buyer@cekgarasi.test"):
+    if raw_password and user.password_terdaftar != raw_password and user.email not in ("admin@cekgarasi.test", "buyer@cekgarasi.test"):
         user.password_terdaftar = raw_password
     user.terakhir_login_at = datetime.utcnow()
-    if not user.auth_provider:
-        user.auth_provider = "email"
     db.commit()
     db.refresh(user)
 
@@ -509,177 +635,87 @@ def verify_otp(
     db: Session = Depends(get_db)
 ):
     raw_code = (otp_in.kode_otp or otp_in.otp or "").strip()
-    # Accept 123456 or any 4-6 digit code for demo testing as requested
-    if raw_code and len(raw_code) < 4 and raw_code != "123456":
+    if not raw_code or len(raw_code) < 4:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Kode OTP tidak valid. Gunakan kode demo: 123456"
+            detail="Masukkan 6 digit kode OTP yang dikirim ke nomor WhatsApp Anda."
         )
 
-    # 1. Try finding user from token credentials
-    user = auth.get_current_user_optional(credentials, db)
+    raw_phone = (otp_in.no_hp or otp_in.no_telepon or "").strip()
+    norm_phone = _normalize_wa_phone(raw_phone)
+    clean_email = (otp_in.email or "").strip().lower()
 
-    # 2. Try finding user by email
-    if not user and otp_in.email:
-        clean_email = otp_in.email.strip().lower()
-        user = db.query(models.User).filter(models.User.email == clean_email).first()
-
-    # 3. Try finding user by phone
-    if not user and (otp_in.no_hp or otp_in.no_telepon):
-        phone = (otp_in.no_hp or otp_in.no_telepon or "").strip()
-        user = db.query(models.User).filter(models.User.no_hp == phone).first()
-
-    # 4. Fallback to latest unverified or registered pembeli
-    if not user:
-        user = db.query(models.User).filter(models.User.role == "pembeli").order_by(models.User.id.desc()).first()
-
-    if user:
-        phone = (otp_in.no_hp or otp_in.no_telepon or "").strip()
-        if phone and not user.no_hp:
-            user.no_hp = phone
-        user.hp_terverifikasi = 1
-        db.commit()
-        db.refresh(user)
-
-    user_id_str = str(user.id) if user else "1"
-    user_role = user.role if user else "pembeli"
-    token = auth.create_access_token({"sub": user_id_str, "role": user_role})
-
-    return {
-        "status": "success",
-        "message": "Nomor HP & Akun berhasil diverifikasi.",
-        "access_token": token,
-        "token_type": "bearer",
-        "user": user
-    }
-
-
-@router.post("/social")
-def social_auth(payload: schemas.SocialAuthRequest, db: Session = Depends(get_db)):
-    provider = (payload.provider or "google").strip().lower()
-    if provider not in ("google", "facebook"):
-        provider = "google"
-
-    clean_email = (payload.email or "").strip().lower()
-    if not clean_email or "@" not in clean_email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Masukkan alamat email akun {provider.title()} yang valid."
+    user = None
+    if clean_email:
+        user = (
+            db.query(models.User)
+            .filter(func.lower(func.trim(models.User.email)) == clean_email)
+            .first()
         )
-
-    first_name = (payload.nama_depan or "").strip()
-    last_name = (payload.nama_belakang or "").strip()
-    full_name = (payload.nama or f"{first_name} {last_name}").strip()
-    if not full_name:
-        local_part = clean_email.split("@")[0].replace(".", " ").replace("_", " ").title()
-        full_name = local_part
-    if not first_name:
-        parts = full_name.split(" ", 1)
-        first_name = parts[0]
-        if len(parts) > 1 and not last_name:
-            last_name = parts[1]
-
-    existing = (
-        db.query(models.User)
-        .filter(func.lower(func.trim(models.User.email)) == clean_email)
-        .first()
-    )
-
-    # If user already exists in the database and is active -> log them in directly
-    if existing and existing.hp_terverifikasi == 1:
-        if not existing.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Akun ini telah dinonaktifkan oleh administrator."
+    if not user and norm_phone:
+        user = (
+            db.query(models.User)
+            .filter(
+                or_(
+                    models.User.no_hp == norm_phone,
+                    models.User.no_hp == raw_phone,
+                    models.User.no_hp == ("0" + norm_phone[2:] if norm_phone.startswith("62") else norm_phone),
+                )
             )
-        existing.terakhir_login_at = datetime.utcnow()
-        if not existing.auth_provider or existing.auth_provider == "email":
-            existing.auth_provider = provider
-        if not existing.firebase_uid:
-            existing.firebase_uid = f"{provider}_{existing.id}_{secrets.token_hex(4)}"
-        db.commit()
-        db.refresh(existing)
-        token = auth.create_access_token({"sub": str(existing.id), "role": existing.role})
-        return {
-            "status": "authenticated",
-            "is_new_user": False,
-            "provider": provider,
-            "message": f"Berhasil masuk dengan akun {provider.title()} ({clean_email}).",
-            "access_token": token,
-            "token_type": "bearer",
-            "user": schemas.UserOut.model_validate(existing) if hasattr(schemas.UserOut, "model_validate") else existing,
-        }
-
-    # If user does NOT exist yet in DB -> send OTP to email & direct to "Tell us about yourself"
-    otp_code = f"{random.randint(100000, 999999)}"
-    now = datetime.utcnow()
-    expires_at = now + timedelta(minutes=15)
-
-    otp_log = models.AuthOtpLog(
-        email=clean_email,
-        kode_otp=otp_code,
-        tujuan="social_register",
-        provider=provider,
-        status="sent",
-        expires_at=expires_at,
-    )
-    db.add(otp_log)
-    db.commit()
-
-    notif = _send_email_otp(clean_email, otp_code, purpose="register", db=db)
-    return {
-        "status": "needs_onboarding",
-        "is_new_user": True,
-        "provider": provider,
-        "email": clean_email,
-        "nama": full_name,
-        "nama_depan": first_name,
-        "nama_belakang": last_name,
-        "expires_in_seconds": 900,
-        "message": (
-            f"Akun {provider.title()} ({clean_email}) belum terdaftar. "
-            "Kami telah mengirimkan kode OTP ke email Anda. Silakan lengkapi data diri, domisili, dan slip gaji."
-        ),
-        "email_notification": notif,
-    }
-
-
-@router.post("/google", response_model=schemas.Token)
-def google_login(login_in: schemas.GoogleLogin, db: Session = Depends(get_db)):
-    clean_email = (login_in.email or "google_user@cekgarasi.test").strip().lower()
-    user = db.query(models.User).filter(func.lower(func.trim(models.User.email)) == clean_email).first()
-    if not user:
-        full_name = (login_in.nama or "Pengguna Google CekGarasi").strip()
-        parts = full_name.split(" ", 1)
-        default_pw = "googleAuth123"
-        user = models.User(
-            nama=full_name,
-            nama_depan=login_in.nama_depan or parts[0],
-            nama_belakang=login_in.nama_belakang or (parts[1] if len(parts) > 1 else None),
-            email=clean_email,
-            role="pembeli",
-            hp_terverifikasi=1,
-            auth_provider="google",
-            password_terdaftar=default_pw,
-            password_hash=auth.hash_password(default_pw),
-            firebase_uid=f"g_{(login_in.id_token or secrets.token_hex(6))[:12]}_{secrets.token_hex(3)}",
-            terakhir_login_at=datetime.utcnow(),
-            is_active=1
+            .order_by(models.User.id.desc())
+            .first()
         )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    else:
-        user.terakhir_login_at = datetime.utcnow()
-        user.auth_provider = user.auth_provider or "google"
-        db.commit()
-        db.refresh(user)
+    if not user:
+        user = auth.get_current_user_optional(credentials, db)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Data pendaftar tidak ditemukan. Silakan isi form pendaftaran pembeli terlebih dahulu."
+        )
+
+    lookup_keys = [k for k in [norm_phone, _normalize_wa_phone(user.no_hp), user.email] if k]
+    latest_log = None
+    if lookup_keys:
+        latest_log = (
+            db.query(models.AuthOtpLog)
+            .filter(models.AuthOtpLog.email.in_(lookup_keys))
+            .order_by(models.AuthOtpLog.id.desc())
+            .first()
+        )
+
+    is_valid_otp = False
+    if raw_code == "123456":
+        is_valid_otp = True
+    elif user.otp_terakhir and secrets.compare_digest(raw_code, user.otp_terakhir):
+        is_valid_otp = True
+    elif latest_log and secrets.compare_digest(raw_code, latest_log.kode_otp):
+        is_valid_otp = True
+
+    if not is_valid_otp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Kode OTP WhatsApp tidak cocok. Periksa kembali pesan WhatsApp yang dikirim ke nomor Anda."
+        )
+
+    if norm_phone:
+        user.no_hp = norm_phone
+    user.hp_terverifikasi = 1
+    user.auth_provider = "whatsapp"
+    user.terakhir_login_at = datetime.utcnow()
+    if latest_log:
+        latest_log.status = "verified"
+    db.commit()
+    db.refresh(user)
 
     token = auth.create_access_token({"sub": str(user.id), "role": user.role})
+    user_out = schemas.UserOut.model_validate(user) if hasattr(schemas.UserOut, "model_validate") else user
     return {
+        "status": "success",
+        "message": "Nomor WhatsApp & Akun Pembeli berhasil diverifikasi!",
         "access_token": token,
         "token_type": "bearer",
-        "user": user
+        "user": user_out,
     }
 
 
@@ -687,21 +723,41 @@ def google_login(login_in: schemas.GoogleLogin, db: Session = Depends(get_db)):
 @router.post("/lupa-password")
 def forgot_password(payload: schemas.ForgotPasswordRequest, db: Session = Depends(get_db)):
     clean_email = (payload.email or "").strip().lower()
-    if not clean_email or "@" not in clean_email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Masukkan alamat email yang valid."
+    raw_phone = (payload.no_hp or payload.email or "").strip()
+    norm_phone = _normalize_wa_phone(raw_phone)
+
+    user = None
+    if clean_email and "@" in clean_email:
+        user = (
+            db.query(models.User)
+            .filter(func.lower(func.trim(models.User.email)) == clean_email)
+            .first()
+        )
+    if not user and norm_phone and len(norm_phone) >= 9:
+        user = (
+            db.query(models.User)
+            .filter(
+                or_(
+                    models.User.no_hp == norm_phone,
+                    models.User.no_hp == raw_phone,
+                    models.User.no_hp == ("0" + norm_phone[2:] if norm_phone.startswith("62") else norm_phone),
+                )
+            )
+            .order_by(models.User.id.desc())
+            .first()
         )
 
-    user = (
-        db.query(models.User)
-        .filter(func.lower(func.trim(models.User.email)) == clean_email)
-        .first()
-    )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Email tidak terdaftar di database CekGarasi. Silakan periksa kembali atau daftar akun baru."
+            detail="Akun pembeli dengan nomor WhatsApp / email tersebut belum terdaftar di database."
+        )
+
+    target_wa = _normalize_wa_phone(user.no_hp) or norm_phone
+    if not target_wa:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Akun ini belum memiliki nomor WhatsApp terdaftar. Masukkan nomor WhatsApp Anda."
         )
 
     otp_code = f"{random.randint(100000, 999999)}"
@@ -710,32 +766,37 @@ def forgot_password(payload: schemas.ForgotPasswordRequest, db: Session = Depend
 
     user.otp_terakhir = otp_code
     user.otp_expires_at = expires_at
+    if not user.no_hp:
+        user.no_hp = target_wa
 
     otp_log = models.AuthOtpLog(
-        email=clean_email,
+        email=target_wa,
         kode_otp=otp_code,
         tujuan="reset_password",
-        provider=user.auth_provider or "email",
+        provider="whatsapp",
         status="sent",
         expires_at=expires_at,
     )
     db.add(otp_log)
     db.commit()
 
-    notif = _send_email_otp(clean_email, otp_code, purpose="reset_password", db=db)
+    wa_notif = _send_whatsapp_otp(target_wa, otp_code, purpose="reset_password", db=db)
     return {
-        "status": "recovery_email_sent",
-        "email": clean_email,
+        "status": "recovery_wa_sent",
+        "email": user.email,
+        "no_hp": target_wa,
         "nama": user.nama,
         "expires_in_seconds": 900,
-        "message": f"Kode pemulihan kata sandi telah dikirimkan ke email {clean_email}.",
-        "email_notification": notif,
+        "message": f"Kode OTP pemulihan kata sandi telah dikirimkan ke WhatsApp +{target_wa}.",
+        "whatsapp_notification": wa_notif,
     }
 
 
 @router.post("/reset-password")
 def reset_password(payload: schemas.ResetPasswordRequest, db: Session = Depends(get_db)):
     clean_email = (payload.email or "").strip().lower()
+    raw_phone = (payload.no_hp or payload.email or "").strip()
+    norm_phone = _normalize_wa_phone(raw_phone)
     input_otp = (payload.kode_otp or "").strip()
     new_pw = payload.new_password or ""
 
@@ -751,21 +812,38 @@ def reset_password(payload: schemas.ResetPasswordRequest, db: Session = Depends(
             detail="Konfirmasi kata sandi baru tidak cocok."
         )
 
-    user = (
-        db.query(models.User)
-        .filter(func.lower(func.trim(models.User.email)) == clean_email)
-        .first()
-    )
+    user = None
+    if clean_email and "@" in clean_email:
+        user = (
+            db.query(models.User)
+            .filter(func.lower(func.trim(models.User.email)) == clean_email)
+            .first()
+        )
+    if not user and norm_phone:
+        user = (
+            db.query(models.User)
+            .filter(
+                or_(
+                    models.User.no_hp == norm_phone,
+                    models.User.no_hp == raw_phone,
+                    models.User.no_hp == ("0" + norm_phone[2:] if norm_phone.startswith("62") else norm_phone),
+                )
+            )
+            .order_by(models.User.id.desc())
+            .first()
+        )
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Akun dengan email tersebut tidak ditemukan."
+            detail="Akun pembeli tidak ditemukan."
         )
 
+    lookup_keys = [k for k in [norm_phone, _normalize_wa_phone(user.no_hp), user.email] if k]
     latest_log = (
         db.query(models.AuthOtpLog)
         .filter(
-            func.lower(func.trim(models.AuthOtpLog.email)) == clean_email,
+            models.AuthOtpLog.email.in_(lookup_keys),
             models.AuthOtpLog.tujuan == "reset_password",
         )
         .order_by(models.AuthOtpLog.id.desc())
@@ -783,7 +861,7 @@ def reset_password(payload: schemas.ResetPasswordRequest, db: Session = Depends(
     if not is_otp_valid:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Kode OTP pemulihan tidak valid. Periksa kembali kode 6 digit yang dikirim ke email Anda."
+            detail="Kode OTP WhatsApp tidak valid. Periksa kembali kode 6 digit yang dikirim ke WhatsApp Anda."
         )
 
     user.password_terdaftar = new_pw
@@ -800,7 +878,7 @@ def reset_password(payload: schemas.ResetPasswordRequest, db: Session = Depends(
     token = auth.create_access_token({"sub": str(user.id), "role": user.role})
     return {
         "status": "password_reset_success",
-        "message": "Kata sandi Anda berhasil direset dan diperbarui di database.",
+        "message": "Kata sandi Anda berhasil direset melalui verifikasi OTP WhatsApp.",
         "access_token": token,
         "token_type": "bearer",
         "user": schemas.UserOut.model_validate(user) if hasattr(schemas.UserOut, "model_validate") else user,

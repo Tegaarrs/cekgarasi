@@ -1292,7 +1292,7 @@ export function AdminUsersPage() {
                           </div>
                           {b.otp_terakhir && b.otp_terakhir !== '-' && (
                             <div className="text-[10px] font-mono font-bold text-blue-700 bg-blue-50/80 border border-blue-200/70 px-2 py-0.5 rounded inline-block">
-                              OTP Email: {b.otp_terakhir}
+                              OTP WA: {b.otp_terakhir}
                             </div>
                           )}
                           {b.terakhir_reset_at && (
@@ -1522,9 +1522,9 @@ export function AdminUsersPage() {
                   </span>
                 </div>
                 <div className="sm:col-span-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Metode Autentikasi &amp; Kode OTP Email</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Metode Verifikasi &amp; Kode OTP WhatsApp</span>
                   <span className="text-sm font-bold text-slate-800 mt-0.5 block uppercase">
-                    {selectedBuyer.auth_provider || 'email'} • OTP: {selectedBuyer.otp_terakhir || '-'}
+                    {selectedBuyer.auth_provider || 'whatsapp'} • OTP WA: {selectedBuyer.otp_terakhir || '-'}
                   </span>
                 </div>
                 <div className="sm:col-span-2 pt-2 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 gap-3">

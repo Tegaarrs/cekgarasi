@@ -311,3 +311,15 @@ class SmtpSetting(Base):
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow, server_default=text("CURRENT_TIMESTAMP"))
 
 
+class WhatsAppSetting(Base):
+    __tablename__ = "whatsapp_settings"
+
+    id = Column(Integer().with_variant(MYSQL_INTEGER(unsigned=True), "mysql"), primary_key=True, autoincrement=True)
+    api_url = Column(String(255), nullable=False, default="https://api.fonnte.com/send")
+    api_token = Column(String(255), nullable=False)
+    sender_number = Column(String(40), nullable=True)
+    provider_name = Column(String(60), nullable=False, default="fonnte")
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow, server_default=text("CURRENT_TIMESTAMP"))
+
+
+
