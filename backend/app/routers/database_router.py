@@ -25,6 +25,7 @@ ALLOWED_TABLES = [
     "car_models",
     "features",
     "users",
+    "auth_otp_logs",
     "cars",
     "car_features",
     "favorites",

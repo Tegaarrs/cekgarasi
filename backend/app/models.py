@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import (
     Column,
     String,
+    Text,
     DECIMAL,
     Enum,
     ForeignKey,
@@ -82,6 +83,8 @@ class User(Base):
 
     id = Column(Integer().with_variant(MYSQL_INTEGER(unsigned=True), "mysql"), primary_key=True, autoincrement=True)
     nama = Column(String(100), nullable=False)
+    nama_depan = Column(String(60), nullable=True)
+    nama_belakang = Column(String(60), nullable=True)
     email = Column(String(190), nullable=False, unique=True)
     no_hp = Column(String(20), nullable=True)
     nik = Column(String(20), nullable=True)
@@ -90,6 +93,14 @@ class User(Base):
     pekerjaan = Column(String(80), nullable=True)
     kota_domisili = Column(String(80), nullable=True)
     alamat_lengkap = Column(String(255), nullable=True)
+    slip_gaji_nominal = Column(BigInteger().with_variant(MYSQL_BIGINT(unsigned=True), "mysql"), nullable=True)
+    slip_gaji_url = Column(Text(), nullable=True)
+    slip_gaji_filename = Column(String(190), nullable=True)
+    auth_provider = Column(String(30), nullable=True, default="email")
+    otp_terakhir = Column(String(10), nullable=True)
+    otp_expires_at = Column(DateTime, nullable=True)
+    terakhir_login_at = Column(DateTime, nullable=True)
+    terakhir_reset_at = Column(DateTime, nullable=True)
     password_terdaftar = Column(String(120), nullable=True)
     password_hash = Column(String(255), nullable=True)
     firebase_uid = Column(String(128), nullable=True, unique=True)
@@ -273,3 +284,17 @@ class MLUjiSkenario(Base):
     ari_rata = Column(Float().with_variant(DOUBLE(), "mysql"), nullable=False)
     ari_min = Column(Float().with_variant(DOUBLE(), "mysql"), nullable=False)
     dibuat_pada = Column(DateTime, nullable=False, default=datetime.utcnow, server_default=text("CURRENT_TIMESTAMP"))
+
+
+class AuthOtpLog(Base):
+    __tablename__ = "auth_otp_logs"
+
+    id = Column(Integer().with_variant(MYSQL_INTEGER(unsigned=True), "mysql"), primary_key=True, autoincrement=True)
+    email = Column(String(190), nullable=False, index=True)
+    kode_otp = Column(String(10), nullable=False)
+    tujuan = Column(String(40), nullable=False, default="register")
+    provider = Column(String(30), nullable=False, default="email")
+    status = Column(String(30), nullable=False, default="sent")
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, server_default=text("CURRENT_TIMESTAMP"))
+

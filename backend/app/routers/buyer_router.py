@@ -7,6 +7,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, func
 
@@ -1596,4 +1597,31 @@ def save_buyer_preference(
         db.refresh(user)
 
     return {"status": "success", "message": "Preferensi berhasil disimpan."}
+
+
+class ContactInquiryIn(BaseModel):
+    nama: str = Field(..., min_length=2, max_length=100)
+    email: str = Field(..., min_length=5, max_length=190)
+    topik: str = Field(default="Pertanyaan Katalog & Unit")
+    pesan: str = Field(..., min_length=10, max_length=1500)
+
+
+@router.post("/kontak")
+def submit_contact_inquiry(payload: ContactInquiryIn):
+    clean_email = payload.email.strip()
+    if "@" not in clean_email or "." not in clean_email.split("@")[-1]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Format alamat email tidak valid."
+        )
+    ref_code = f"CG-CS-{datetime.now().strftime('%m%d%H%M')}"
+    return {
+        "status": "received",
+        "kode_tiket": ref_code,
+        "nama": payload.nama.strip(),
+        "email": clean_email,
+        "topik": payload.topik.strip(),
+        "message": "Pesan Anda telah tercatat pada sistem CekGarasi.",
+    }
+
 

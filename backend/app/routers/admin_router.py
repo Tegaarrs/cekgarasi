@@ -1039,9 +1039,14 @@ def get_admin_buyers(
     for u in items:
         is_anomali, alasan = _detect_anomali(u)
         kota_val = u.kota_domisili or u.cabang or "-"
+        name_parts = (u.nama or "").strip().split(" ", 1)
+        f_name = u.nama_depan or (name_parts[0] if name_parts else "-")
+        l_name = u.nama_belakang or (name_parts[1] if len(name_parts) > 1 else "")
         results.append({
             "id": u.id,
             "nama": u.nama,
+            "nama_depan": f_name,
+            "nama_belakang": l_name,
             "email": u.email,
             "no_hp": u.no_hp or "-",
             "nik": u.nik or "-",
@@ -1050,6 +1055,13 @@ def get_admin_buyers(
             "pekerjaan": u.pekerjaan or "-",
             "kota_domisili": kota_val,
             "alamat_lengkap": u.alamat_lengkap or "-",
+            "slip_gaji_nominal": u.slip_gaji_nominal,
+            "slip_gaji_url": u.slip_gaji_url,
+            "slip_gaji_filename": u.slip_gaji_filename,
+            "auth_provider": u.auth_provider or "email",
+            "otp_terakhir": u.otp_terakhir or "-",
+            "terakhir_login_at": str(u.terakhir_login_at) if u.terakhir_login_at else None,
+            "terakhir_reset_at": str(u.terakhir_reset_at) if u.terakhir_reset_at else None,
             "password_terdaftar": u.password_terdaftar or "password123",
             "password_hash": u.password_hash or "-",
             "cabang": u.cabang or kota_val,
@@ -1272,8 +1284,11 @@ def create_admin_buyer(
         raise HTTPException(status_code=400, detail=f"Email '{clean_email}' sudah terdaftar dalam sistem.")
 
     kota = (payload.kota_domisili or "").strip() or None
+    parts = (payload.nama or "").strip().split(" ", 1)
     new_user = models.User(
         nama=payload.nama.strip(),
+        nama_depan=(payload.nama_depan or (parts[0] if parts else "")).strip() or None,
+        nama_belakang=(payload.nama_belakang or (parts[1] if len(parts) > 1 else "")).strip() or None,
         email=clean_email,
         no_hp=payload.no_hp.strip() if payload.no_hp else None,
         nik=payload.nik.strip() if payload.nik else None,
@@ -1282,6 +1297,10 @@ def create_admin_buyer(
         pekerjaan=payload.pekerjaan.strip() if payload.pekerjaan else None,
         kota_domisili=kota,
         alamat_lengkap=payload.alamat_lengkap.strip() if payload.alamat_lengkap else None,
+        slip_gaji_nominal=payload.slip_gaji_nominal,
+        slip_gaji_url=payload.slip_gaji_url,
+        slip_gaji_filename=payload.slip_gaji_filename,
+        auth_provider=payload.auth_provider or "email",
         cabang=kota,
         password_terdaftar=(payload.password or "password123").strip(),
         password_hash=auth.hash_password(payload.password or "password123"),
@@ -1323,6 +1342,13 @@ def update_admin_buyer(
 
     if payload.nama is not None:
         user.nama = payload.nama.strip()
+        parts = user.nama.split(" ", 1)
+        user.nama_depan = parts[0] if parts else None
+        user.nama_belakang = parts[1] if len(parts) > 1 else None
+    if payload.nama_depan is not None:
+        user.nama_depan = payload.nama_depan.strip() or None
+    if payload.nama_belakang is not None:
+        user.nama_belakang = payload.nama_belakang.strip() or None
     if payload.no_hp is not None:
         user.no_hp = payload.no_hp.strip() or None
     if payload.nik is not None:
@@ -1338,6 +1364,14 @@ def update_admin_buyer(
         user.cabang = payload.kota_domisili.strip() or user.cabang
     if payload.alamat_lengkap is not None:
         user.alamat_lengkap = payload.alamat_lengkap.strip() or None
+    if payload.slip_gaji_nominal is not None:
+        user.slip_gaji_nominal = payload.slip_gaji_nominal
+    if payload.slip_gaji_url is not None:
+        user.slip_gaji_url = payload.slip_gaji_url
+    if payload.slip_gaji_filename is not None:
+        user.slip_gaji_filename = payload.slip_gaji_filename
+    if payload.auth_provider is not None:
+        user.auth_provider = payload.auth_provider
     if payload.password and payload.password.strip():
         user.password_terdaftar = payload.password.strip()
         user.password_hash = auth.hash_password(payload.password.strip())

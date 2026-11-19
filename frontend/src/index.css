@@ -217,6 +217,37 @@
   transition: background-color 9999s ease-in-out 0s;
 }
 
+/* Auth inputs (supports Light & Dark mode cleanly with Chrome/Edge autofill protection) */
+.cg-auth-input:-webkit-autofill,
+.cg-auth-input:-webkit-autofill:hover,
+.cg-auth-input:-webkit-autofill:focus,
+.cg-auth-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #F6F6FB inset !important;
+  -webkit-text-fill-color: #14141F !important;
+  caret-color: #2563EB !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+.dark .cg-auth-input:-webkit-autofill,
+.dark .cg-auth-input:-webkit-autofill:hover,
+.dark .cg-auth-input:-webkit-autofill:focus,
+.dark .cg-auth-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #16161F inset !important;
+  -webkit-text-fill-color: #E8E8F0 !important;
+  caret-color: #60A5FA !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* High-contrast crisp white inputs for Login Reference layout */
+.cg-ref-input:-webkit-autofill,
+.cg-ref-input:-webkit-autofill:hover,
+.cg-ref-input:-webkit-autofill:focus,
+.cg-ref-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #111827 !important;
+  caret-color: #0277BD !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 /* Primary Button: 10px radius, #2563EB (hover #1D4ED8) */
 .ios-glass-btn-primary,
 .btn-liquid-primary,

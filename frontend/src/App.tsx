@@ -24,6 +24,8 @@ import { SegmenPage } from './pages/buyer/SegmenPage';
 import { PlaceholderPage } from './pages/buyer/PlaceholderPage';
 import { FavoritPage } from './pages/buyer/FavoritPage';
 import { BandingkanPage } from './pages/buyer/BandingkanPage';
+import { AboutUsPage } from './pages/buyer/AboutUsPage';
+import { ContactUsPage } from './pages/buyer/ContactUsPage';
 import { CompareTray } from './components/common/CompareTray';
 
 // Admin Pages A1 - A5 & Database
@@ -158,6 +160,10 @@ export default function App() {
               <Route path="/segmen" element={<SegmenPage />} />
               <Route path="/favorit" element={<FavoritPage />} />
               <Route path="/bandingkan" element={<BandingkanPage />} />
+              <Route path="/about-us" element={<AboutUsPage />} />
+              <Route path="/tentang-kami" element={<Navigate to="/about-us" replace />} />
+              <Route path="/contact-us" element={<ContactUsPage />} />
+              <Route path="/hubungi-kami" element={<Navigate to="/contact-us" replace />} />
               <Route path="/akun" element={<PlaceholderPage title="Profil & Akun Anda" />} />
               <Route path="/mobil/:id" element={<DetailMobilPage />} />
               <Route path="/booking" element={<BookingPage />} />

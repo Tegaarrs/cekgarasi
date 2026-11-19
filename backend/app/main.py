@@ -4,7 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
+from .db import ensure_auth_users_synced
 from .routers import auth_router, buyer_router, admin_router, database_router, bi_router
+
+ensure_auth_users_synced()
 
 app = FastAPI(
     title="CekGarasi API",

@@ -14,6 +14,8 @@ import { apiFetch, getUser } from '@/services/api';
 export interface BuyerItem {
   id: number;
   nama: string;
+  nama_depan?: string;
+  nama_belakang?: string;
   email: string;
   no_hp: string;
   nik?: string;
@@ -22,6 +24,13 @@ export interface BuyerItem {
   pekerjaan?: string;
   kota_domisili?: string;
   alamat_lengkap?: string;
+  slip_gaji_nominal?: number | null;
+  slip_gaji_url?: string | null;
+  slip_gaji_filename?: string | null;
+  auth_provider?: string;
+  otp_terakhir?: string;
+  terakhir_login_at?: string | null;
+  terakhir_reset_at?: string | null;
   password_terdaftar?: string;
   password_hash?: string;
   cabang?: string;
@@ -308,6 +317,8 @@ export function AdminUsersPage() {
     pekerjaan: '',
     kota_domisili: 'Jakarta Selatan',
     alamat_lengkap: '',
+    slip_gaji_nominal: 12000000,
+    auth_provider: 'email',
     password: '',
     hp_terverifikasi: 1,
     fokus_penggunaan: 'Keluarga Lapang',
@@ -433,6 +444,8 @@ export function AdminUsersPage() {
       pekerjaan: buyer.pekerjaan === '-' ? '' : buyer.pekerjaan || '',
       kota_domisili: buyer.kota_domisili === '-' ? '' : buyer.kota_domisili || '',
       alamat_lengkap: buyer.alamat_lengkap === '-' ? '' : buyer.alamat_lengkap || '',
+      slip_gaji_nominal: buyer.slip_gaji_nominal || 12000000,
+      auth_provider: buyer.auth_provider || 'email',
       password: buyer.password_terdaftar || 'password123',
       hp_terverifikasi: buyer.hp_terverifikasi ? 1 : 0,
       fokus_penggunaan: buyer.fokus_penggunaan || 'Keluarga Lapang',
@@ -496,6 +509,8 @@ export function AdminUsersPage() {
       pekerjaan: '',
       kota_domisili: 'Jakarta Selatan',
       alamat_lengkap: '',
+      slip_gaji_nominal: 12000000,
+      auth_provider: 'email',
       password: '',
       hp_terverifikasi: 1,
       fokus_penggunaan: 'Keluarga Lapang',
@@ -1094,7 +1109,7 @@ export function AdminUsersPage() {
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase tracking-wider">
                 <th className="py-3.5 px-4">Identitas Lengkap (Nama, NIK, Profil)</th>
-                <th className="py-3.5 px-4">Domisili, Alamat &amp; Pekerjaan</th>
+                <th className="py-3.5 px-4">Domisili, Slip Gaji &amp; Pekerjaan</th>
                 <th className="py-3.5 px-4">Kontak &amp; WhatsApp</th>
                 <th className="py-3.5 px-4">Status OTP &amp; Aktivitas</th>
                 <th className="py-3.5 px-4">Fokus &amp; Segmen</th>
@@ -1159,6 +1174,15 @@ export function AdminUsersPage() {
                                 <CreditCard className="w-3 h-3 text-indigo-600" />
                                 <span>NIK: {maskNik(b.nik, revealSensitivePii)}</span>
                               </span>
+                              <span className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase ${
+                                b.auth_provider === 'google'
+                                  ? 'bg-red-50 text-red-700 border border-red-200'
+                                  : b.auth_provider === 'facebook'
+                                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                  : 'bg-slate-100 text-slate-700 border border-slate-200'
+                              }`}>
+                                {b.auth_provider || 'email'}
+                              </span>
                               {b.jenis_kelamin && b.jenis_kelamin !== '-' && (
                                 <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold text-[10px]">
                                   {b.jenis_kelamin}{ageStr ? ` • ${ageStr}` : ''}
@@ -1200,8 +1224,8 @@ export function AdminUsersPage() {
                         </div>
                       </td>
 
-                      {/* Kolom 2: Domisili, Alamat & Pekerjaan */}
-                      <td className="py-3.5 px-4 max-w-[230px]">
+                      {/* Kolom 2: Domisili, Alamat, Slip Gaji & Pekerjaan */}
+                      <td className="py-3.5 px-4 max-w-[250px]">
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5 font-bold text-slate-800">
                             <MapPin className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
@@ -1211,6 +1235,29 @@ export function AdminUsersPage() {
                             {revealSensitivePii
                               ? (b.alamat_lengkap && b.alamat_lengkap !== '-' ? b.alamat_lengkap : 'Alamat lengkap belum diisi')
                               : 'Jl. ••••••••••••• (Disensor)'}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1 pt-0.5">
+                            {b.slip_gaji_nominal ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                                <Wallet className="w-3 h-3 text-blue-600" />
+                                <span>Slip Gaji: Rp {Number(b.slip_gaji_nominal).toLocaleString('id-ID')}</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                                <Wallet className="w-3 h-3 text-slate-400" />
+                                <span>Slip Gaji: Belum Diisi</span>
+                              </span>
+                            )}
+                            {b.slip_gaji_url && (
+                              <button
+                                type="button"
+                                onClick={() => openDetailModal(b)}
+                                className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200 cursor-pointer"
+                              >
+                                <FileText className="w-3 h-3" />
+                                <span>Dokumen Slip</span>
+                              </button>
+                            )}
                           </div>
                           {b.pekerjaan && b.pekerjaan !== '-' && (
                             <div className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/70">
@@ -1266,6 +1313,16 @@ export function AdminUsersPage() {
                           <div className="text-[10px] text-slate-500 font-medium">
                             {b.total_favorit || 0} Favorit • {b.total_test_drive || 0} Test Drive
                           </div>
+                          {b.otp_terakhir && b.otp_terakhir !== '-' && (
+                            <div className="text-[10px] font-mono font-bold text-blue-700 bg-blue-50/80 border border-blue-200/70 px-2 py-0.5 rounded inline-block">
+                              OTP Email: {b.otp_terakhir}
+                            </div>
+                          )}
+                          {b.terakhir_reset_at && (
+                            <div className="text-[10px] font-semibold text-purple-700">
+                              Reset Sandi: {b.terakhir_reset_at.slice(0, 10)}
+                            </div>
+                          )}
                         </div>
                       </td>
 
@@ -1487,6 +1544,50 @@ export function AdminUsersPage() {
                     {selectedBuyer.kota_domisili || '-'} — {selectedBuyer.alamat_lengkap || 'Alamat belum dilengkapi'}
                   </span>
                 </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Slip Gaji Pendaftar (Penghasilan Bulanan)</span>
+                  <span className="text-sm font-black text-blue-700 mt-0.5 block">
+                    {selectedBuyer.slip_gaji_nominal
+                      ? `Rp ${Number(selectedBuyer.slip_gaji_nominal).toLocaleString('id-ID')} / bulan`
+                      : 'Belum Diisi'}
+                  </span>
+                  {selectedBuyer.slip_gaji_filename && (
+                    <span className="text-[11px] text-slate-500 block mt-0.5">
+                      File: {selectedBuyer.slip_gaji_filename}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Metode Autentikasi &amp; Kode OTP Email</span>
+                  <span className="text-sm font-bold text-slate-800 mt-0.5 block uppercase">
+                    {selectedBuyer.auth_provider || 'email'} • OTP: {selectedBuyer.otp_terakhir || '-'}
+                  </span>
+                </div>
+                {selectedBuyer.slip_gaji_url && (
+                  <div className="sm:col-span-2 rounded-xl border border-blue-200 bg-blue-50/60 p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800">
+                        Lampiran Dokumen / Foto Slip Gaji Pendaftar
+                      </span>
+                      <a
+                        href={selectedBuyer.slip_gaji_url}
+                        download={selectedBuyer.slip_gaji_filename || `slip_gaji_${selectedBuyer.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-bold text-blue-700 hover:underline"
+                      >
+                        Unduh / Buka Dokumen
+                      </a>
+                    </div>
+                    {selectedBuyer.slip_gaji_url.startsWith('data:image') && (
+                      <img
+                        src={selectedBuyer.slip_gaji_url}
+                        alt={`Slip Gaji ${selectedBuyer.nama}`}
+                        className="max-h-44 rounded-lg border border-slate-200 object-contain bg-white p-1"
+                      />
+                    )}
+                  </div>
+                )}
                 <div className="sm:col-span-2 pt-2 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="p-2.5 rounded-xl bg-amber-50/90 border border-amber-200/80 flex items-center justify-between">
                     <div>
@@ -1690,13 +1791,24 @@ export function AdminUsersPage() {
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
-                <div className="col-span-2">
-                  <label className="block font-bold text-slate-700 mb-1">Alamat Lengkap (Sesuai KTP/Domisili)</label>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Slip Gaji Pendaftar (Rp)</label>
+                  <input
+                    type="number"
+                    step={500000}
+                    value={formData.slip_gaji_nominal}
+                    onChange={(e) => setFormData({ ...formData, slip_gaji_nominal: Number(e.target.value) })}
+                    placeholder="12000000"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none font-semibold text-blue-800"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Alamat Lengkap Domisili</label>
                   <input
                     type="text"
                     value={formData.alamat_lengkap}
                     onChange={(e) => setFormData({ ...formData, alamat_lengkap: e.target.value })}
-                    placeholder="Jl. Kemang Raya No. 42, RT 04/RW 02..."
+                    placeholder="Jl. Kemang Raya No. 42..."
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
@@ -1887,8 +1999,18 @@ export function AdminUsersPage() {
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
-                <div className="col-span-2">
-                  <label className="block font-bold text-slate-700 mb-1">Alamat Lengkap (Sesuai KTP/Domisili)</label>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Slip Gaji Pendaftar (Rp)</label>
+                  <input
+                    type="number"
+                    step={500000}
+                    value={formData.slip_gaji_nominal}
+                    onChange={(e) => setFormData({ ...formData, slip_gaji_nominal: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none font-semibold text-blue-800"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Alamat Lengkap Domisili</label>
                   <input
                     type="text"
                     value={formData.alamat_lengkap}

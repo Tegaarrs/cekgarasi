@@ -5,9 +5,13 @@ from datetime import date, time, datetime
 
 # Auth Schemas
 class UserRegister(BaseModel):
-    nama: str = Field(..., min_length=2, max_length=100)
+    nama: Optional[str] = None
+    nama_depan: Optional[str] = None
+    nama_belakang: Optional[str] = None
     email: str
     password: str = Field(..., min_length=6)
+    confirm_password: Optional[str] = None
+    kode_otp: Optional[str] = None
     no_hp: Optional[str] = None
     no_telepon: Optional[str] = None
     nik: Optional[str] = None
@@ -16,15 +20,51 @@ class UserRegister(BaseModel):
     pekerjaan: Optional[str] = None
     kota_domisili: Optional[str] = None
     alamat_lengkap: Optional[str] = None
+    slip_gaji_nominal: Optional[int] = None
+    slip_gaji_url: Optional[str] = None
+    slip_gaji_filename: Optional[str] = None
+    auth_provider: Optional[str] = "email"
 
 
 class UserLogin(BaseModel):
     email: str
     password: str
+    remember_me: Optional[bool] = True
 
 
 class GoogleLogin(BaseModel):
-    id_token: str
+    id_token: Optional[str] = "google_oauth_token"
+    email: Optional[str] = None
+    nama: Optional[str] = None
+    nama_depan: Optional[str] = None
+    nama_belakang: Optional[str] = None
+
+
+class SocialAuthRequest(BaseModel):
+    provider: str = "google"
+    email: str
+    nama: Optional[str] = None
+    nama_depan: Optional[str] = None
+    nama_belakang: Optional[str] = None
+    id_token: Optional[str] = None
+    mode: Optional[str] = "signin"
+
+
+class EmailOtpRequest(BaseModel):
+    email: str
+    purpose: Optional[str] = "register"
+    provider: Optional[str] = "email"
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    kode_otp: str
+    new_password: str = Field(..., min_length=6)
+    confirm_password: Optional[str] = None
 
 
 class VerifyOtp(BaseModel):
@@ -48,6 +88,8 @@ class BuyerPreference(BaseModel):
 class UserOut(BaseModel):
     id: int
     nama: str
+    nama_depan: Optional[str] = None
+    nama_belakang: Optional[str] = None
     email: str
     no_hp: Optional[str] = None
     nik: Optional[str] = None
@@ -56,6 +98,11 @@ class UserOut(BaseModel):
     pekerjaan: Optional[str] = None
     kota_domisili: Optional[str] = None
     alamat_lengkap: Optional[str] = None
+    slip_gaji_nominal: Optional[int] = None
+    slip_gaji_url: Optional[str] = None
+    slip_gaji_filename: Optional[str] = None
+    auth_provider: Optional[str] = None
+    otp_terakhir: Optional[str] = None
     role: str
     hp_terverifikasi: int
     pref_harga_min: Optional[int] = None
@@ -71,6 +118,8 @@ class UserOut(BaseModel):
 
 class AdminUserCreate(BaseModel):
     nama: str
+    nama_depan: Optional[str] = None
+    nama_belakang: Optional[str] = None
     email: str
     no_hp: Optional[str] = None
     nik: Optional[str] = None
@@ -79,6 +128,10 @@ class AdminUserCreate(BaseModel):
     pekerjaan: Optional[str] = None
     kota_domisili: Optional[str] = None
     alamat_lengkap: Optional[str] = None
+    slip_gaji_nominal: Optional[int] = None
+    slip_gaji_url: Optional[str] = None
+    slip_gaji_filename: Optional[str] = None
+    auth_provider: Optional[str] = "email"
     password: Optional[str] = "password123"
     role: Optional[str] = "pembeli"
     hp_terverifikasi: Optional[int] = 1
@@ -90,6 +143,8 @@ class AdminUserCreate(BaseModel):
 
 class AdminUserUpdate(BaseModel):
     nama: Optional[str] = None
+    nama_depan: Optional[str] = None
+    nama_belakang: Optional[str] = None
     email: Optional[str] = None
     no_hp: Optional[str] = None
     nik: Optional[str] = None
@@ -98,6 +153,10 @@ class AdminUserUpdate(BaseModel):
     pekerjaan: Optional[str] = None
     kota_domisili: Optional[str] = None
     alamat_lengkap: Optional[str] = None
+    slip_gaji_nominal: Optional[int] = None
+    slip_gaji_url: Optional[str] = None
+    slip_gaji_filename: Optional[str] = None
+    auth_provider: Optional[str] = None
     password: Optional[str] = None
     role: Optional[str] = None
     hp_terverifikasi: Optional[int] = None

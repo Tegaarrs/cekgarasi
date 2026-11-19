@@ -29,6 +29,8 @@ export function Footer() {
               <li><Link to="/segmen" className="hover:text-white transition-colors">Segmen Pasar</Link></li>
               <li><Link to="/bandingkan" className="hover:text-white transition-colors">Bandingkan Unit</Link></li>
               <li><Link to="/favorit" className="hover:text-white transition-colors">Mobil Favorit</Link></li>
+              <li><Link to="/about-us" className="hover:text-white transition-colors">About Us</Link></li>
+              <li><Link to="/contact-us" className="hover:text-white transition-colors">Contact Us</Link></li>
             </ul>
           </div>
 
@@ -64,8 +66,12 @@ export function Footer() {
 
         </div>
 
-        <div className="pt-6 border-t border-white/10 text-xs text-zinc-500 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <span>&copy; {new Date().getFullYear()} CekGarasi — Katalog &amp; Panduan Harga Mobil Bekas.</span>
+        <div className="pt-6 border-t border-white/10 text-xs text-zinc-400 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <span>&copy; {new Date().getFullYear()} CekGarasi. Katalog &amp; Panduan Harga Mobil Bekas.</span>
+          <div className="flex items-center gap-5">
+            <Link to="/about-us" className="hover:text-white transition-colors">About Us</Link>
+            <Link to="/contact-us" className="hover:text-white transition-colors">Contact Us</Link>
+          </div>
         </div>
       </div>
     </footer>
