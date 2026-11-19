@@ -1271,181 +1271,186 @@ export function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Right: Authentic Showroom Operational Intelligence (4 cols) */}
+          {/* Right: Concise Showroom Operational Intelligence (4 cols) */}
           <div className="lg:col-span-4 flex flex-col gap-3.5">
             <div className="flex items-center justify-between px-1">
-              <span className="text-base font-bold text-[#001540]">Evaluasi Strategis Klaster</span>
-              <span className="px-2 py-0.5 rounded-md bg-[#001540] text-white text-[11px] font-bold tracking-wide">
+              <span className="text-base font-bold text-[#001540] dark:text-white">Evaluasi Strategis Klaster</span>
+              <span className="px-2.5 py-0.5 rounded-md bg-[#001540] dark:bg-blue-600 text-white text-xs font-bold tracking-wide">
                 Intel Operasional
               </span>
             </div>
 
             {/* Card 1: Klaster 1 Premium & SUV */}
-            <div 
+            <div
               onClick={() => setSelectedClusterFilter(selectedClusterFilter === 0 ? 'all' : 0)}
-              className={`bg-white p-4.5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group hover:shadow-md ${
+              className={`bg-white dark:bg-[#1A1A24] p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group hover:shadow-md ${
                 selectedClusterFilter === 0
-                  ? 'border-[#2557D6] ring-2 ring-blue-500/30 bg-blue-50/20 shadow-xs'
-                  : 'border-slate-200/90 shadow-2xs hover:border-blue-300'
+                  ? 'border-[#2557D6] ring-2 ring-blue-500/30 bg-blue-50/20 dark:bg-blue-950/30 shadow-xs'
+                  : 'border-slate-200/90 dark:border-[#2A2A38] shadow-2xs hover:border-blue-300'
               }`}
             >
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#2557D6]" />
-              <div className="pl-2">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#2557D6]" />
-                    <span className="text-[10px] font-extrabold text-[#2557D6] tracking-wider uppercase">
-                      KLASTER 1: PREMIUM &amp; HIGH-VALUE SUV
-                    </span>
+              <div className="pl-2 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-extrabold text-[#2557D6] dark:text-blue-400 tracking-wide uppercase">
+                    Klaster 1: Premium &amp; SUV
+                  </span>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300">
+                    258 Unit (42,4%)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-50 dark:bg-[#14141E] p-2.5 text-center border border-slate-100 dark:border-[#2A2A38]">
+                  <div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Median</span>
+                    <span className="text-sm font-extrabold text-[#001540] dark:text-white">Rp 212 Jt</span>
                   </div>
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-50 text-blue-800">
-                    42,4% Portofolio
-                  </span>
+                  <div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Rotasi</span>
+                    <span className="text-sm font-extrabold text-[#001540] dark:text-white">28 Hari</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Margin</span>
+                    <span className="text-sm font-extrabold text-blue-700 dark:text-blue-400">8% - 12%</span>
+                  </div>
                 </div>
 
-                <div className="space-y-2 text-xs text-slate-700 leading-relaxed">
-                  <p>
-                    <strong className="text-[#001540]">Valuasi &amp; Modal Terikat:</strong> Menyerap <strong className="text-[#001540]">58,4% total modal kerja</strong> (258 unit, median <strong className="text-[#001540]">Rp 212 Jt</strong>, 91% matik). Rata-rata waktu laku <strong className="text-[#001540]">28 hari</strong> dengan margin bruto <strong className="text-blue-700 font-bold">8%–12% (Rp 18–28 Jt/unit)</strong>.
-                  </p>
-                  <p className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                    <strong className="text-[#001540]">Aturan Aging 35 Hari:</strong> Bunga modal floor-plan rata-rata 1,2%/bulan. Jika unit &gt;Rp 250 Jt tertahan &gt;35 hari, segera potong harga listing Rp 5–7 Jt agar margin tidak habis tergerus biaya simpan garasi.
-                  </p>
-                  <p className="text-[11px] text-slate-600">
-                    <strong className="text-[#001540]">SOP Closing:</strong> 82% pembeli memakai leasing tier-1 (BCA/Mandiri). Sertifikat inspeksi bebas tabrak &amp; banjir 160 titik mutlak disertakan untuk closing cepat.
-                  </p>
-                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug">
+                  Fokus leasing tier-1 &amp; garansi inspeksi 160 titik. Pangkas harga jika stok &gt;35 hari.
+                </p>
 
-                <div className="mt-3 flex items-center justify-between text-slate-500 text-[11px] pt-2 border-t border-slate-100">
-                  <span className="flex items-center gap-1 font-medium text-slate-600">
-                    <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
-                    <span>Fortuner, Pajero, CX-5, CR-V</span>
+                <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-100 dark:border-[#2A2A38]">
+                  <span className="flex items-center gap-1 font-medium text-slate-600 dark:text-slate-300">
+                    <TrendingUp className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                    <span>Fortuner, Pajero, CR-V</span>
                   </span>
-                  <span className="font-extrabold text-blue-700">Margin Tertinggi</span>
+                  <span className="font-bold text-blue-700 dark:text-blue-400">Margin Tertinggi</span>
                 </div>
               </div>
             </div>
 
             {/* Card 2: Klaster 2 Keluarga Muda */}
-            <div 
+            <div
               onClick={() => setSelectedClusterFilter(selectedClusterFilter === 1 ? 'all' : 1)}
-              className={`bg-white p-4.5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group hover:shadow-md ${
+              className={`bg-white dark:bg-[#1A1A24] p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group hover:shadow-md ${
                 selectedClusterFilter === 1
-                  ? 'border-[#0CA678] ring-2 ring-emerald-500/30 bg-emerald-50/20 shadow-xs'
-                  : 'border-slate-200/90 shadow-2xs hover:border-emerald-300'
+                  ? 'border-[#0CA678] ring-2 ring-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/30 shadow-xs'
+                  : 'border-slate-200/90 dark:border-[#2A2A38] shadow-2xs hover:border-emerald-300'
               }`}
             >
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#0CA678]" />
-              <div className="pl-2">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#0CA678]" />
-                    <span className="text-[10px] font-extrabold text-[#0CA678] tracking-wider uppercase">
-                      KLASTER 2: KELUARGA MUDA &amp; URBAN MPV
-                    </span>
+              <div className="pl-2 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-extrabold text-[#0CA678] dark:text-emerald-400 tracking-wide uppercase">
+                    Klaster 2: Keluarga Muda
+                  </span>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
+                    197 Unit (32,3%)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-50 dark:bg-[#14141E] p-2.5 text-center border border-slate-100 dark:border-[#2A2A38]">
+                  <div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Median</span>
+                    <span className="text-sm font-extrabold text-[#001540] dark:text-white">Rp 141 Jt</span>
                   </div>
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800">
-                    32,3% Portofolio
-                  </span>
+                  <div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Rotasi</span>
+                    <span className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400">14 Hari</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Odo Tipikal</span>
+                    <span className="text-sm font-extrabold text-[#001540] dark:text-white">39 rb km</span>
+                  </div>
                 </div>
 
-                <div className="space-y-2 text-xs text-slate-700 leading-relaxed">
-                  <p>
-                    <strong className="text-[#001540]">Tulang Punggung Likuiditas:</strong> Unit perputaran <strong className="text-emerald-700 font-extrabold">tercepat (14 hari keluar garasi)</strong> (197 unit, tahun tipikal 2019, 39 rb km). Menghasilkan arus kas likuid mingguan untuk biaya operasional dealer.
-                  </p>
-                  <p className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                    <strong className="text-[#001540]">Skema Keuntungan Ganda:</strong> Margin jual Rp 8–12 Jt ditambah <strong className="text-emerald-700 font-bold">refund leasing Adira/ACC/OTO</strong> sebesar Rp 3,5–5,5 Jt per kontrak. Konsumen sangat sensitif paket TDP ringan (DP 15–20 Jt).
-                  </p>
-                  <p className="text-[11px] text-slate-600">
-                    <strong className="text-[#001540]">Pedoman Buy-In:</strong> Amankan stok minimal 20 unit untuk warna aman (Putih &amp; Hitam). Warna alternatif (merah/biru) rotasinya 2x lebih lambat.
-                  </p>
-                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug">
+                  Perputaran stok tercepat dengan paket DP ringan (Rp 15-20 Jt) &amp; warna favorit putih/hitam.
+                </p>
 
-                <div className="mt-3 flex items-center justify-between text-slate-500 text-[11px] pt-2 border-t border-slate-100">
-                  <span className="flex items-center gap-1 font-medium text-slate-600">
-                    <Car className="h-3.5 w-3.5 text-emerald-600" />
-                    <span>Avanza, Xpander, Brio RS, HR-V</span>
+                <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-100 dark:border-[#2A2A38]">
+                  <span className="flex items-center gap-1 font-medium text-slate-600 dark:text-slate-300">
+                    <Car className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>Avanza, Xpander, Brio RS</span>
                   </span>
-                  <span className="font-extrabold text-emerald-700">Rotasi Tercepat (14 Hari)</span>
+                  <span className="font-bold text-emerald-700 dark:text-emerald-400">Rotasi Tercepat</span>
                 </div>
               </div>
             </div>
 
             {/* Card 3: Klaster 3 LCGC & Ekonomis */}
-            <div 
+            <div
               onClick={() => setSelectedClusterFilter(selectedClusterFilter === 2 ? 'all' : 2)}
-              className={`bg-white p-4.5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group hover:shadow-md ${
+              className={`bg-white dark:bg-[#1A1A24] p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group hover:shadow-md ${
                 selectedClusterFilter === 2
-                  ? 'border-[#AE3EC9] ring-2 ring-purple-500/30 bg-purple-50/20 shadow-xs'
-                  : 'border-slate-200/90 shadow-2xs hover:border-purple-300'
+                  ? 'border-[#AE3EC9] ring-2 ring-purple-500/30 bg-purple-50/20 dark:bg-purple-950/30 shadow-xs'
+                  : 'border-slate-200/90 dark:border-[#2A2A38] shadow-2xs hover:border-purple-300'
               }`}
             >
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#AE3EC9]" />
-              <div className="pl-2">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#AE3EC9]" />
-                    <span className="text-[10px] font-extrabold text-[#AE3EC9] tracking-wider uppercase">
-                      KLASTER 3: LCGC, CITY CAR &amp; EKONOMIS
-                    </span>
+              <div className="pl-2 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-extrabold text-[#AE3EC9] dark:text-purple-400 tracking-wide uppercase">
+                    Klaster 3: LCGC &amp; Ekonomis
+                  </span>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300">
+                    154 Unit (25,3%)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-50 dark:bg-[#14141E] p-2.5 text-center border border-slate-100 dark:border-[#2A2A38]">
+                  <div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Median</span>
+                    <span className="text-sm font-extrabold text-[#001540] dark:text-white">Rp 139 Jt</span>
                   </div>
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-50 text-purple-800">
-                    25,3% Portofolio
-                  </span>
+                  <div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Pembeli Cash</span>
+                    <span className="text-sm font-extrabold text-purple-700 dark:text-purple-400">64% Tunai</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Odo Tipikal</span>
+                    <span className="text-sm font-extrabold text-[#001540] dark:text-white">95 rb km</span>
+                  </div>
                 </div>
 
-                <div className="space-y-2 text-xs text-slate-700 leading-relaxed">
-                  <p>
-                    <strong className="text-[#001540]">Pasar Tunai &amp; Armada Usaha:</strong> Didominasi <strong className="text-[#001540]">64% pembeli tunai langsung (cash keras)</strong> untuk mobil pertama atau armada taksi online (154 unit, median <strong className="text-[#001540]">Rp 139 Jt</strong>, 95 rb km).
-                  </p>
-                  <p className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                    <strong className="text-[#001540]">Sensitivitas Rekondisi:</strong> Depresiasi unit sangat landai (&lt;Rp 3 Jt/thn). Kunci closing terletak pada kepastian AC dingin menggigil dan ketebalan ban. Ganti 4 ban baru budget hemat (Rp 1,4 Jt) memangkas waktu closing dari 25 hari jadi 9 hari.
-                  </p>
-                  <p className="text-[11px] text-slate-600">
-                    <strong className="text-[#001540]">Program Trade-In:</strong> Buka opsi tukar tambah dari motor Honda/Yamaha sebagai pengurang DP untuk menyerap pasar pekerja yang naik kelas ke roda empat.
-                  </p>
-                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug">
+                  Dominan pembeli tunai &amp; mobil pertama. Prioritaskan kondisi AC, ban, dan opsi tukar tambah.
+                </p>
 
-                <div className="mt-3 flex items-center justify-between text-slate-500 text-[11px] pt-2 border-t border-slate-100">
-                  <span className="flex items-center gap-1 font-medium text-slate-600">
-                    <Zap className="h-3.5 w-3.5 text-purple-600" />
-                    <span>Calya, Sigra, Ayla, Karimun</span>
+                <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-100 dark:border-[#2A2A38]">
+                  <span className="flex items-center gap-1 font-medium text-slate-600 dark:text-slate-300">
+                    <Zap className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                    <span>Calya, Sigra, Ayla</span>
                   </span>
-                  <span className="font-extrabold text-purple-700">Pasar Tunai (64% Cash)</span>
+                  <span className="font-bold text-purple-700 dark:text-purple-400">Pasar Tunai</span>
                 </div>
               </div>
             </div>
 
             {/* Bottom Alert Card: Peringatan Anomali Harga */}
-            <div 
+            <div
               onClick={() => setSelectedClusterFilter(selectedClusterFilter === 'anomali' ? 'all' : 'anomali')}
-              className={`bg-orange-50/90 border p-4.5 rounded-2xl shadow-xs flex items-start gap-3 transition-all cursor-pointer hover:shadow-md ${
+              className={`bg-orange-50/90 dark:bg-orange-950/35 border p-4 rounded-2xl shadow-xs flex items-start gap-3 transition-all cursor-pointer hover:shadow-md ${
                 selectedClusterFilter === 'anomali'
-                  ? 'border-orange-500 ring-2 ring-orange-400/40 bg-orange-100/70'
-                  : 'border-orange-200/90 hover:border-orange-400'
+                  ? 'border-orange-500 ring-2 ring-orange-400/40 bg-orange-100/70 dark:bg-orange-950/60'
+                  : 'border-orange-200/90 dark:border-orange-500/40 hover:border-orange-400'
               }`}
             >
               <div className="w-8 h-8 rounded-xl bg-[#FE6A2B] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-                <ShieldAlert className="h-4.5 w-4.5" />
+                <ShieldAlert className="h-4 w-4" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-[#001540]">Peringatan Discrepancy Harga</p>
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-orange-200/80 text-orange-900">
-                    21 Unit Terdeteksi
+                  <p className="text-xs font-bold text-[#001540] dark:text-white">Discrepancy Harga</p>
+                  <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-orange-200/80 dark:bg-orange-500/30 text-orange-900 dark:text-orange-200">
+                    21 Unit
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-700 mt-1 leading-snug">
-                  Terdeteksi <strong className="font-bold text-[#A83900]">14 unit overpriced (&gt;Q3)</strong> yang menahan modal showroom <strong>Rp 4,4 Miliar</strong>, dan <strong className="font-bold text-[#A83900]">7 unit underpriced (&lt;Q1)</strong> yang kehilangan potensi laba markup.
+                <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 leading-snug">
+                  14 unit overpriced (&gt;Q3) &amp; 7 unit underpriced (&lt;Q1). Klik untuk sorot di grafik.
                 </p>
-                <div className="mt-2.5 flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#A83900] hover:underline">
-                    <span>{selectedClusterFilter === 'anomali' ? 'Tampilkan Semua Titik' : 'Klik untuk Sorot 21 Titik di Grafik'}</span>
-                    <ArrowRight className="h-3 w-3" />
-                  </span>
-                </div>
               </div>
             </div>
-
           </div>
 
         </div>

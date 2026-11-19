@@ -1109,7 +1109,7 @@ export function AdminUsersPage() {
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase tracking-wider">
                 <th className="py-3.5 px-4">Identitas Lengkap (Nama, NIK, Profil)</th>
-                <th className="py-3.5 px-4">Domisili, Slip Gaji &amp; Pekerjaan</th>
+                <th className="py-3.5 px-4">Domisili, Alamat &amp; Pekerjaan</th>
                 <th className="py-3.5 px-4">Kontak &amp; WhatsApp</th>
                 <th className="py-3.5 px-4">Status OTP &amp; Aktivitas</th>
                 <th className="py-3.5 px-4">Fokus &amp; Segmen</th>
@@ -1224,7 +1224,7 @@ export function AdminUsersPage() {
                         </div>
                       </td>
 
-                      {/* Kolom 2: Domisili, Alamat, Slip Gaji & Pekerjaan */}
+                      {/* Kolom 2: Domisili, Alamat & Pekerjaan */}
                       <td className="py-3.5 px-4 max-w-[250px]">
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5 font-bold text-slate-800">
@@ -1235,29 +1235,6 @@ export function AdminUsersPage() {
                             {revealSensitivePii
                               ? (b.alamat_lengkap && b.alamat_lengkap !== '-' ? b.alamat_lengkap : 'Alamat lengkap belum diisi')
                               : 'Jl. ••••••••••••• (Disensor)'}
-                          </div>
-                          <div className="flex flex-wrap items-center gap-1 pt-0.5">
-                            {b.slip_gaji_nominal ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                                <Wallet className="w-3 h-3 text-blue-600" />
-                                <span>Slip Gaji: Rp {Number(b.slip_gaji_nominal).toLocaleString('id-ID')}</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                                <Wallet className="w-3 h-3 text-slate-400" />
-                                <span>Slip Gaji: Belum Diisi</span>
-                              </span>
-                            )}
-                            {b.slip_gaji_url && (
-                              <button
-                                type="button"
-                                onClick={() => openDetailModal(b)}
-                                className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200 cursor-pointer"
-                              >
-                                <FileText className="w-3 h-3" />
-                                <span>Dokumen Slip</span>
-                              </button>
-                            )}
                           </div>
                           {b.pekerjaan && b.pekerjaan !== '-' && (
                             <div className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/70">
@@ -1544,50 +1521,12 @@ export function AdminUsersPage() {
                     {selectedBuyer.kota_domisili || '-'} — {selectedBuyer.alamat_lengkap || 'Alamat belum dilengkapi'}
                   </span>
                 </div>
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Slip Gaji Pendaftar (Penghasilan Bulanan)</span>
-                  <span className="text-sm font-black text-blue-700 mt-0.5 block">
-                    {selectedBuyer.slip_gaji_nominal
-                      ? `Rp ${Number(selectedBuyer.slip_gaji_nominal).toLocaleString('id-ID')} / bulan`
-                      : 'Belum Diisi'}
-                  </span>
-                  {selectedBuyer.slip_gaji_filename && (
-                    <span className="text-[11px] text-slate-500 block mt-0.5">
-                      File: {selectedBuyer.slip_gaji_filename}
-                    </span>
-                  )}
-                </div>
-                <div>
+                <div className="sm:col-span-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Metode Autentikasi &amp; Kode OTP Email</span>
                   <span className="text-sm font-bold text-slate-800 mt-0.5 block uppercase">
                     {selectedBuyer.auth_provider || 'email'} • OTP: {selectedBuyer.otp_terakhir || '-'}
                   </span>
                 </div>
-                {selectedBuyer.slip_gaji_url && (
-                  <div className="sm:col-span-2 rounded-xl border border-blue-200 bg-blue-50/60 p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800">
-                        Lampiran Dokumen / Foto Slip Gaji Pendaftar
-                      </span>
-                      <a
-                        href={selectedBuyer.slip_gaji_url}
-                        download={selectedBuyer.slip_gaji_filename || `slip_gaji_${selectedBuyer.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs font-bold text-blue-700 hover:underline"
-                      >
-                        Unduh / Buka Dokumen
-                      </a>
-                    </div>
-                    {selectedBuyer.slip_gaji_url.startsWith('data:image') && (
-                      <img
-                        src={selectedBuyer.slip_gaji_url}
-                        alt={`Slip Gaji ${selectedBuyer.nama}`}
-                        className="max-h-44 rounded-lg border border-slate-200 object-contain bg-white p-1"
-                      />
-                    )}
-                  </div>
-                )}
                 <div className="sm:col-span-2 pt-2 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="p-2.5 rounded-xl bg-amber-50/90 border border-amber-200/80 flex items-center justify-between">
                     <div>

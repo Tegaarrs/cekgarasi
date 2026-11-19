@@ -494,7 +494,7 @@ export function Navbar() {
 
           {/* Portal Dealer Link with Hover Micro-Elevation */}
           <Link
-            to="/admin/dashboard"
+            to={user?.role === 'admin' ? '/admin/bi' : '/admin/login'}
             className="hidden sm:inline-flex items-center gap-1.5 rounded-[10px] px-3.5 py-1.5 text-xs font-semibold transition-all border border-white/15 bg-white/10 hover:bg-white/20 hover:-translate-y-0.5 active:scale-95 text-white cursor-pointer shadow-2xs"
           >
             <BarChart3 className="w-3.5 h-3.5 text-[#8277FF]" />
@@ -557,7 +557,7 @@ export function Navbar() {
                     </Link>
 
                     <Link
-                      to="/admin/dashboard"
+                      to={user?.role === 'admin' ? '/admin/bi' : '/admin/login'}
                       onClick={() => setActiveMenu(null)}
                       className="flex items-center gap-2 px-3 py-2 text-xs rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
@@ -656,7 +656,7 @@ export function Navbar() {
           </Link>
           <div className="pt-2 border-t border-white/10 flex items-center justify-between">
             <Link
-              to="/admin/dashboard"
+              to={user?.role === 'admin' ? '/admin/bi' : '/admin/login'}
               onClick={() => setMobileOpen(false)}
               className="flex items-center gap-1.5 text-xs font-medium text-zinc-300 hover:text-white"
             >

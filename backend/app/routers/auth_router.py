@@ -16,7 +16,62 @@ from .. import models, schemas, auth
 router = APIRouter(prefix="/api/auth", tags=["Autentikasi"])
 
 
-def _send_email_otp(email_to: str, otp_code: str, purpose: str = "register") -> dict:
+def _resolve_smtp_credentials(db: Optional[Session] = None) -> tuple[str, int, str, str, str]:
+    smtp_host = (os.getenv("SMTP_HOST") or "smtp.gmail.com").strip() or "smtp.gmail.com"
+    smtp_port = int(os.getenv("SMTP_PORT") or "587")
+    smtp_user = (os.getenv("SMTP_USER") or "").strip()
+    smtp_pass = (os.getenv("SMTP_PASS") or "").replace(" ", "").strip()
+    smtp_from = (os.getenv("SMTP_FROM") or smtp_user or "no-reply@cekgarasi.id").strip()
+
+    if db is not None:
+        try:
+            row = db.query(models.SmtpSetting).order_by(models.SmtpSetting.id.desc()).first()
+            if row and row.smtp_user and row.smtp_pass:
+                smtp_host = (row.smtp_host or "smtp.gmail.com").strip()
+                smtp_port = int(row.smtp_port or 587)
+                smtp_user = row.smtp_user.strip()
+                smtp_pass = row.smtp_pass.replace(" ", "").strip()
+                smtp_from = (row.smtp_from or smtp_user).strip()
+        except Exception:
+            pass
+
+    return smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from
+
+
+def _deliver_via_gmail_smtp(
+    smtp_host: str,
+    smtp_port: int,
+    smtp_user: str,
+    smtp_pass: str,
+    smtp_from: str,
+    email_to: str,
+    msg_str: str,
+) -> tuple[bool, str]:
+    clean_pass = smtp_pass.replace(" ", "").strip()
+    # Try SSL port 465 first if port 465 specified, otherwise try STARTTLS 587 then fallback to SSL 465
+    ports_to_try = [465, 587] if smtp_port == 465 else [smtp_port, 465]
+    last_err = ""
+    for port in ports_to_try:
+        try:
+            if port == 465:
+                with smtplib.SMTP_SSL(smtp_host, 465, timeout=10) as server:
+                    server.login(smtp_user, clean_pass)
+                    server.sendmail(smtp_from, [email_to], msg_str)
+                return True, ""
+            else:
+                with smtplib.SMTP(smtp_host, port, timeout=10) as server:
+                    server.ehlo()
+                    server.starttls()
+                    server.ehlo()
+                    server.login(smtp_user, clean_pass)
+                    server.sendmail(smtp_from, [email_to], msg_str)
+                return True, ""
+        except Exception as exc:
+            last_err = str(exc)
+    return False, last_err
+
+
+def _send_email_otp(email_to: str, otp_code: str, purpose: str = "register", db: Optional[Session] = None) -> dict:
     now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     if purpose == "reset_password":
         subject = "[CekGarasi] Kode OTP Pemulihan & Reset Kata Sandi Akun Anda"
@@ -27,51 +82,128 @@ def _send_email_otp(email_to: str, otp_code: str, purpose: str = "register") -> 
     else:
         subject = "[CekGarasi] Kode OTP Verifikasi Pendaftaran Akun Baru"
         Ringkasan = (
-            f"Selamat datang di CekGarasi! Gunakan kode OTP 6 digit ({otp_code}) untuk memverifikasi email {email_to} "
-            "dan melanjutkan pengisian profil, domisili, serta slip gaji Anda."
+            f"Selamat datang di CekGarasi! Gunakan kode OTP 6 digit ({otp_code}) yang dikirim ke Gmail Anda ({email_to}) "
+            "untuk menyelesaikan verifikasi pendaftaran akun dan domisili Anda."
         )
 
-    smtp_host = (os.getenv("SMTP_HOST") or "").strip()
-    smtp_port = int(os.getenv("SMTP_PORT") or "587")
-    smtp_user = (os.getenv("SMTP_USER") or "").strip()
-    smtp_pass = (os.getenv("SMTP_PASS") or "").strip()
-    smtp_from = (os.getenv("SMTP_FROM") or smtp_user or "no-reply@cekgarasi.id").strip()
-
+    smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from = _resolve_smtp_credentials(db)
     smtp_sent = False
+    smtp_error = ""
+
     if smtp_host and smtp_user and smtp_pass:
-        try:
-            msg = MIMEMultipart("alternative")
-            msg["Subject"] = subject
-            msg["From"] = f"CekGarasi Official <{smtp_from}>"
-            msg["To"] = email_to
-            html_body = f"""
-            <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; border: 1px solid #E2E8F0; border-radius: 16px;">
-              <h2 style="color: #1D4ED8; margin-top: 0;">CekGarasi Verification</h2>
-              <p style="color: #334155; font-size: 14px; line-height: 1.6;">{Ringkasan}</p>
-              <div style="background: #EFF6FF; border: 1px dashed #3B82F6; border-radius: 12px; padding: 16px; text-align: center; margin: 20px 0;">
-                <span style="font-size: 28px; font-weight: 800; letter-spacing: 6px; color: #1E40AF;">{otp_code}</span>
-              </div>
-              <p style="color: #64748B; font-size: 12px;">Waktu pengiriman: {now_str}</p>
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = f"CekGarasi Official <{smtp_from}>"
+        msg["To"] = email_to
+        html_body = f"""
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 540px; margin: 0 auto; padding: 28px; border: 1px solid #E2E8F0; border-radius: 18px; background: #FFFFFF;">
+          <div style="text-align: center; margin-bottom: 18px;">
+            <span style="display: inline-block; padding: 6px 14px; border-radius: 999px; background: #EFF6FF; color: #2563EB; font-weight: 700; font-size: 12px;">
+              CekGarasi Official Security
+            </span>
+          </div>
+          <h2 style="color: #0F172A; margin: 0 0 12px 0; text-align: center; font-size: 22px;">
+            Kode Verifikasi OTP Email Anda
+          </h2>
+          <p style="color: #334155; font-size: 14px; line-height: 1.6; text-align: center;">{Ringkasan}</p>
+          <div style="background: #EFF6FF; border: 2px dashed #2563EB; border-radius: 14px; padding: 20px; text-align: center; margin: 22px 0;">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #1D4ED8; letter-spacing: 1px; margin-bottom: 6px;">
+              Kode OTP 6 Digit
             </div>
-            """
-            msg.attach(MIMEText(Ringkasan, "plain", "utf-8"))
-            msg.attach(MIMEText(html_body, "html", "utf-8"))
-            with smtplib.SMTP(smtp_host, smtp_port, timeout=6) as server:
-                server.starttls()
-                server.login(smtp_user, smtp_pass)
-                server.sendmail(smtp_from, [email_to], msg.as_string())
-            smtp_sent = True
-        except Exception:
-            smtp_sent = False
+            <span style="font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #1E40AF; font-family: monospace;">{otp_code}</span>
+          </div>
+          <p style="color: #64748B; font-size: 12px; text-align: center; margin-top: 20px;">
+            Dikirim ke {email_to} pada {now_str}. Jangan bagikan kode rahasia ini kepada siapa pun.
+          </p>
+        </div>
+        """
+        msg.attach(MIMEText(Ringkasan, "plain", "utf-8"))
+        msg.attach(MIMEText(html_body, "html", "utf-8"))
+        smtp_sent, smtp_error = _deliver_via_gmail_smtp(
+            smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from, email_to, msg.as_string()
+        )
 
     return {
         "subjek": subject,
         "pengirim": smtp_from,
         "penerima": email_to,
-        "kode_otp": otp_code,
         "pesan": Ringkasan,
         "waktu_kirim": now_str,
         "smtp_terkirim": smtp_sent,
+        "smtp_configured": bool(smtp_user and smtp_pass),
+        "smtp_error": smtp_error if not smtp_sent else "",
+    }
+
+
+@router.get("/smtp-status")
+def get_smtp_status(db: Session = Depends(get_db)):
+    smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from = _resolve_smtp_credentials(db)
+    return {
+        "configured": bool(smtp_user and smtp_pass),
+        "smtp_host": smtp_host,
+        "smtp_port": smtp_port,
+        "smtp_user": smtp_user,
+        "smtp_from": smtp_from,
+    }
+
+
+@router.post("/smtp-config")
+def save_smtp_config(payload: schemas.SmtpConfigRequest, db: Session = Depends(get_db)):
+    clean_user = (payload.smtp_user or "").strip()
+    clean_pass = (payload.smtp_pass or "").replace(" ", "").strip()
+    clean_host = (payload.smtp_host or "smtp.gmail.com").strip() or "smtp.gmail.com"
+    clean_port = int(payload.smtp_port or 587)
+
+    if not clean_user or "@" not in clean_user:
+        raise HTTPException(status_code=400, detail="Masukkan alamat Gmail pengirim yang valid (contoh: akunanda@gmail.com).")
+    if len(clean_pass) < 8:
+        raise HTTPException(status_code=400, detail="Masukkan 16 digit Google App Password dari akun Gmail Anda.")
+
+    # Test connection to Gmail SMTP before saving
+    test_msg = MIMEMultipart("alternative")
+    test_msg["Subject"] = "[CekGarasi] Konfirmasi Integrasi Gmail SMTP Berhasil"
+    test_msg["From"] = f"CekGarasi Official <{clean_user}>"
+    target_test = (payload.test_recipient or clean_user).strip()
+    test_msg["To"] = target_test
+    test_msg.attach(MIMEText("Integrasi Gmail SMTP CekGarasi telah aktif dan siap mengirim kode OTP ke email pengguna.", "plain", "utf-8"))
+
+    ok, err_detail = _deliver_via_gmail_smtp(
+        clean_host, clean_port, clean_user, clean_pass, clean_user, target_test, test_msg.as_string()
+    )
+    if not ok:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Gagal terhubung ke Gmail SMTP ({clean_host}): {err_detail}. Pastikan menggunakan 16-digit Google App Password (bukan password login biasa)."
+        )
+
+    existing = db.query(models.SmtpSetting).order_by(models.SmtpSetting.id.desc()).first()
+    if existing:
+        existing.smtp_host = clean_host
+        existing.smtp_port = clean_port
+        existing.smtp_user = clean_user
+        existing.smtp_pass = clean_pass
+        existing.smtp_from = clean_user
+    else:
+        db.add(models.SmtpSetting(
+            smtp_host=clean_host,
+            smtp_port=clean_port,
+            smtp_user=clean_user,
+            smtp_pass=clean_pass,
+            smtp_from=clean_user,
+        ))
+    db.commit()
+
+    os.environ["SMTP_HOST"] = clean_host
+    os.environ["SMTP_PORT"] = str(clean_port)
+    os.environ["SMTP_USER"] = clean_user
+    os.environ["SMTP_PASS"] = clean_pass
+    os.environ["SMTP_FROM"] = clean_user
+
+    return {
+        "status": "smtp_connected",
+        "configured": True,
+        "smtp_user": clean_user,
+        "message": f"Gmail SMTP ({clean_user}) berhasil terhubung! Semua kode OTP sekarang dikirim langsung ke kotak masuk Gmail pengguna.",
     }
 
 
@@ -131,7 +263,7 @@ def request_email_otp(payload: schemas.EmailOtpRequest, db: Session = Depends(ge
 
     db.commit()
 
-    notif = _send_email_otp(clean_email, otp_code, purpose=purpose)
+    notif = _send_email_otp(clean_email, otp_code, purpose=purpose, db=db)
     return {
         "status": "otp_sent",
         "email": clean_email,
@@ -494,7 +626,7 @@ def social_auth(payload: schemas.SocialAuthRequest, db: Session = Depends(get_db
     db.add(otp_log)
     db.commit()
 
-    notif = _send_email_otp(clean_email, otp_code, purpose="register")
+    notif = _send_email_otp(clean_email, otp_code, purpose="register", db=db)
     return {
         "status": "needs_onboarding",
         "is_new_user": True,
@@ -590,7 +722,7 @@ def forgot_password(payload: schemas.ForgotPasswordRequest, db: Session = Depend
     db.add(otp_log)
     db.commit()
 
-    notif = _send_email_otp(clean_email, otp_code, purpose="reset_password")
+    notif = _send_email_otp(clean_email, otp_code, purpose="reset_password", db=db)
     return {
         "status": "recovery_email_sent",
         "email": clean_email,

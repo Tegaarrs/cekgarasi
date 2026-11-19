@@ -42,7 +42,7 @@ import { DatabaseExplorerPage } from './pages/admin/DatabaseExplorerPage';
 
 export default function App() {
   const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/admin') && location.pathname !== '/admin/login';
+  const isAdminRoute = location.pathname.startsWith('/admin');
   const isMobileTopBarRoute = ['/', '/cari', '/segmen', '/favorit', '/akun'].includes(location.pathname);
 
   const [toastState, setToastState] = useState<ToastState>({
@@ -172,7 +172,7 @@ export default function App() {
               {/* Admin Screens A1 - A5 & Database */}
               <Route path="/admin/login" element={<AdminLoginPage />} />
               <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboardPage />} />
+                <Route index element={<Navigate to="/admin/bi" replace />} />
                 <Route path="bi" element={<AdminBIPage />} />
                 <Route path="dashboard" element={<AdminDashboardPage />} />
                 <Route path="segmentasi" element={<AdminSegmentasiPage />} />

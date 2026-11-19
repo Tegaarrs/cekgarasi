@@ -527,3 +527,229 @@
     animation: none !important;
   }
 }
+
+/* ============================================================ */
+/* ADMIN WORKSPACE: UNIFIED DARK/LIGHT TRANSITION & LARGER FONT */
+/* Applies from Dashboard BI K-Means & Ringkasan KPI to DB      */
+/* ============================================================ */
+.admin-workspace,
+.admin-workspace h1,
+.admin-workspace h2,
+.admin-workspace h3,
+.admin-workspace h4,
+.admin-workspace p,
+.admin-workspace span,
+.admin-workspace div,
+.admin-workspace td,
+.admin-workspace th,
+.admin-workspace label,
+.admin-workspace input,
+.admin-workspace select,
+.admin-workspace textarea,
+.admin-workspace button,
+.admin-workspace svg text {
+  transition: color 200ms ease, background-color 200ms ease, border-color 200ms ease, fill 200ms ease;
+}
+
+/* Slightly larger & clearer typography across all Admin pages */
+.admin-workspace .text-\[9px\] {
+  font-size: 0.75rem !important;
+  line-height: 1.1rem !important;
+}
+.admin-workspace .text-\[10px\] {
+  font-size: 0.8125rem !important;
+  line-height: 1.2rem !important;
+}
+.admin-workspace .text-\[11px\] {
+  font-size: 0.84375rem !important;
+  line-height: 1.28rem !important;
+}
+.admin-workspace .text-xs {
+  font-size: 0.875rem !important;
+  line-height: 1.38rem !important;
+}
+.admin-workspace .text-sm {
+  font-size: 0.9375rem !important;
+  line-height: 1.45rem !important;
+}
+.admin-workspace .recharts-cartesian-axis-tick-value,
+.admin-workspace .recharts-legend-item-text {
+  font-size: 13px !important;
+  font-weight: 500;
+}
+
+/* Light mode contrast enhancement for muted labels */
+.admin-workspace .text-slate-400 {
+  color: #64748B;
+}
+.admin-workspace .text-slate-500 {
+  color: #475569;
+}
+
+/* Dark mode adaptive surfaces, borders, and high-contrast fonts */
+.dark .admin-workspace .bg-white,
+.dark .admin-workspace .bg-white\/70,
+.dark .admin-workspace .bg-white\/80,
+.dark .admin-workspace .bg-white\/90,
+.dark .admin-workspace .bg-white\/95 {
+  background-color: #1A1A24 !important;
+}
+
+.dark .admin-workspace .bg-slate-50,
+.dark .admin-workspace .bg-slate-50\/40,
+.dark .admin-workspace .bg-slate-50\/50,
+.dark .admin-workspace .bg-slate-50\/60,
+.dark .admin-workspace .bg-slate-50\/70,
+.dark .admin-workspace .bg-slate-50\/80,
+.dark .admin-workspace .bg-slate-100,
+.dark .admin-workspace .bg-slate-100\/60,
+.dark .admin-workspace .bg-slate-100\/80,
+.dark .admin-workspace .bg-slate-100\/90 {
+  background-color: #14141E !important;
+}
+
+.dark .admin-workspace .bg-blue-50,
+.dark .admin-workspace .bg-blue-50\/50,
+.dark .admin-workspace .bg-blue-50\/60,
+.dark .admin-workspace .bg-blue-50\/70,
+.dark .admin-workspace .bg-blue-50\/80,
+.dark .admin-workspace .bg-blue-100 {
+  background-color: rgba(37, 99, 235, 0.16) !important;
+}
+
+.dark .admin-workspace .bg-indigo-50,
+.dark .admin-workspace .bg-indigo-50\/50,
+.dark .admin-workspace .bg-indigo-100 {
+  background-color: rgba(99, 102, 241, 0.16) !important;
+}
+
+.dark .admin-workspace .bg-emerald-50,
+.dark .admin-workspace .bg-emerald-50\/50,
+.dark .admin-workspace .bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.16) !important;
+}
+
+.dark .admin-workspace .bg-amber-50,
+.dark .admin-workspace .bg-amber-50\/40,
+.dark .admin-workspace .bg-amber-50\/90,
+.dark .admin-workspace .bg-amber-100,
+.dark .admin-workspace .bg-orange-50,
+.dark .admin-workspace .bg-orange-50\/90,
+.dark .admin-workspace .bg-orange-100\/70 {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
+
+.dark .admin-workspace .bg-rose-50,
+.dark .admin-workspace .bg-rose-100 {
+  background-color: rgba(244, 63, 94, 0.16) !important;
+}
+
+.dark .admin-workspace .bg-purple-50,
+.dark .admin-workspace .bg-purple-100 {
+  background-color: rgba(168, 85, 247, 0.16) !important;
+}
+
+.dark .admin-workspace .border-slate-100,
+.dark .admin-workspace .border-slate-200,
+.dark .admin-workspace .border-slate-200\/60,
+.dark .admin-workspace .border-slate-200\/80,
+.dark .admin-workspace .border-slate-200\/90,
+.dark .admin-workspace .border-slate-300,
+.dark .admin-workspace .border-slate-300\/80 {
+  border-color: #2A2A38 !important;
+}
+
+.dark .admin-workspace .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.dark .admin-workspace .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #2A2A38 !important;
+}
+
+.dark .admin-workspace .text-\[\#001540\],
+.dark .admin-workspace .text-slate-900,
+.dark .admin-workspace .text-slate-800,
+.dark .admin-workspace .text-zinc-900 {
+  color: #F8FAFC !important;
+}
+
+.dark .admin-workspace .text-slate-700,
+.dark .admin-workspace .text-zinc-700 {
+  color: #E2E8F0 !important;
+}
+
+.dark .admin-workspace .text-slate-600,
+.dark .admin-workspace .text-slate-500,
+.dark .admin-workspace .text-slate-400 {
+  color: #CBD5E1 !important;
+}
+
+.dark .admin-workspace .text-\[\#A83900\],
+.dark .admin-workspace .text-orange-800,
+.dark .admin-workspace .text-orange-900 {
+  color: #FDBA74 !important;
+}
+
+.dark .admin-workspace .text-blue-700,
+.dark .admin-workspace .text-blue-800,
+.dark .admin-workspace .text-blue-900,
+.dark .admin-workspace .text-\[\#2557D6\] {
+  color: #60A5FA !important;
+}
+
+.dark .admin-workspace .text-indigo-600,
+.dark .admin-workspace .text-indigo-700,
+.dark .admin-workspace .text-indigo-800,
+.dark .admin-workspace .text-indigo-900 {
+  color: #818CF8 !important;
+}
+
+.dark .admin-workspace .text-emerald-700,
+.dark .admin-workspace .text-emerald-800,
+.dark .admin-workspace .text-emerald-900,
+.dark .admin-workspace .text-\[\#0CA678\] {
+  color: #34D399 !important;
+}
+
+.dark .admin-workspace .text-amber-700,
+.dark .admin-workspace .text-amber-800,
+.dark .admin-workspace .text-amber-900,
+.dark .admin-workspace .text-amber-950 {
+  color: #FBBF24 !important;
+}
+
+.dark .admin-workspace .text-rose-700,
+.dark .admin-workspace .text-rose-800,
+.dark .admin-workspace .text-rose-900 {
+  color: #FB7185 !important;
+}
+
+.dark .admin-workspace .text-purple-700,
+.dark .admin-workspace .text-purple-800,
+.dark .admin-workspace .text-purple-900,
+.dark .admin-workspace .text-\[\#AE3EC9\] {
+  color: #E879F9 !important;
+}
+
+.dark .admin-workspace input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.dark .admin-workspace select,
+.dark .admin-workspace textarea {
+  background-color: #14141E !important;
+  color: #F8FAFC !important;
+  border-color: #2A2A38 !important;
+  color-scheme: dark;
+}
+
+.dark .admin-workspace .recharts-cartesian-axis-tick-value tspan,
+.dark .admin-workspace .recharts-text tspan,
+.dark .admin-workspace svg text.fill-slate-400,
+.dark .admin-workspace svg text.fill-slate-500 {
+  fill: #CBD5E1 !important;
+}
+
+.dark .admin-workspace .recharts-legend-item-text {
+  color: #E2E8F0 !important;
+}
+
+.dark .admin-workspace .recharts-cartesian-grid line {
+  stroke: #2A2A38 !important;
+}
+

@@ -10,17 +10,12 @@ import {
   Lock,
   CheckCircle2,
   MapPin,
-  Wallet,
-  Upload,
-  FileText,
   ArrowLeft,
   RefreshCw,
-  ShieldCheck,
-  Sparkles,
   ExternalLink,
-  Copy,
   Check,
   X,
+  Settings,
 } from 'lucide-react';
 import { Spinner } from '@/components/motion/Spinner';
 import { apiFetch, setToken, setUser } from '@/services/api';
@@ -36,10 +31,11 @@ interface EmailNotificationPayload {
   subjek: string;
   pengirim: string;
   penerima: string;
-  kode_otp: string;
   pesan: string;
   waktu_kirim: string;
   smtp_terkirim: boolean;
+  smtp_configured?: boolean;
+  smtp_error?: string;
 }
 
 interface AuthUserResponse {
@@ -50,7 +46,6 @@ interface AuthUserResponse {
   email: string;
   role: string;
   kota_domisili?: string;
-  slip_gaji_nominal?: number;
   auth_provider?: string;
 }
 
@@ -162,9 +157,6 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
   const [lastName, setLastName] = useState('');
   const [kotaDomisili, setKotaDomisili] = useState('Jakarta Selatan');
   const [alamatDomisili, setAlamatDomisili] = useState('');
-  const [slipGajiNominal, setSlipGajiNominal] = useState('12000000');
-  const [slipGajiUrl, setSlipGajiUrl] = useState<string>('');
-  const [slipGajiFilename, setSlipGajiFilename] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [kodeOtp, setKodeOtp] = useState('');
@@ -176,10 +168,12 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [resetSuccessDone, setResetSuccessDone] = useState(false);
 
-  // Email Notification / Inbox Modal states
-  const [emailNotif, setEmailNotif] = useState<EmailNotificationPayload | null>(null);
-  const [showEmailInboxModal, setShowEmailInboxModal] = useState(false);
-  const [copiedOtp, setCopiedOtp] = useState(false);
+  // Gmail SMTP Status & Configuration Modal states
+  const [smtpConfigured, setSmtpConfigured] = useState<boolean>(false);
+  const [smtpSenderEmail, setSmtpSenderEmail] = useState<string>('');
+  const [smtpAppPassword, setSmtpAppPassword] = useState<string>('');
+  const [showSmtpModal, setShowSmtpModal] = useState<boolean>(false);
+  const [smtpSaving, setSmtpSaving] = useState<boolean>(false);
 
   // Social OAuth Modal states (Google & Facebook)
   const [socialModalProvider, setSocialModalProvider] = useState<'google' | 'facebook' | null>(null);
@@ -203,6 +197,16 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
     }
   }, [location.pathname, initialView]);
 
+  // Check Gmail SMTP configuration status on mount
+  useEffect(() => {
+    apiFetch<{ configured: boolean; smtp_user: string }>('/auth/smtp-status')
+      .then((res) => {
+        setSmtpConfigured(Boolean(res.configured));
+        if (res.smtp_user) setSmtpSenderEmail(res.smtp_user);
+      })
+      .catch(() => {});
+  }, []);
+
   const clearAlerts = () => {
     setErrorMessage('');
     setInfoMessage('');
@@ -218,7 +222,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
     setUser(user);
 
     if (user.role === 'admin') {
-      navigate('/admin/dashboard');
+      navigate('/admin/bi', { replace: true });
       return;
     }
 
@@ -264,7 +268,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
   };
 
   // ==============================================================
-  // 2. SIGN UP STEP 1 -> SEND OTP TO EMAIL (Screen 2 -> Screen 3)
+  // 2. SIGN UP STEP 1 -> SEND OTP TO GMAIL (Screen 2 -> Screen 3)
   // ==============================================================
   const handleSignUpStart = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -297,11 +301,20 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
       });
 
       setAuthProvider('email');
+      // Do NOT auto-fill kodeOtp on the website! User checks their Gmail inbox.
+      setKodeOtp('');
       if (res.email_notification) {
-        setEmailNotif(res.email_notification);
-        setKodeOtp(res.email_notification.kode_otp);
+        setSmtpConfigured(Boolean(res.email_notification.smtp_configured));
       }
-      setInfoMessage(res.message);
+      if (res.email_notification?.smtp_terkirim) {
+        setInfoMessage(
+          `Kode OTP 6 digit telah dikirim ke kotak masuk Gmail (${cleanEmail}). Silakan periksa Gmail Anda dan masukkan kodenya di bawah.`
+        );
+      } else {
+        setInfoMessage(
+          `Permintaan OTP untuk ${cleanEmail} tercatat. Hubungkan Gmail SMTP (App Password) agar kode OTP masuk langsung ke kotak masuk Gmail Anda.`
+        );
+      }
       setView('about');
     } catch (err: unknown) {
       setErrorMessage(
@@ -312,7 +325,6 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
     }
   };
 
-  // Resend OTP on Screen 3 or Screen 5
   const handleResendOtp = async (purpose: 'register' | 'reset_password') => {
     clearAlerts();
     const cleanEmail = email.trim().toLowerCase();
@@ -333,11 +345,15 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
         }),
       });
 
+      setKodeOtp('');
       if (res.email_notification) {
-        setEmailNotif(res.email_notification);
-        setKodeOtp(res.email_notification.kode_otp);
+        setSmtpConfigured(Boolean(res.email_notification.smtp_configured));
       }
-      setInfoMessage(`Kode OTP baru telah dikirimkan ke ${cleanEmail}.`);
+      if (res.email_notification?.smtp_terkirim) {
+        setInfoMessage(`Kode OTP baru telah dikirim langsung ke Gmail ${cleanEmail}.`);
+      } else {
+        setInfoMessage(`OTP baru dibuat untuk ${cleanEmail}. Silakan aktifkan Gmail SMTP jika email belum masuk.`);
+      }
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error ? err.message : 'Gagal mengirim ulang kode OTP.'
@@ -348,29 +364,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
   };
 
   // ==============================================================
-  // 3. FILE UPLOAD HANDLER FOR SLIP GAJI PENDAFTAR
-  // ==============================================================
-  const handleSlipGajiFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 3 * 1024 * 1024) {
-      setErrorMessage('Ukuran file slip gaji maksimal 3 MB.');
-      return;
-    }
-
-    setSlipGajiFilename(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setSlipGajiUrl(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // ==============================================================
-  // 4. TELL US ABOUT YOURSELF SUBMIT (Screen 3 -> DB -> Screen 5)
+  // 3. TELL US ABOUT YOURSELF SUBMIT (Screen 3 -> DB -> Screen 5)
   // ==============================================================
   const handleCompleteProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -384,13 +378,8 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
       setErrorMessage('Domisili pendaftar wajib diisi.');
       return;
     }
-    const parsedSalary = Number(String(slipGajiNominal).replace(/\D/g, '')) || 0;
-    if (parsedSalary < 1_000_000) {
-      setErrorMessage('Masukkan nominal slip gaji bulanan yang valid (minimal Rp 1.000.000).');
-      return;
-    }
     if (!kodeOtp.trim() || kodeOtp.trim().length < 4) {
-      setErrorMessage('Masukkan kode OTP 6 digit yang telah dikirimkan ke email Anda.');
+      setErrorMessage('Masukkan kode OTP 6 digit yang dikirimkan ke email Anda.');
       return;
     }
     if (password.length < 6) {
@@ -424,10 +413,6 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
           kode_otp: kodeOtp.trim(),
           kota_domisili: kotaDomisili.trim(),
           alamat_lengkap: alamatDomisili.trim() || `Domisili ${kotaDomisili.trim()}`,
-          slip_gaji_nominal: parsedSalary,
-          slip_gaji_url: slipGajiUrl || null,
-          slip_gaji_filename: slipGajiFilename || `Slip_Gaji_${firstName.trim().replace(/\s+/g, '_')}.pdf`,
-          pekerjaan: `Karyawan / Pendaftar (Slip Gaji Rp ${parsedSalary.toLocaleString('id-ID')})`,
           auth_provider: authProvider,
         }),
       });
@@ -448,7 +433,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
   };
 
   // ==============================================================
-  // 5. RECOVER PASSWORD HANDLER (Screen 4 -> Screen 5)
+  // 4. RECOVER PASSWORD HANDLER (Screen 4 -> Screen 5)
   // ==============================================================
   const handleRecoverPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -473,15 +458,19 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
         body: JSON.stringify({ email: cleanEmail }),
       });
 
+      setKodeOtp('');
       if (res.email_notification) {
-        setEmailNotif(res.email_notification);
-        setKodeOtp(res.email_notification.kode_otp);
+        setSmtpConfigured(Boolean(res.email_notification.smtp_configured));
       }
       setResetSuccessDone(false);
       setNewPassword('');
       setConfirmNewPassword('');
       setThankYouContext('recover');
-      setInfoMessage(res.message);
+      if (res.email_notification?.smtp_terkirim) {
+        setInfoMessage(`Kode OTP pemulihan kata sandi telah dikirim ke Gmail ${cleanEmail}.`);
+      } else {
+        setInfoMessage(res.message);
+      }
       setView('thankyou');
     } catch (err: unknown) {
       setErrorMessage(
@@ -493,14 +482,14 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
   };
 
   // ==============================================================
-  // 6. RESET PASSWORD SUBMIT ON SCREEN 5 (Updates DB!)
+  // 5. RESET PASSWORD SUBMIT ON SCREEN 5 (Updates DB!)
   // ==============================================================
   const handleResetPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearAlerts();
 
     if (!kodeOtp.trim()) {
-      setErrorMessage('Masukkan kode OTP pemulihan dari email Anda.');
+      setErrorMessage('Masukkan kode OTP 6 digit dari email Gmail Anda.');
       return;
     }
     if (newPassword.length < 6) {
@@ -546,7 +535,48 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
   };
 
   // ==============================================================
-  // 7. GOOGLE & FACEBOOK OAUTH HANDLER (Login OR New Account Onboarding)
+  // 6. SAVE GMAIL SMTP CONFIG & AUTO-RESEND OTP TO GMAIL
+  // ==============================================================
+  const handleSaveGmailSmtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearAlerts();
+    setSmtpSaving(true);
+    try {
+      const res = await apiFetch<{
+        status: string;
+        configured: boolean;
+        smtp_user: string;
+        message: string;
+      }>('/auth/smtp-config', {
+        method: 'POST',
+        body: JSON.stringify({
+          smtp_user: smtpSenderEmail.trim(),
+          smtp_pass: smtpAppPassword.trim(),
+          smtp_host: 'smtp.gmail.com',
+          smtp_port: 587,
+          test_recipient: email.trim() || smtpSenderEmail.trim(),
+        }),
+      });
+
+      setSmtpConfigured(true);
+      setShowSmtpModal(false);
+      setInfoMessage(res.message);
+
+      // If user already entered an email in Sign Up / Recover, immediately resend real OTP to their Gmail
+      if (email.trim() && (view === 'about' || view === 'thankyou')) {
+        await handleResendOtp(thankYouContext === 'recover' ? 'reset_password' : 'register');
+      }
+    } catch (err: unknown) {
+      setErrorMessage(
+        err instanceof Error ? err.message : 'Gagal menyimpan pengaturan Gmail SMTP.'
+      );
+    } finally {
+      setSmtpSaving(false);
+    }
+  };
+
+  // ==============================================================
+  // 7. GOOGLE & FACEBOOK OAUTH HANDLER
   // ==============================================================
   const openSocialModal = (provider: 'google' | 'facebook') => {
     clearAlerts();
@@ -568,7 +598,9 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
     const targetName = (presetName ?? socialNameInput).trim();
 
     if (!targetEmail || !targetEmail.includes('@')) {
-      setErrorMessage(`Masukkan alamat email akun ${socialModalProvider === 'google' ? 'Google' : 'Facebook'} Anda.`);
+      setErrorMessage(
+        `Masukkan alamat email akun ${socialModalProvider === 'google' ? 'Google' : 'Facebook'} Anda.`
+      );
       return;
     }
 
@@ -609,14 +641,13 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
         return;
       }
 
-      // New user via Google/Facebook -> prefill & transition to "Tell us about yourself" with OTP
       setEmail(res.email || targetEmail);
       setFirstName(res.nama_depan || fName);
       setLastName(res.nama_belakang || lName);
       setAuthProvider(provider);
+      setKodeOtp('');
       if (res.email_notification) {
-        setEmailNotif(res.email_notification);
-        setKodeOtp(res.email_notification.kode_otp);
+        setSmtpConfigured(Boolean(res.email_notification.smtp_configured));
       }
       setInfoMessage(res.message);
       setView('about');
@@ -631,128 +662,35 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
     }
   };
 
-  const handleDemoFill = (roleType: 'buyer' | 'admin') => {
-    clearAlerts();
-    setView('signin');
-    if (roleType === 'admin') {
-      setEmail('admin@cekgarasi.test');
-      setPassword('adminsecretpassword123');
-      setInfoMessage('Kredensial Demo Admin diisi. Klik tombol Sign In untuk masuk ke Portal Admin.');
-    } else {
-      setEmail('buyer@cekgarasi.test');
-      setPassword('buyersecretpassword123');
-      setInfoMessage('Kredensial Demo Pembeli diisi. Klik tombol Sign In untuk masuk.');
-    }
+  const handleOpenGmailInbox = () => {
+    window.open('https://mail.google.com/mail/u/0/#inbox', '_blank', 'noopener,noreferrer');
   };
-
-  const formattedSalaryPreview = (() => {
-    const n = Number(String(slipGajiNominal).replace(/\D/g, '')) || 0;
-    return n > 0 ? `Rp ${n.toLocaleString('id-ID')} / bulan` : 'Rp 0';
-  })();
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-[#EEF2FA] dark:bg-[#0D0D14] text-[#0F172A] dark:text-slate-100 flex items-center justify-center px-3 py-6 sm:px-6 lg:px-8 transition-colors duration-200">
-      {/* Main Unified Card matching the 5 reference screens */}
+      {/* Main Unified Two-Column Card matching the 5 reference screens */}
       <motion.div
         initial={shouldReduce ? { opacity: 1 } : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-[1100px] rounded-[28px] bg-white dark:bg-[#161722] border border-slate-200/90 dark:border-[#2A2A38] shadow-[0_24px_64px_rgba(37,99,235,0.09)] dark:shadow-[0_24px_64px_rgba(0,0,0,0.6)] p-4 sm:p-6 lg:p-7 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch transition-colors duration-200"
+        className="w-full max-w-[1060px] rounded-[28px] bg-white dark:bg-[#161722] border border-slate-200/90 dark:border-[#2A2A38] shadow-[0_24px_64px_rgba(37,99,235,0.09)] dark:shadow-[0_24px_64px_rgba(0,0,0,0.6)] p-4 sm:p-6 lg:p-7 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch transition-colors duration-200"
       >
         {/* ============================================================ */}
-        {/* LEFT COLUMN: Chery OMODA 5 Hero Photo Card                   */}
+        {/* LEFT COLUMN: Clean Chery OMODA 5 Photo without text overlays */}
         {/* ============================================================ */}
-        <aside className="lg:col-span-6 relative rounded-[22px] overflow-hidden min-h-[260px] sm:min-h-[340px] lg:min-h-[650px] bg-slate-900 shadow-md flex flex-col justify-between">
+        <aside className="lg:col-span-6 relative rounded-[22px] overflow-hidden min-h-[260px] sm:min-h-[340px] lg:min-h-[620px] bg-slate-100 dark:bg-slate-900 shadow-sm">
           <img
             src="/images/omoda5-login.jpg"
-            alt="Chery OMODA 5 Showroom CekGarasi"
-            className="absolute inset-0 w-full h-full object-cover object-center select-none transition-transform duration-700 hover:scale-[1.02]"
+            alt="Chery OMODA 5"
+            className="absolute inset-0 w-full h-full object-cover object-center select-none"
           />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-[#081226]/85 via-[#081226]/20 to-transparent"
-          />
-
-          {/* Top Floating Pill */}
-          <div className="relative z-10 p-4 sm:p-5 flex items-center justify-between">
-            <span className="inline-flex items-center gap-2 rounded-full bg-blue-600/90 backdrop-blur-md px-3.5 py-1.5 text-xs font-bold text-white shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-sky-200" />
-              <span>CekGarasi Smart K-Means</span>
-            </span>
-
-            <div className="flex items-center gap-2">
-              <Link
-                to="/about-us"
-                className="rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md px-3 py-1 text-xs font-semibold text-white transition-colors"
-              >
-                About Us
-              </Link>
-              <Link
-                to="/contact-us"
-                className="rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md px-3 py-1 text-xs font-semibold text-white transition-colors"
-              >
-                Contact Us
-              </Link>
-            </div>
-          </div>
-
-          {/* Bottom Showcase Caption */}
-          <div className="relative z-10 p-5 sm:p-6 text-white">
-            <div className="inline-block rounded-md bg-blue-500/30 border border-blue-400/40 backdrop-blur-xs px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-sky-200 mb-2">
-              Featured Unit • Chery OMODA 5
-            </div>
-            <h2 className="font-display text-lg sm:text-xl font-extrabold tracking-tight text-white">
-              Transparansi Harga &amp; Rekomendasi Segmen Mobil Bekas
-            </h2>
-            <p className="mt-1 text-xs sm:text-sm text-slate-200/90 leading-relaxed max-w-md">
-              Semua pendaftaran akun, verifikasi OTP email, domisili, dan slip gaji terhubung langsung secara aman ke database CekGarasi.
-            </p>
-          </div>
         </aside>
 
         {/* ============================================================ */}
-        {/* RIGHT COLUMN: 5-Screen Blue Theme Authentication Workspace   */}
+        {/* RIGHT COLUMN: Clean Blue Theme Authentication Workspace      */}
         {/* ============================================================ */}
-        <section className="lg:col-span-6 flex flex-col justify-between px-2 sm:px-6 lg:px-8 py-2 sm:py-4">
-          {/* Step Navigation Pills at Top for Quick Flow Visibility */}
-          <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-[#2A2A38]">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {[
-                { id: 'signin' as AuthFlowView, label: '1. Sign In' },
-                { id: 'signup' as AuthFlowView, label: '2. Sign Up' },
-                { id: 'about' as AuthFlowView, label: '3. Data & Slip Gaji' },
-                { id: 'recover' as AuthFlowView, label: '4. Recover' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => switchView(tab.id)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                    view === tab.id
-                      ? 'bg-blue-600 text-white shadow-2xs'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/70 dark:hover:bg-white/5'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {emailNotif && (
-              <button
-                type="button"
-                onClick={() => setShowEmailInboxModal(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-500/40 px-2.5 py-1 text-xs font-bold text-blue-700 dark:text-blue-300 hover:bg-blue-100 cursor-pointer shrink-0"
-                title="Lihat kotak masuk email OTP terakhir"
-              >
-                <Mail className="w-3.5 h-3.5" />
-                <span>OTP: {emailNotif.kode_otp}</span>
-              </button>
-            )}
-          </div>
-
-          {/* Center Dynamic Screen Area */}
-          <div className="my-auto py-4 sm:py-6 w-full max-w-[420px] mx-auto">
+        <section className="lg:col-span-6 flex flex-col justify-center px-2 sm:px-6 lg:px-8 py-4">
+          <div className="my-auto w-full max-w-[410px] mx-auto">
             {isFavoritRedirect && view === 'signin' && (
               <div className="mb-4 rounded-xl border border-blue-200 dark:border-blue-500/40 bg-blue-50/80 dark:bg-blue-950/40 px-3.5 py-2.5 text-xs font-medium text-blue-900 dark:text-blue-200">
                 Silakan masuk terlebih dahulu untuk mengakses mobil favorit Anda.
@@ -772,16 +710,17 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
             {infoMessage && !errorMessage && (
               <div
                 role="status"
-                className="mb-4 rounded-xl border border-blue-200 dark:border-blue-500/40 bg-blue-50/90 dark:bg-blue-950/50 px-3.5 py-2.5 text-xs font-medium text-blue-900 dark:text-blue-100 flex items-start justify-between gap-2"
+                className="mb-4 rounded-xl border border-blue-200 dark:border-blue-500/40 bg-blue-50/90 dark:bg-blue-950/50 px-3.5 py-2.5 text-xs font-medium text-blue-900 dark:text-blue-100 space-y-1.5"
               >
-                <span className="leading-relaxed">{infoMessage}</span>
-                {emailNotif && (
+                <div className="leading-relaxed">{infoMessage}</div>
+                {!smtpConfigured && (
                   <button
                     type="button"
-                    onClick={() => setShowEmailInboxModal(true)}
-                    className="underline font-bold text-blue-700 dark:text-blue-300 shrink-0 cursor-pointer"
+                    onClick={() => setShowSmtpModal(true)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2563EB] dark:text-[#60A5FA] hover:underline cursor-pointer"
                   >
-                    Buka Email
+                    <Settings className="w-3.5 h-3.5" />
+                    <span>Hubungkan Pengirim Gmail SMTP</span>
                   </button>
                 )}
               </div>
@@ -991,9 +930,6 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                         />
                         <Mail className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       </div>
-                      <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                        Kami akan mengirimkan kode OTP 6 digit ke email ini untuk verifikasi pendaftaran.
-                      </p>
                     </div>
 
                     <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300 cursor-pointer select-none">
@@ -1016,7 +952,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                       {loading ? (
                         <>
                           <Spinner size={16} />
-                          <span>Mengirim Kode OTP...</span>
+                          <span>Mengirim OTP ke Gmail...</span>
                         </>
                       ) : (
                         'Sign Up'
@@ -1068,7 +1004,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
               )}
 
               {/* ======================================================== */}
-              {/* SCREEN 3: TELL US ABOUT YOURSELF + DOMISILI & SLIP GAJI  */}
+              {/* SCREEN 3: TELL US ABOUT YOURSELF + DOMISILI (No Slip Gaji) */}
               {/* ======================================================== */}
               {view === 'about' && (
                 <motion.div
@@ -1114,29 +1050,28 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                       </div>
                     </div>
 
-                    {/* Kode OTP Email Verification */}
-                    <div className="rounded-xl border border-blue-200 dark:border-blue-500/40 bg-blue-50/60 dark:bg-blue-950/30 p-3">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-bold text-blue-900 dark:text-blue-200">
-                          Kode OTP Email (6 Digit)
+                    {/* Kode OTP Email Verification (Sent to Gmail) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                          Kode OTP Gmail (6 Digit)
                         </label>
-                        <div className="flex items-center gap-2">
-                          {emailNotif && (
-                            <button
-                              type="button"
-                              onClick={() => setShowEmailInboxModal(true)}
-                              className="text-[11px] font-bold text-blue-700 dark:text-blue-300 hover:underline cursor-pointer"
-                            >
-                              Lihat Email ({emailNotif.kode_otp})
-                            </button>
-                          )}
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={handleOpenGmailInbox}
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#2563EB] dark:text-[#60A5FA] hover:underline cursor-pointer"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            <span>Buka Gmail</span>
+                          </button>
                           <button
                             type="button"
                             onClick={() => handleResendOtp('register')}
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 cursor-pointer"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 hover:text-blue-600 cursor-pointer"
                           >
                             <RefreshCw className="w-3 h-3" />
-                            <span>Kirim Ulang</span>
+                            <span>Kirim Ulang OTP</span>
                           </button>
                         </div>
                       </div>
@@ -1146,8 +1081,8 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                         maxLength={6}
                         value={kodeOtp}
                         onChange={(e) => setKodeOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="Masukkan 6 digit kode OTP"
-                        className="w-full rounded-lg border border-blue-300 dark:border-blue-500/50 bg-white dark:bg-[#14141E] px-3 py-2 text-sm font-mono font-bold tracking-widest text-blue-900 dark:text-blue-200 focus:border-blue-600 focus:outline-none"
+                        placeholder="Masukkan 6 digit kode OTP dari Gmail Anda"
+                        className="w-full rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#14141E] px-3.5 py-2 text-sm font-mono font-bold tracking-widest text-slate-900 dark:text-white placeholder:font-sans placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                       />
                     </div>
 
@@ -1187,7 +1122,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                       </div>
                     </div>
 
-                    {/* Domisili Pendaftar (Kota & Detail Domisili) */}
+                    {/* Domisili Pendaftar */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
@@ -1214,142 +1149,71 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
 
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                          Alamat Lengkap Domisili
+                          Alamat Domisili
                         </label>
                         <input
                           type="text"
                           required
                           value={alamatDomisili}
                           onChange={(e) => setAlamatDomisili(e.target.value)}
-                          placeholder="Jl. Sudirman No. 10, RT/RW..."
+                          placeholder="Jl. Sudirman No. 10..."
                           className="w-full rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#14141E] px-3.5 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                         />
                       </div>
                     </div>
 
-                    {/* Slip Gaji Pendaftar (Nominal Penghasilan & Upload Dokumen Slip Gaji) */}
-                    <div className="rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-slate-50/70 dark:bg-[#14141E] p-3 space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                          <Wallet className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                          <span>Slip Gaji Pendaftar (Penghasilan Bulanan)</span>
-                        </label>
-                        <span className="text-xs font-extrabold text-blue-700 dark:text-blue-400">
-                          {formattedSalaryPreview}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <div>
-                          <input
-                            type="number"
-                            required
-                            min={1000000}
-                            step={500000}
-                            value={slipGajiNominal}
-                            onChange={(e) => setSlipGajiNominal(e.target.value)}
-                            placeholder="12000000"
-                            className="w-full rounded-lg border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#1A1A24] px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white focus:border-blue-600 focus:outline-none"
-                          />
-                          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                            {[
-                              { label: 'Rp 8 Jt', val: '8000000' },
-                              { label: 'Rp 15 Jt', val: '15000000' },
-                              { label: 'Rp 25 Jt', val: '25000000' },
-                            ].map((preset) => (
-                              <button
-                                key={preset.val}
-                                type="button"
-                                onClick={() => setSlipGajiNominal(preset.val)}
-                                className="px-2 py-0.5 rounded bg-blue-100/80 dark:bg-blue-950 text-[11px] font-bold text-blue-700 dark:text-blue-300 hover:bg-blue-200 cursor-pointer"
-                              >
-                                {preset.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="flex flex-col items-center justify-center h-full rounded-lg border border-dashed border-blue-400/70 bg-white dark:bg-[#1A1A24] hover:bg-blue-50/40 dark:hover:bg-blue-950/30 px-3 py-2 text-center cursor-pointer transition-colors">
-                            <input
-                              type="file"
-                              accept="image/*,.pdf"
-                              onChange={handleSlipGajiFileChange}
-                              className="hidden"
-                            />
-                            {slipGajiFilename ? (
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 truncate max-w-full">
-                                <FileText className="w-4 h-4 shrink-0" />
-                                <span className="truncate">{slipGajiFilename}</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-700 dark:text-blue-300">
-                                <Upload className="w-4 h-4 shrink-0" />
-                                <span>Unggah Foto / PDF Slip Gaji</span>
-                              </div>
-                            )}
-                            <span className="text-[10px] text-slate-400 mt-0.5">
-                              Tersimpan di database untuk verifikasi Admin
-                            </span>
-                          </label>
-                        </div>
+                    {/* Password & Confirm password */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          minLength={6}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Enter your password"
+                          className="w-full rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#14141E] pl-3.5 pr-9 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((p) => !p)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                        </button>
                       </div>
                     </div>
 
-                    {/* Password & Confirm password */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                          Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showPassword ? 'text' : 'password'}
-                            required
-                            minLength={6}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter your password"
-                            className="w-full rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#14141E] pl-3.5 pr-9 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword((p) => !p)}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                          >
-                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                          Confirm password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showConfirmPassword ? 'text' : 'password'}
-                            required
-                            minLength={6}
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="Enter your password"
-                            className="w-full rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#14141E] pl-3.5 pr-9 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirmPassword((p) => !p)}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                          >
-                            {password && password === confirmPassword ? (
-                              <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                            ) : showConfirmPassword ? (
-                              <EyeOff className="w-4 h-4" />
-                            ) : (
-                              <Eye className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        Confirm password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          required
+                          minLength={6}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Enter your password"
+                          className="w-full rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#14141E] pl-3.5 pr-9 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword((p) => !p)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          {password && password === confirmPassword ? (
+                            <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                          ) : showConfirmPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
                       </div>
                     </div>
 
@@ -1373,7 +1237,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                       {loading ? (
                         <>
                           <Spinner size={16} />
-                          <span>Menyimpan ke Database...</span>
+                          <span>Processing...</span>
                         </>
                       ) : (
                         'Continue'
@@ -1395,7 +1259,6 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                   transition={{ duration: 0.2 }}
                 >
                   <div className="text-center mb-6">
-                    {/* Concentric Blue Halo Lock Icon matching Image 4 */}
                     <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center">
                       <div className="w-14 h-14 rounded-full bg-blue-100/80 dark:bg-blue-900/50 flex items-center justify-center">
                         <div className="w-10 h-10 rounded-full bg-[#2563EB] text-white flex items-center justify-center shadow-md shadow-blue-600/30">
@@ -1450,7 +1313,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                       {loading ? (
                         <>
                           <Spinner size={16} />
-                          <span>Mengirim Email Pemulihan...</span>
+                          <span>Mengirim ke Gmail...</span>
                         </>
                       ) : (
                         'Recover'
@@ -1465,14 +1328,14 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                       className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-[#2563EB] cursor-pointer"
                     >
                       <ArrowLeft className="w-4 h-4" />
-                      <span>Kembali ke Sign In</span>
+                      <span>Back to Sign In</span>
                     </button>
                   </div>
                 </motion.div>
               )}
 
               {/* ======================================================== */}
-              {/* SCREEN 5: THANK YOU! EMAIL CONFIRM & RESET (Image 5)     */}
+              {/* SCREEN 5: THANK YOU! OPEN GMAIL & CONFIRM (Image 5)      */}
               {/* ======================================================== */}
               {view === 'thankyou' && (
                 <motion.div
@@ -1483,7 +1346,6 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                   transition={{ duration: 0.2 }}
                 >
                   <div className="text-center mb-5">
-                    {/* Concentric Blue Halo Checkmark matching Image 5 */}
                     <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center">
                       <div className="w-14 h-14 rounded-full bg-blue-100/80 dark:bg-blue-900/50 flex items-center justify-center">
                         <div className="w-10 h-10 rounded-full bg-[#2563EB] text-white flex items-center justify-center shadow-md shadow-blue-600/30">
@@ -1501,25 +1363,22 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                         {email || 'catherine.tanya@gmail.com'}
                       </strong>
                       <span className="block mt-0.5">
-                        {thankYouContext === 'recover'
-                          ? 'Click confirmation link or enter the OTP code below to reset your password'
-                          : 'Click confirmation link in the email to verify your account'}
+                        Click confirmation link in the email to verify your account
                       </span>
                     </p>
                   </div>
 
-                  {/* Primary Action matching Image 5: Open Email App & Confirm */}
                   <div className="space-y-3">
                     <button
                       type="button"
-                      onClick={() => setShowEmailInboxModal(true)}
+                      onClick={handleOpenGmailInbox}
                       className="w-full rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] py-3 px-4 text-sm font-bold text-white shadow-md shadow-blue-600/20 transition-all cursor-pointer inline-flex items-center justify-center gap-2"
                     >
                       <Mail className="w-4 h-4" />
                       <span>Open Email App &amp; Confirm</span>
                     </button>
 
-                    {/* If Password Recovery: Form to enter OTP & New Password and update DB */}
+                    {/* If Password Recovery: Form to enter OTP from Gmail & New Password */}
                     {thankYouContext === 'recover' && !resetSuccessDone && (
                       <form
                         onSubmit={handleResetPasswordSubmit}
@@ -1527,7 +1386,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-400">
-                            Verifikasi OTP &amp; Buat Password Baru
+                            Verifikasi OTP Gmail &amp; Password Baru
                           </span>
                           <button
                             type="button"
@@ -1540,7 +1399,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
 
                         <div>
                           <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                            Kode OTP Email (6 Digit)
+                            Kode OTP dari Gmail (6 Digit)
                           </label>
                           <input
                             type="text"
@@ -1549,7 +1408,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                             value={kodeOtp}
                             onChange={(e) => setKodeOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                             placeholder="Masukkan 6 digit kode OTP"
-                            className="w-full rounded-lg border border-slate-300 dark:border-[#2A2A38] bg-white dark:bg-[#1A1A24] px-3 py-2 text-sm font-mono font-bold tracking-widest text-blue-800 dark:text-blue-300 focus:border-blue-600 focus:outline-none"
+                            className="w-full rounded-lg border border-slate-300 dark:border-[#2A2A38] bg-white dark:bg-[#1A1A24] px-3 py-2 text-sm font-mono font-bold tracking-widest text-blue-800 dark:text-blue-300 placeholder:font-sans placeholder:tracking-normal placeholder:font-normal focus:border-blue-600 focus:outline-none"
                           />
                         </div>
 
@@ -1597,12 +1456,11 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                           disabled={loading}
                           className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2.5 px-4 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                         >
-                          {loading ? 'Memperbarui Database...' : 'Simpan Password Baru & Verifikasi'}
+                          {loading ? 'Memperbarui Database...' : 'Reset Password Sekarang'}
                         </button>
                       </form>
                     )}
 
-                    {/* When Registration or Password Reset is complete -> Enter App or Sign In */}
                     {(thankYouContext === 'register' || resetSuccessDone) && (
                       <div className="pt-2 space-y-2">
                         {pendingRegisteredToken && pendingRegisteredUser && (
@@ -1613,7 +1471,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                             }
                             className="w-full rounded-xl border border-blue-600 bg-blue-50/80 dark:bg-blue-950/50 hover:bg-blue-100 py-2.5 px-4 text-xs sm:text-sm font-bold text-blue-700 dark:text-blue-300 transition-colors cursor-pointer"
                           >
-                            Lanjutkan Masuk ke Beranda CekGarasi
+                            Lanjutkan Masuk ke CekGarasi
                           </button>
                         )}
                         <button
@@ -1621,7 +1479,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                           onClick={() => switchView('signin')}
                           className="w-full text-center text-xs font-semibold text-slate-500 hover:text-blue-600 cursor-pointer py-1"
                         >
-                          Kembali ke halaman Sign In
+                          Back to Sign In
                         </button>
                       </div>
                     )}
@@ -1629,29 +1487,6 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
-
-          {/* Bottom Quick Demo Bar */}
-          <div className="pt-3 border-t border-slate-100 dark:border-[#2A2A38] flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span className="text-slate-400 font-medium">Akses Cepat Demo:</span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleDemoFill('buyer')}
-                className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-[#2A2A38] hover:bg-slate-50 dark:hover:bg-white/5 font-semibold text-slate-700 dark:text-slate-300 inline-flex items-center gap-1 cursor-pointer"
-              >
-                <User className="w-3.5 h-3.5 text-blue-600" />
-                <span>Demo Pembeli</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoFill('admin')}
-                className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-[#2A2A38] hover:bg-slate-50 dark:hover:bg-white/5 font-semibold text-slate-700 dark:text-slate-300 inline-flex items-center gap-1 cursor-pointer"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Demo Admin</span>
-              </button>
-            </div>
           </div>
         </section>
       </motion.div>
@@ -1667,10 +1502,10 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                 {socialModalProvider === 'google' ? <GoogleIcon /> : <FacebookIcon />}
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                    Lanjutkan dengan {socialModalProvider === 'google' ? 'Google' : 'Facebook'}
+                    Continue with {socialModalProvider === 'google' ? 'Google' : 'Facebook'}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Pilih atau masukkan akun {socialModalProvider === 'google' ? 'Google' : 'Facebook'} Anda
+                    Masukkan email akun {socialModalProvider === 'google' ? 'Google' : 'Facebook'} Anda
                   </p>
                 </div>
               </div>
@@ -1683,59 +1518,8 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
               </button>
             </div>
 
-            <div className="p-5 space-y-4">
-              {/* Quick 1-Click Accounts */}
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Pilih Akun Cepat
-                </span>
-                {[
-                  {
-                    email:
-                      socialModalProvider === 'google'
-                        ? 'tegaarrs@gmail.com'
-                        : 'tegaarrs.fb@facebook.com',
-                    name: 'Tegar CekGarasi',
-                    desc: 'Masuk langsung jika sudah terdaftar, atau daftar otomatis dengan OTP',
-                  },
-                  {
-                    email:
-                      socialModalProvider === 'google'
-                        ? 'pembeli.baru@gmail.com'
-                        : 'pembeli.fb@facebook.com',
-                    name: 'Andi Pratama',
-                    desc: 'Contoh pendaftar baru (lanjut ke OTP, Domisili & Slip Gaji)',
-                  },
-                ].map((acc) => (
-                  <button
-                    key={acc.email}
-                    type="button"
-                    onClick={(e) => handleSocialAuthSubmit(e, acc.email, acc.name)}
-                    className="w-full text-left p-3 rounded-xl border border-slate-200 dark:border-[#2A2A38] hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-950/30 transition-colors flex items-center justify-between gap-3 cursor-pointer"
-                  >
-                    <div>
-                      <div className="text-sm font-bold text-slate-900 dark:text-white">
-                        {acc.name}
-                      </div>
-                      <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                        {acc.email}
-                      </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">{acc.desc}</div>
-                    </div>
-                    <ExternalLink className="w-4 h-4 text-slate-400 shrink-0" />
-                  </button>
-                ))}
-              </div>
-
-              <div className="relative flex items-center justify-center">
-                <div className="border-t border-slate-200 dark:border-[#2A2A38] w-full" />
-                <span className="bg-white dark:bg-[#1A1A24] px-3 text-[11px] font-semibold text-slate-400 whitespace-nowrap">
-                  Atau Gunakan Email Lain
-                </span>
-                <div className="border-t border-slate-200 dark:border-[#2A2A38] w-full" />
-              </div>
-
-              <form onSubmit={(e) => handleSocialAuthSubmit(e)} className="space-y-3">
+            <div className="p-5">
+              <form onSubmit={(e) => handleSocialAuthSubmit(e)} className="space-y-3.5">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
                     Email {socialModalProvider === 'google' ? 'Google' : 'Facebook'}
@@ -1746,19 +1530,19 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                     value={socialEmailInput}
                     onChange={(e) => setSocialEmailInput(e.target.value)}
                     placeholder={`nama@${socialModalProvider === 'google' ? 'gmail.com' : 'email.com'}`}
-                    className="w-full rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#14141E] px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-blue-600 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#14141E] px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:border-blue-600 focus:outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                    Nama Lengkap (Opsional)
+                    Nama Lengkap
                   </label>
                   <input
                     type="text"
                     value={socialNameInput}
                     onChange={(e) => setSocialNameInput(e.target.value)}
                     placeholder="Nama pengguna"
-                    className="w-full rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#14141E] px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-blue-600 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#14141E] px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:border-blue-600 focus:outline-none"
                   />
                 </div>
                 <button
@@ -1774,65 +1558,80 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 2: EMAIL INBOX APP & OTP CONFIRMATION VIEWER           */}
+      {/* MODAL 2: KONFIGURASI PENGIRIM GMAIL SMTP (APP PASSWORD)      */}
       {/* ============================================================ */}
-      {showEmailInboxModal && emailNotif && (
+      {showSmtpModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#1A1A24] border border-slate-200 dark:border-[#2A2A38] shadow-2xl overflow-hidden">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#1A1A24] border border-slate-200 dark:border-[#2A2A38] shadow-2xl overflow-hidden">
             <div className="bg-[#2563EB] px-5 py-4 text-white flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <Mail className="w-5 h-5" />
                 <div>
-                  <h3 className="text-sm font-bold">Kotak Masuk Email Verifikasi CekGarasi</h3>
+                  <h3 className="text-sm font-bold">Integrasi Pengirim Gmail SMTP</h3>
                   <p className="text-[11px] text-blue-100">
-                    Penerima: {emailNotif.penerima} • {emailNotif.waktu_kirim}
+                    Kirim OTP langsung ke kotak masuk Gmail pengguna
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setShowEmailInboxModal(false)}
+                onClick={() => setShowSmtpModal(false)}
                 className="p-1 rounded-lg bg-white/15 hover:bg-white/25 text-white cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-5 space-y-4 text-sm">
-              <div>
-                <div className="text-xs text-slate-400">Subjek Email:</div>
-                <div className="font-bold text-slate-900 dark:text-white">{emailNotif.subjek}</div>
-              </div>
-
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                {emailNotif.pesan}
+            <form onSubmit={handleSaveGmailSmtp} className="p-5 space-y-3.5 text-xs sm:text-sm">
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                Masukkan akun Gmail pengirim beserta <strong>16-digit Google App Password</strong> (dari Google Account &rarr; Security &rarr; 2-Step Verification &rarr; App Passwords). Pengaturan ini disimpan ke database untuk mengirim kode OTP langsung ke Gmail penerima.
               </p>
 
-              <div className="rounded-xl border-2 border-dashed border-blue-500 bg-blue-50/70 dark:bg-blue-950/40 p-4 text-center">
-                <div className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
-                  Kode OTP Verifikasi 6 Digit Anda
-                </div>
-                <div className="mt-1 font-mono text-3xl font-extrabold tracking-[0.25em] text-[#1E40AF] dark:text-blue-300">
-                  {emailNotif.kode_otp}
-                </div>
-                <div className="mt-3 flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setKodeOtp(emailNotif.kode_otp);
-                      navigator.clipboard?.writeText(emailNotif.kode_otp);
-                      setCopiedOtp(true);
-                      setTimeout(() => setCopiedOtp(false), 2000);
-                      setShowEmailInboxModal(false);
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] px-4 py-2 text-xs font-bold text-white cursor-pointer"
-                  >
-                    {copiedOtp ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>Gunakan &amp; Tempel Kode OTP Ini</span>
-                  </button>
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                  Alamat Gmail Pengirim (SMTP User)
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={smtpSenderEmail}
+                  onChange={(e) => setSmtpSenderEmail(e.target.value)}
+                  placeholder="contoh: akunanda@gmail.com"
+                  className="w-full rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#14141E] px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-blue-600 focus:outline-none"
+                />
               </div>
-            </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                  Google App Password (16 Digit)
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={smtpAppPassword}
+                  onChange={(e) => setSmtpAppPassword(e.target.value)}
+                  placeholder="xxxx xxxx xxxx xxxx"
+                  className="w-full rounded-xl border border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#14141E] px-3.5 py-2 text-sm font-mono text-slate-900 dark:text-white focus:border-blue-600 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSmtpModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-[#2A2A38] text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={smtpSaving}
+                  className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-xs font-bold text-white cursor-pointer disabled:opacity-50"
+                >
+                  {smtpSaving ? 'Menghubungkan ke Gmail...' : 'Simpan & Kirim OTP ke Gmail'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

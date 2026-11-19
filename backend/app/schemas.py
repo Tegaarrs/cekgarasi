@@ -67,6 +67,14 @@ class ResetPasswordRequest(BaseModel):
     confirm_password: Optional[str] = None
 
 
+class SmtpConfigRequest(BaseModel):
+    smtp_user: str
+    smtp_pass: str
+    smtp_host: Optional[str] = "smtp.gmail.com"
+    smtp_port: Optional[int] = 587
+    test_recipient: Optional[str] = None
+
+
 class VerifyOtp(BaseModel):
     no_hp: Optional[str] = None
     no_telepon: Optional[str] = None

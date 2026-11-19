@@ -298,3 +298,16 @@ class AuthOtpLog(Base):
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow, server_default=text("CURRENT_TIMESTAMP"))
 
+
+class SmtpSetting(Base):
+    __tablename__ = "smtp_settings"
+
+    id = Column(Integer().with_variant(MYSQL_INTEGER(unsigned=True), "mysql"), primary_key=True, autoincrement=True)
+    smtp_host = Column(String(120), nullable=False, default="smtp.gmail.com")
+    smtp_port = Column(Integer(), nullable=False, default=587)
+    smtp_user = Column(String(190), nullable=False)
+    smtp_pass = Column(String(190), nullable=False)
+    smtp_from = Column(String(190), nullable=True)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow, server_default=text("CURRENT_TIMESTAMP"))
+
+

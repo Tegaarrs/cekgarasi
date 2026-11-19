@@ -169,7 +169,7 @@ export function AdminLayout() {
               onClick={() => {
                 removeToken();
                 localStorage.removeItem('cekgarasi_user');
-                navigate('/admin/login');
+                navigate('/admin/login', { replace: true });
               }}
               whileTap={{ scale: 0.97 }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-semibold bg-red-600 hover:bg-red-700 text-white shadow-xs transition-colors cursor-pointer"
@@ -181,7 +181,7 @@ export function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 text-[#14141F] dark:text-[#E8E8F0] transition-colors duration-200">
+        <main className="admin-workspace flex-1 overflow-auto p-4 sm:p-6 lg:p-8 text-[#14141F] dark:text-[#E8E8F0] transition-colors duration-200">
           <Outlet />
         </main>
       </div>
