@@ -4,7 +4,6 @@ import { motion } from 'motion/react';
 import { ThemeProvider } from './context/ThemeContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
-import { MobileTopBar } from './components/layout/MobileTopBar';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { PageTransition } from './components/motion/PageTransition';
 import { Toast } from './components/motion/Toast';
@@ -43,7 +42,6 @@ import { DatabaseExplorerPage } from './pages/admin/DatabaseExplorerPage';
 export default function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const isMobileTopBarRoute = ['/', '/cari', '/segmen', '/favorit', '/akun'].includes(location.pathname);
 
   const [toastState, setToastState] = useState<ToastState>({
     show: false,
@@ -134,18 +132,11 @@ export default function App() {
           className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-500 to-sky-400 z-[99999] pointer-events-none shadow-[0_0_12px_rgba(37,99,235,0.8)]"
         />
         {!isAdminRoute && (
-          <>
-            <div className="hidden md:block sticky top-0 z-[1000] w-full">
-              <Navbar />
-            </div>
-            {isMobileTopBarRoute && (
-              <div className="md:hidden sticky top-0 z-[1000] w-full">
-                <MobileTopBar />
-              </div>
-            )}
-          </>
+          <div className="sticky top-0 z-[1000] w-full">
+            <Navbar />
+          </div>
         )}
-        <main className="flex-1 pb-20 md:pb-0">
+        <main className="flex-1">
           <PageTransition>
             <Routes location={location}>
               {/* Buyer Screens B1 - B7 */}
@@ -194,7 +185,7 @@ export default function App() {
         </main>
         {!isAdminRoute && (
           <>
-            <div className="hidden md:block">
+            <div className="pb-16 md:pb-0">
               <Footer />
             </div>
             <MobileBottomNav />

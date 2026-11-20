@@ -357,12 +357,12 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => setActiveMenu(activeMenu === 'user' ? null : 'user')}
-                className="inline-flex items-center gap-2 rounded-full pl-2 pr-3 py-1 text-xs font-medium bg-white/10 hover:bg-white/15 border border-white/15 text-white transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full pl-1.5 sm:pl-2 pr-2.5 sm:pr-3 py-1 text-xs font-medium bg-white/10 hover:bg-white/15 border border-white/15 text-white transition-colors cursor-pointer"
               >
                 <div className="w-6 h-6 rounded-full bg-[#5B4EF0] flex items-center justify-center text-white font-bold text-[11px]">
                   {(user.nama || user.email).charAt(0).toUpperCase()}
                 </div>
-                <span className="max-w-[90px] truncate">{user.nama || user.email}</span>
+                <span className="max-w-[68px] sm:max-w-[90px] truncate">{user.nama || user.email}</span>
                 <ChevronDown className="w-3 h-3 text-zinc-400" />
               </button>
 
@@ -430,16 +430,16 @@ export function Navbar() {
               )}
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <Link
                 to="/welcome"
-                className="inline-flex items-center justify-center rounded-[10px] px-3.5 py-1.5 text-xs font-medium text-zinc-300 hover:text-white transition-colors"
+                className="inline-flex items-center justify-center rounded-[10px] px-2.5 sm:px-3.5 py-1.5 text-xs font-medium text-zinc-300 hover:text-white transition-colors"
               >
                 Masuk
               </Link>
               <Link
                 to="/daftar"
-                className="inline-flex items-center justify-center rounded-[10px] px-3.5 py-1.5 text-xs font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] transition-colors shadow-xs active:scale-95"
+                className="inline-flex items-center justify-center rounded-[10px] px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] transition-colors shadow-xs active:scale-95"
               >
                 Daftar
               </Link>
@@ -495,6 +495,43 @@ export function Navbar() {
               </span>
             )}
           </Link>
+          <Link
+            to="/favorit"
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium ${
+              isFavoritActive ? 'bg-[#2A2A33] text-white font-semibold' : 'text-zinc-300 hover:bg-white/10'
+            }`}
+          >
+            <span>Mobil Favorit</span>
+            {favCount > 0 && (
+              <span className="h-5 min-w-[20px] rounded-full bg-[#EF4444] px-1.5 text-xs font-bold text-white flex items-center justify-center">
+                {favCount}
+              </span>
+            )}
+          </Link>
+          <Link
+            to="/preferensi"
+            onClick={() => setMobileOpen(false)}
+            className="block px-3 py-2 rounded-xl text-sm font-medium text-zinc-300 hover:bg-white/10"
+          >
+            Panduan Budget &amp; Kriteria
+          </Link>
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <Link
+              to="/about-us"
+              onClick={() => setMobileOpen(false)}
+              className="block px-3 py-2 rounded-xl text-xs font-medium text-zinc-300 hover:bg-white/10 bg-white/5"
+            >
+              About Us
+            </Link>
+            <Link
+              to="/contact-us"
+              onClick={() => setMobileOpen(false)}
+              className="block px-3 py-2 rounded-xl text-xs font-medium text-zinc-300 hover:bg-white/10 bg-white/5"
+            >
+              Contact Us
+            </Link>
+          </div>
           <div className="pt-2 border-t border-white/10 flex items-center justify-between">
             <Link
               to={user?.role === 'admin' ? '/admin/bi' : '/admin/login'}

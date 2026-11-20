@@ -1,17 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Search, Scale, Heart, User } from 'lucide-react';
-import { getToken } from '@/services/api';
 import {
   subscribeFavorites,
   fetchFavoriteIds,
   getFavoriteCount,
-  requestLoginPrompt,
 } from '@/services/favoriteStore';
 
 export function MobileBottomNav() {
   const location = useLocation();
-  const token = getToken();
   const [favoriteCount, setFavoriteCount] = useState<number>(getFavoriteCount());
 
   // Hide nav on detail, booking, auth routes
@@ -28,25 +25,21 @@ export function MobileBottomNav() {
 
   const shouldHide = hideRoutes.some((prefix) => location.pathname.startsWith(prefix));
 
-  // Load favorite count for logged in users
+  // Sync favorite count consistently for both logged-in users and guests
   const refreshFavoriteCount = useCallback(() => {
-    if (!token) {
-      setFavoriteCount(0);
-      return;
-    }
     fetchFavoriteIds().then(() => {
       setFavoriteCount(getFavoriteCount());
     });
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     refreshFavoriteCount();
 
     const unsub = subscribeFavorites(() => {
-      setFavoriteCount(token ? getFavoriteCount() : 0);
+      setFavoriteCount(getFavoriteCount());
     });
     return unsub;
-  }, [refreshFavoriteCount, token]);
+  }, [refreshFavoriteCount]);
 
   if (shouldHide) {
     return null;
@@ -67,9 +60,12 @@ export function MobileBottomNav() {
     >
       <div className="grid grid-cols-5 h-14 max-w-md mx-auto items-center">
         {navItems.map((item) => {
-          const isActive = item.exact
-            ? location.pathname === item.to
-            : location.pathname.startsWith(item.to);
+          const isActive =
+            item.to === '/bandingkan'
+              ? location.pathname.startsWith('/bandingkan') || location.pathname.startsWith('/segmen')
+              : item.exact
+              ? location.pathname === item.to
+              : location.pathname.startsWith(item.to);
 
           const Icon = item.icon;
 
@@ -77,15 +73,6 @@ export function MobileBottomNav() {
             <NavLink
               key={item.to}
               to={item.to}
-              onClick={(e) => {
-                if (item.to === '/favorit' && !token) {
-                  e.preventDefault();
-                  requestLoginPrompt({
-                    title: 'Masuk untuk melihat favorit kamu',
-                    description: 'Simpan mobil yang Anda taksir, bandingkan, dan lihat rekomendasi yang mirip.',
-                  });
-                }
-              }}
               className={`flex flex-col items-center justify-center py-1 transition-colors relative text-xs group active:scale-95 ${
                 isActive
                   ? 'text-[#5B4EF0] dark:text-[#8277FF] font-bold'

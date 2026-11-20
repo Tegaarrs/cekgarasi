@@ -1356,7 +1356,7 @@ function FavoritPageContent() {
               </div>
 
               <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-500 hidden sm:inline">
+                <span className="text-xs text-slate-500">
                   {items.length} mobil tersimpan
                 </span>
                 <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-700 dark:bg-slate-800">

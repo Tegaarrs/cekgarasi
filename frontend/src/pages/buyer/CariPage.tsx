@@ -9,8 +9,8 @@ import { CarListSkeleton } from '@/components/common/Skeletons';
 import { apiFetch } from '@/services/api';
 import { content } from '@/content/id';
 import { 
-  Search, SlidersHorizontal, ArrowUpDown, Sparkles, 
-  ChevronDown, RotateCcw, X, ChevronLeft, ChevronRight, Filter, Car, AlertCircle
+  Search, SlidersHorizontal, Sparkles, 
+  ChevronDown, X, ChevronLeft, ChevronRight, Filter, Car, AlertCircle
 } from 'lucide-react';
 import { BuyerKmeansTester } from '@/components/algo/BuyerKmeansTester';
 import {
@@ -78,7 +78,7 @@ export function CariPage() {
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const [searchInput, setSearchInput] = useState<string>(q);
   const lastSyncedQRef = useRef<string>(q);
-  const [showMlExplainer, setShowMlExplainer] = useState<boolean>(false);
+  const [isMobileFilterExpanded, setIsMobileFilterExpanded] = useState<boolean>(false);
   const [showKmeansTester, setShowKmeansTester] = useState<boolean>(false);
 
   // Sync URL q -> searchInput ONLY when URL q changes externally (navigation or explicit clear)
@@ -291,351 +291,16 @@ export function CariPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B132B] transition-colors duration-200">
-      
       {/* ============================================================ */}
-      {/* MOBILE VIEW (< 768px)                                        */}
+      {/* UNIFIED RESPONSIVE SHOWROOM CATALOG (MOBILE & DESKTOP)       */}
       {/* ============================================================ */}
-      <div className="block md:hidden pb-12">
-        
-        {/* Sticky Mobile Filter Bar */}
-        <div className="ios-glass-bar sticky top-[calc(64px+env(safe-area-inset-top))] z-20 px-4 py-2.5 space-y-2">
-          
-          {/* Row 1: Search Input + Filter Button */}
-          <div className="flex items-center gap-2">
-            <form onSubmit={handleSearchSubmit} className="relative flex-1">
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder={content.search.placeholder}
-                className="ios-glass-input w-full rounded-xl py-2 pl-9 pr-8 text-xs font-medium placeholder-slate-400"
-              />
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
-              {searchInput && (
-                <button
-                  type="button"
-                  onClick={handleClearSearch}
-                  aria-label="Hapus kata kunci pencarian"
-                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </form>
-
-            {/* Filter Button */}
-            <button
-              onClick={() => setIsFilterSheetOpen(true)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer ${
-                activeFilterCount > 0
-                  ? 'ios-glass-btn-primary'
-                  : 'ios-glass-btn-secondary'
-              }`}
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>Filter</span>
-              {activeFilterCount > 0 && (
-                <span className="w-4 h-4 rounded-full bg-white text-blue-600 text-[10px] font-black flex items-center justify-center">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Row 2: Sort Selector + Quick Segment Filter Chips */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-0.5">
-            {/* Sort Selector Dropdown */}
-            <div className="relative flex-shrink-0">
-              <select
-                value={urut}
-                onChange={(e) => handleSortChange(e.target.value)}
-                className="ios-glass-input appearance-none rounded-lg py-1 pl-6 pr-6 text-[11px] font-semibold text-slate-700 dark:text-slate-200"
-              >
-                {content.search.sortOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <ArrowUpDown className="w-3 h-3 text-slate-500 absolute left-2 top-2 pointer-events-none" />
-              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-2 pointer-events-none" />
-            </div>
-
-            {/* Quick Category Filter Chips */}
-            {[
-              { slug: '', label: 'Semua Kelas' },
-              { slug: 'premium', label: 'Kelas Premium & SUV' },
-              { slug: 'keluarga-muda', label: 'Kelas Keluarga & MPV' },
-              { slug: 'ekonomis', label: 'Kelas Hemat & Harian' },
-            ].map((chip) => {
-              const isSelected = (!segmen && chip.slug === '') || segmen === chip.slug;
-              return (
-                <button
-                  key={chip.slug}
-                  onClick={() => handleSegmentChip(chip.slug)}
-                  className={`ios-glass-pill flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold cursor-pointer ${
-                    isSelected ? 'ios-glass-pill-active' : 'ios-glass-pill-inactive'
-                  }`}
-                >
-                  {chip.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Content Area */}
-        <div className="px-4 py-4 space-y-4">
-          
-          {/* Mobile Budget & Criteria Guide Banner */}
-          <div className="rounded-2xl border border-blue-200/90 dark:border-blue-900 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600 p-3.5 text-white shadow-xs">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 font-bold text-xs">
-                <Sparkles className="w-4 h-4 text-amber-300 flex-shrink-0" />
-                <span>Panduan Budget &amp; Rekomendasi Mobil</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowKmeansTester(!showKmeansTester)}
-                className="px-2.5 py-1 rounded-lg bg-white text-blue-700 font-bold text-[11px] shadow-2xs whitespace-nowrap active:scale-95 transition-all cursor-pointer"
-              >
-                {showKmeansTester ? 'Tutup' : 'Cek Rekomendasi'}
-              </button>
-            </div>
-            {showKmeansTester && (
-              <div className="mt-3 text-slate-900 dark:text-slate-100">
-                <BuyerKmeansTester
-                  compact
-                  title="Panduan Pemilihan Mobil Sesuai Budget"
-                  subtitle="Geser budget dan kriteria Anda untuk menemukan kelas mobil terbaik yang cocok dengan kebutuhan."
-                  onApplyFilters={(applied) => {
-                    const newParams = new URLSearchParams(searchParams);
-                    if (applied.segmen) newParams.set('segmen', applied.segmen);
-                    if (applied.hargaMax) newParams.set('harga_max', String(applied.hargaMax));
-                    if (applied.tahunMin) newParams.set('tahun_min', String(applied.tahunMin));
-                    newParams.set('halaman', '1');
-                    setSearchParams(newParams);
-                    setShowKmeansTester(false);
-                  }}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Active Filter Chips */}
-          {(merk || segmen || hargaMin || hargaMax || tahunMin || tahunMax || transmisi) && (
-            <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              {merk && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 text-[11px] font-bold border border-blue-200 dark:border-blue-800">
-                  <span>Merek: {merk}</span>
-                  <button
-                    onClick={() => {
-                      const newParams = new URLSearchParams(searchParams);
-                      newParams.delete('merk');
-                      newParams.delete('merek');
-                      newParams.set('halaman', '1');
-                      setSearchParams(newParams);
-                    }}
-                    className="hover:text-blue-950 dark:hover:text-white p-0.5 cursor-pointer"
-                    aria-label="Hapus filter merek"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              )}
-              {segmen && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 text-[11px] font-bold border border-purple-200 dark:border-purple-800">
-                  <span>Kelas: {segmen === 'premium' ? 'Premium & SUV' : segmen === 'keluarga-muda' ? 'Keluarga & MPV' : 'Hemat & Harian'}</span>
-                  <button
-                    onClick={() => {
-                      const newParams = new URLSearchParams(searchParams);
-                      newParams.delete('segmen');
-                      newParams.set('halaman', '1');
-                      setSearchParams(newParams);
-                    }}
-                    className="hover:text-purple-950 dark:hover:text-white p-0.5 cursor-pointer"
-                    aria-label="Hapus filter kategori kelas mobil"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              )}
-              {transmisi && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold border border-emerald-200 dark:border-emerald-800">
-                  <span>{transmisi}</span>
-                  <button
-                    onClick={() => {
-                      const newParams = new URLSearchParams(searchParams);
-                      newParams.delete('transmisi');
-                      newParams.set('halaman', '1');
-                      setSearchParams(newParams);
-                    }}
-                    className="hover:text-emerald-950 dark:hover:text-white p-0.5 cursor-pointer"
-                    aria-label="Hapus filter transmisi"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              )}
-              <button
-                onClick={handleResetAll}
-                className="text-[11px] text-[#5B4EF0] dark:text-[#8277FF] font-semibold hover:underline ml-1 cursor-pointer"
-              >
-                Reset
-              </button>
-            </div>
-          )}
-
-          {/* Results Summary */}
-          {data && (
-            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-              <span>{content.search.resultsCount(data.total)}</span>
-              {activeFilterCount > 0 && (
-                <button
-                  onClick={handleResetAll}
-                  className="text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1 hover:underline cursor-pointer"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Reset filter</span>
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* ML Insight / Segment Explainer Pill */}
-          <div className="rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 p-3 text-xs text-blue-900 dark:text-blue-200">
-            <button
-              onClick={() => setShowMlExplainer(!showMlExplainer)}
-              className="w-full flex items-center justify-between font-semibold cursor-pointer"
-            >
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                <span>{content.segments.chipLabel}</span>
-              </div>
-              <ChevronDown className={`w-3.5 h-3.5 text-blue-600 dark:text-blue-400 transition-transform ${showMlExplainer ? 'rotate-180' : ''}`} />
-            </button>
-            {showMlExplainer && (
-              <p className="mt-2 text-[11px] text-blue-800 dark:text-blue-300 leading-relaxed border-t border-blue-200/60 dark:border-blue-900/60 pt-2">
-                {content.segments.chipPopover}
-              </p>
-            )}
-          </div>
-
-          {/* Loading State */}
-          {loading && <CarListSkeleton count={4} />}
-
-          {/* Error State */}
-          {!loading && fetchError && (
-            <div role="alert" className="rounded-2xl bg-white dark:bg-[#1A1A24] border border-red-200 dark:border-red-900/60 p-6 text-center space-y-3">
-              <AlertCircle className="w-8 h-8 text-red-500 mx-auto" aria-hidden="true" />
-              <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{fetchError}</p>
-              <button
-                type="button"
-                onClick={fetchCars}
-                className="min-h-[44px] px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              >
-                Muat Ulang Katalog
-              </button>
-            </div>
-          )}
-
-          {/* Zero Results State */}
-          {!loading && !fetchError && data && data.total === 0 && (
-            <CariKosong
-              keyword={q}
-              diagnosis={data.diagnosis}
-              onApplySaran={handleApplySaran}
-              onReset={handleResetAll}
-            />
-          )}
-
-          {/* Results List with Staggered Cascading Animation */}
-          {!loading && !fetchError && data && data.total > 0 && (
-            <>
-              <Stagger key={`mobile-grid-${currentPage}-${urut}-${q}-${merk}-${segmen}-${transmisi}`} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {data.items.map((car, idx) => (
-                  <StaggerItem key={car.id} index={idx}>
-                    <CarCard
-                      car={car}
-                      isFavorite={favoriteIds.includes(car.id)}
-                      onFavoriteClick={handleFavoriteToggle}
-                    />
-                  </StaggerItem>
-                ))}
-              </Stagger>
-
-              {/* Similar Segment Recommendations when < 10 results */}
-              {data.total < 10 && data.rekomendasi_alternatif && data.rekomendasi_alternatif.length > 0 && (
-                <div className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-3">
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-500" />
-                      <span>Pilihan Mobil Serupa di Kelas Ini</span>
-                    </h3>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      {content.search.recommendationCaption}
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {data.rekomendasi_alternatif.map((car) => (
-                      <CarCard
-                        key={`alt-${car.id}`}
-                        car={car}
-                        isFavorite={favoriteIds.includes(car.id)}
-                        onFavoriteClick={handleFavoriteToggle}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Mobile Pagination Controls */}
-              {totalPages > 1 && (
-                <nav aria-label="Navigasi halaman katalog mobile" className="pt-6 space-y-2.5">
-                  <div className="text-center text-[11px] text-slate-600 dark:text-slate-400 font-medium">
-                    Menampilkan {startItem} - {endItem} dari {data.total} mobil
-                  </div>
-                  <div className="flex items-center justify-between gap-2 text-xs">
-                    <button
-                      type="button"
-                      disabled={currentPage <= 1}
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      aria-label="Halaman sebelumnya"
-                      className="min-h-[44px] px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors"
-                    >
-                      Sebelumnya
-                    </button>
-                    <span className="text-slate-700 dark:text-slate-200 font-semibold whitespace-nowrap">
-                      Hal {currentPage} / {totalPages}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={currentPage >= totalPages}
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      aria-label="Halaman selanjutnya"
-                      className="min-h-[44px] px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors"
-                    >
-                      Selanjutnya
-                    </button>
-                  </div>
-                </nav>
-              )}
-            </>
-          )}
-
-        </div>
-      </div>
-
-      {/* ============================================================ */}
-      {/* DESKTOP VIEW (≥ 768px)                                       */}
-      {/* ============================================================ */}
-      <div className="hidden md:block py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         
         {/* Showroom Header */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
                 Katalog Mobil Bekas Pilihan
               </h1>
               <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 max-w-2xl leading-relaxed">
@@ -643,13 +308,13 @@ export function CariPage() {
               </p>
             </div>
             {data && (
-              <div className="flex-shrink-0 flex items-center gap-3.5 px-4 py-3 rounded-2xl bg-white dark:bg-[#1A1A24] border border-[#E4E4EE] dark:border-[#2A2A38] shadow-xs hover:border-blue-500/40 transition-all">
-                <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-500/15 border border-blue-200/80 dark:border-blue-500/30 flex items-center justify-center text-blue-700 dark:text-blue-400 flex-shrink-0 shadow-2xs">
+              <div className="self-start sm:self-auto flex-shrink-0 flex items-center gap-3.5 px-4 py-2.5 sm:py-3 rounded-2xl bg-white dark:bg-[#1A1A24] border border-[#E4E4EE] dark:border-[#2A2A38] shadow-xs hover:border-blue-500/40 transition-all">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50 dark:bg-blue-500/15 border border-blue-200/80 dark:border-blue-500/30 flex items-center justify-center text-blue-700 dark:text-blue-400 flex-shrink-0 shadow-2xs">
                   <Car className="w-5 h-5" />
                 </div>
                 <div className="text-left">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+                    <span className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
                       Unit Terverifikasi
                     </span>
                     <span className="relative flex h-2 w-2">
@@ -658,7 +323,7 @@ export function CariPage() {
                     </span>
                   </div>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    <span className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                       {data.total}
                     </span>
                     <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
@@ -671,25 +336,52 @@ export function CariPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8">
           
-          {/* Desktop Left Sidebar Filters */}
+          {/* Responsive Sidebar Filters (Always open on desktop, expandable on mobile) */}
           <div className="md:col-span-1 space-y-6">
-            <div className="bg-white dark:bg-[#1A1A24] rounded-[14px] border border-[#E4E4EE] dark:border-[#2A2A38] p-6 shadow-sm space-y-6 transition-colors duration-200">
-              <div className="flex items-center justify-between pb-3 border-b border-[#E4E4EE] dark:border-[#2A2A38]">
-                <span className="uppercase tracking-wider text-xs font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+            <div className="bg-white dark:bg-[#1A1A24] rounded-[14px] border border-[#E4E4EE] dark:border-[#2A2A38] p-4 sm:p-6 shadow-sm space-y-5 transition-colors duration-200">
+              <div className="flex items-center justify-between md:pb-3 md:border-b border-[#E4E4EE] dark:border-[#2A2A38]">
+                <button
+                  type="button"
+                  onClick={() => setIsMobileFilterExpanded((prev) => !prev)}
+                  className="md:pointer-events-none flex items-center gap-2 uppercase tracking-wider text-xs font-bold text-zinc-900 dark:text-white cursor-pointer md:cursor-default"
+                >
                   <Filter className="w-4 h-4 text-[#5B4EF0] dark:text-[#8277FF]" />
                   <span>Filter Kendaraan</span>
-                </span>
-                {activeFilterCount > 0 && (
+                  {activeFilterCount > 0 && (
+                    <span className="md:hidden inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full bg-[#5B4EF0] text-white text-[10px] font-bold">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                  <ChevronDown
+                    className={`w-4 h-4 text-slate-400 md:hidden transition-transform ${
+                      isMobileFilterExpanded ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                <div className="flex items-center gap-2">
+                  {activeFilterCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleResetAll}
+                      className="text-xs text-[#5B4EF0] dark:text-[#8277FF] font-semibold hover:underline cursor-pointer"
+                    >
+                      Reset ({activeFilterCount})
+                    </button>
+                  )}
                   <button
-                    onClick={handleResetAll}
-                    className="text-xs text-[#5B4EF0] dark:text-[#8277FF] font-semibold hover:underline cursor-pointer"
+                    type="button"
+                    onClick={() => setIsFilterSheetOpen(true)}
+                    className="md:hidden inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 cursor-pointer"
                   >
-                    Reset ({activeFilterCount})
+                    <SlidersHorizontal className="w-3 h-3" />
+                    <span>Lanjutan</span>
                   </button>
-                )}
+                </div>
               </div>
+
+              <div className={`${isMobileFilterExpanded ? 'block pt-3 border-t border-[#E4E4EE] dark:border-[#2A2A38]' : 'hidden md:block'} space-y-6`}>
 
               {/* Kategori Kelas Mobil */}
               <div>
@@ -801,7 +493,7 @@ export function CariPage() {
               </div>
 
               {/* Shortcut Budget Guide */}
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
                 <button
                   type="button"
                   onClick={() => setShowKmeansTester(!showKmeansTester)}
@@ -810,6 +502,7 @@ export function CariPage() {
                   <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                   <span>{showKmeansTester ? 'Tutup Panduan Budget' : 'Panduan Budget Mobil'}</span>
                 </button>
+              </div>
               </div>
 
             </div>
@@ -918,8 +611,8 @@ export function CariPage() {
               </div>
             )}
 
-            {/* Desktop Search & Sort Bar */}
-            <div className="bg-white dark:bg-[#111D3D] rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm flex items-center justify-between gap-4 transition-colors duration-200">
+            {/* Responsive Search & Sort Bar */}
+            <div className="bg-white dark:bg-[#111D3D] rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-colors duration-200">
               <form onSubmit={handleSearchSubmit} className="relative flex-1">
                 <input
                   type="text"
@@ -942,12 +635,12 @@ export function CariPage() {
                 )}
               </form>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3">
                 <span className="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">Urutkan:</span>
                 <select
                   value={urut}
                   onChange={(e) => handleSortChange(e.target.value)}
-                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 sm:flex-none rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {content.search.sortOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -1037,25 +730,25 @@ export function CariPage() {
                   </div>
                 )}
 
-                {/* Desktop Pagination Bar with Sliding Window */}
+                {/* Unified Pagination Bar with Sliding Window */}
                 {totalPages > 1 && (
-                  <nav aria-label="Navigasi halaman katalog" className="pt-8 flex flex-wrap items-center justify-between gap-4 text-xs border-t border-slate-200/80 dark:border-slate-800">
+                  <nav aria-label="Navigasi halaman katalog" className="pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-xs border-t border-slate-200/80 dark:border-slate-800">
                     <button
                       type="button"
                       disabled={currentPage <= 1}
                       onClick={() => handlePageChange(currentPage - 1)}
                       aria-label="Halaman sebelumnya"
-                      className="ios-glass-btn-secondary min-h-[40px] inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-slate-800 dark:text-slate-100 font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      className="ios-glass-btn-secondary w-full sm:w-auto justify-center min-h-[40px] inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-slate-800 dark:text-slate-100 font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
                       <ChevronLeft className="w-3.5 h-3.5" aria-hidden="true" />
                       <span>Sebelumnya</span>
                     </button>
                     
-                    <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                    <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap justify-center">
                       {paginationItems.map((item) => {
                         if (typeof item !== 'number') {
                           return (
-                            <span key={item} aria-hidden="true" className="px-2 text-slate-500 dark:text-slate-400 select-none font-semibold">
+                            <span key={item} aria-hidden="true" className="px-1.5 sm:px-2 text-slate-500 dark:text-slate-400 select-none font-semibold">
                               ...
                             </span>
                           );
@@ -1068,7 +761,7 @@ export function CariPage() {
                             onClick={() => handlePageChange(item)}
                             aria-label={`Halaman ${item}`}
                             aria-current={isCurrent ? 'page' : undefined}
-                            className={`min-w-[40px] h-10 px-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                            className={`min-w-[36px] sm:min-w-[40px] h-9 sm:h-10 px-2 sm:px-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                               isCurrent
                                 ? 'bg-[#2563EB] text-white shadow-xs'
                                 : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
@@ -1085,7 +778,7 @@ export function CariPage() {
                       disabled={currentPage >= totalPages}
                       onClick={() => handlePageChange(currentPage + 1)}
                       aria-label="Halaman selanjutnya"
-                      className="ios-glass-btn-secondary min-h-[40px] inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-slate-800 dark:text-slate-100 font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      className="ios-glass-btn-secondary w-full sm:w-auto justify-center min-h-[40px] inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-slate-800 dark:text-slate-100 font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
                       <span>Selanjutnya</span>
                       <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
