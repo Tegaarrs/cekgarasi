@@ -10,7 +10,7 @@ import {
 } from '@/services/compareStore';
 import { notifyToast } from '@/services/favoriteStore';
 import { getCarPhoto } from '@/utils/carPhoto';
-import { fetchCompareCars } from '@/lib/normalizeBanding';
+import { fetchCarsByIds } from '@/lib/normalizeBanding';
 
 interface MiniCar {
   id: number;
@@ -29,10 +29,11 @@ export function CompareTray() {
   const [isMinimized, setIsMinimized] = useState<boolean>(false);
   const [isDismissed, setIsDismissed] = useState<boolean>(false);
 
-  // Hide on admin routes, /bandingkan page, or /favorit page (where comparison is embedded directly)
+  // Hide on admin routes, /bandingkan, /segmen, or /favorit page (where comparison is embedded directly)
   const shouldHide =
     location.pathname.startsWith('/admin') ||
     location.pathname === '/bandingkan' ||
+    location.pathname === '/segmen' ||
     location.pathname === '/favorit' ||
     compareIds.length === 0 ||
     isDismissed;
@@ -57,7 +58,7 @@ export function CompareTray() {
     }
 
     let isMounted = true;
-    fetchCompareCars(compareIds)
+    fetchCarsByIds(compareIds)
       .then((data) => {
         if (isMounted) {
           setCars(data);

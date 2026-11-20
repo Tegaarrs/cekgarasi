@@ -122,9 +122,9 @@ export function BerandaPage() {
 
   const quickFilterChips = [
     { label: 'Semua Unit', path: '/cari' },
-    { label: 'Segmen Premium', path: '/cari?segmen=premium' },
-    { label: 'Keluarga Muda', path: '/cari?segmen=keluarga-muda' },
-    { label: 'Segmen Ekonomis', path: '/cari?segmen=ekonomis' },
+    { label: 'Kelas Premium & SUV', path: '/cari?segmen=premium' },
+    { label: 'Kelas Keluarga & MPV', path: '/cari?segmen=keluarga-muda' },
+    { label: 'Kelas Hemat & Harian', path: '/cari?segmen=ekonomis' },
     { label: 'Harga < 150 Jt', path: '/cari?harga_max=150000000' },
     { label: 'Transmisi Otomatis', path: '/cari?transmisi=Automatic' },
   ];
@@ -259,8 +259,8 @@ export function BerandaPage() {
                 Dari mobil harian irit BBM, mobil keluarga nyaman, hingga kelas premium dengan harga jujur &amp; transparan
               </span>
             </div>
-            <Link to="/segmen" className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-0.5">
-              <span>Semua</span>
+            <Link to="/bandingkan" className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-0.5">
+              <span>Bandingkan &amp; Harga</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -298,12 +298,12 @@ export function BerandaPage() {
           </div>
         </section>
 
-        {/* Mobile Interactive K-Means Tester */}
+          {/* Mobile Budget & Criteria Recommender */}
         <section className="px-4 pb-4">
           <BuyerKmeansTester
             compact
-            title="Asisten Pintar Pencocok Mobil Impian"
-            subtitle="Geser budget dan kriteria Anda—sistem pintar kami mempelajari ratusan data pasar secara otomatis untuk mencocokkan mobil paling ideal."
+            title="Panduan Pilihan Mobil Impian"
+            subtitle="Geser budget dan kriteria Anda untuk melihat kategori mobil dan rekomendasi unit yang paling sesuai."
             onApplyFilters={(applied) => {
               const params = new URLSearchParams();
               if (applied.segmen) params.set('segmen', applied.segmen);
@@ -322,7 +322,7 @@ export function BerandaPage() {
                 Pilihan Unit Terbaru
               </h2>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Unit tersegmentasi siap pakai dengan data spesifikasi lengkap
+                Unit pilihan siap pakai dengan kelengkapan spesifikasi &amp; transparansi harga pasar
               </p>
             </div>
             <Link to="/cari" className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-0.5">
@@ -617,10 +617,10 @@ export function BerandaPage() {
               </p>
             </div>
             <Link
-              to="/segmen"
+              to="/bandingkan"
               className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-semibold text-[#5B4EF0] dark:text-[#8277FF] hover:underline group"
             >
-              <span>Lihat Detail Kategori Pasar</span>
+              <span>Bandingkan &amp; Cek Harga Pasaran</span>
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -683,13 +683,13 @@ export function BerandaPage() {
                     <div>
                       <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[#E4E4EE] dark:border-[#2A2A38] text-xs mb-5">
                         <div className="bg-[#F6F6FB] dark:bg-[#16161F] p-3 rounded-[10px] border border-[#E4E4EE] dark:border-[#2A2A38]">
-                          <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">Median Harga:</span>
+                          <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">Harga Pasaran Wajar:</span>
                           <span className="font-black text-zinc-900 dark:text-white text-lg sm:text-xl mt-0.5 block">
                             Rp {medianHarga} Jt
                           </span>
                         </div>
                         <div className="bg-[#F6F6FB] dark:bg-[#16161F] p-3 rounded-[10px] border border-[#E4E4EE] dark:border-[#2A2A38]">
-                          <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">Median Tahun:</span>
+                          <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">Tahun Umum:</span>
                           <span className="font-black text-zinc-900 dark:text-white text-lg sm:text-xl mt-0.5 block">
                             {medianTahun}
                           </span>
@@ -697,7 +697,7 @@ export function BerandaPage() {
                       </div>
 
                       <div className="text-xs font-semibold text-[#5B4EF0] dark:text-[#8277FF] flex items-center justify-between group-hover:translate-x-1 transition-transform">
-                        <span>Lihat Mobil Segmen {meta.nama}</span>
+                        <span>Lihat Mobil Kelas {meta.nama}</span>
                         <ChevronRight className="w-4 h-4" />
                       </div>
                     </div>
@@ -808,7 +808,7 @@ export function BerandaPage() {
                   Unit Pilihan Terbaru
                 </h2>
                 <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                  Mobil siap pakai dengan kelengkapan data spesifikasi riil dan sertifikasi segmen
+                  Mobil siap pakai dengan spesifikasi lengkap dan harga sesuai standar pasar
                 </p>
               </div>
               <Link

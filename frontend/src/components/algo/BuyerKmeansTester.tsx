@@ -270,12 +270,12 @@ export function BuyerKmeansTester({
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600" />
                 </span>
                 <span className="text-sm sm:text-base font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">
-                  Hasil Pencocokan Sistem Pintar (Live)
+                  Rekomendasi Kategori Mobil (Live)
                 </span>
               </div>
               {loading && (
                 <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold animate-pulse">
-                  Menganalisis pola pasar...
+                  Mencocokkan stok...
                 </span>
               )}
             </div>
@@ -287,7 +287,7 @@ export function BuyerKmeansTester({
                   style={{ backgroundColor: currentCluster.warna_hex || '#2563EB' }}
                 >
                   <span className="inline-block text-xs sm:text-sm font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-white/20 border border-white/30 backdrop-blur-md mb-2">
-                    Rekomendasi Pintar • Kelas #{currentCluster.klaster + 1}
+                    Rekomendasi Kategori Pilihan
                   </span>
                   <div className="text-xl sm:text-2xl font-black tracking-tight leading-snug">
                     {currentCluster.nama_lengkap?.replace(/komuter/gi, 'Praktis')}
@@ -301,10 +301,10 @@ export function BuyerKmeansTester({
                 <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 p-4 sm:p-5 space-y-2.5 shadow-2xs">
                   <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                    <span>Hasil Analisis Pola Pasar:</span>
+                    <span>Rekomendasi Showroom CekGarasi:</span>
                   </div>
                   <p className="text-xs sm:text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                    Berdasarkan pembelajaran data dari ratusan unit di pasar, kombinasi budget <strong className="font-black text-slate-900 dark:text-white">Rp {(harga/1000000).toLocaleString('id-ID')} Jt</strong>, tahun <strong className="font-black text-slate-900 dark:text-white">{tahun}</strong>, dan jarak tempuh <strong className="font-black text-slate-900 dark:text-white">{km} rb km</strong> secara otomatis dikelompokkan oleh sistem pintar kami ke kategori <strong className="font-black text-blue-600 dark:text-blue-400">{currentCluster.nama_pendek?.replace(/komuter/gi, 'Praktis')}</strong> yang paling bernilai untuk Anda.
+                    Berdasarkan perbandingan ratusan stok unit di pasar, kombinasi budget <strong className="font-black text-slate-900 dark:text-white">Rp {(harga/1000000).toLocaleString('id-ID')} Jt</strong>, tahun <strong className="font-black text-slate-900 dark:text-white">{tahun}</strong>, dan jarak tempuh <strong className="font-black text-slate-900 dark:text-white">{km} rb km</strong> sangat ideal untuk kelas <strong className="font-black text-blue-600 dark:text-blue-400">{currentCluster.nama_pendek?.replace(/komuter/gi, 'Praktis')}</strong> yang paling menguntungkan untuk kebutuhan Anda.
                   </p>
                 </div>
               </div>

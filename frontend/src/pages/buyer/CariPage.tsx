@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Stagger, StaggerItem } from '@/components/motion/Stagger';
 import { CarCard, CarCardData } from '@/components/common/CarCard';
@@ -77,13 +77,39 @@ export function CariPage() {
   const [showGuestSheet, setShowGuestSheet] = useState<boolean>(false);
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const [searchInput, setSearchInput] = useState<string>(q);
+  const lastSyncedQRef = useRef<string>(q);
   const [showMlExplainer, setShowMlExplainer] = useState<boolean>(false);
   const [showKmeansTester, setShowKmeansTester] = useState<boolean>(false);
 
-  // Sync search input with URL q
+  // Sync URL q -> searchInput ONLY when URL q changes externally (navigation or explicit clear)
   useEffect(() => {
-    setSearchInput(q);
+    if (q !== lastSyncedQRef.current) {
+      lastSyncedQRef.current = q;
+      setSearchInput(q);
+    }
   }, [q]);
+
+  // Live progressive search & character-by-character backspace reset back to full catalog
+  useEffect(() => {
+    const trimmed = searchInput.trim();
+    if (trimmed === q) return;
+
+    const delay = trimmed === '' ? 50 : 220;
+    const timer = setTimeout(() => {
+      lastSyncedQRef.current = trimmed;
+      const newParams = new URLSearchParams(searchParams);
+      if (trimmed) {
+        newParams.set('q', trimmed);
+      } else {
+        newParams.delete('q');
+      }
+      newParams.set('halaman', '1');
+      newParams.delete('page');
+      setSearchParams(newParams, { replace: true });
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [searchInput, q, searchParams, setSearchParams]);
 
   // Load favorites and subscribe to changes
   useEffect(() => {
@@ -155,17 +181,30 @@ export function CariPage() {
     await toggleFavorite(carId);
   };
 
-  // Search Submit
+  // Search Submit (immediate)
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmed = searchInput.trim();
+    lastSyncedQRef.current = trimmed;
     const newParams = new URLSearchParams(searchParams);
-    if (searchInput.trim()) {
-      newParams.set('q', searchInput.trim());
+    if (trimmed) {
+      newParams.set('q', trimmed);
     } else {
       newParams.delete('q');
     }
     newParams.set('halaman', '1');
+    newParams.delete('page');
     setSearchParams(newParams);
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput('');
+    lastSyncedQRef.current = '';
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('q');
+    newParams.set('halaman', '1');
+    newParams.delete('page');
+    setSearchParams(newParams, { replace: true });
   };
 
   // Quick Segment Chip Click
@@ -275,13 +314,9 @@ export function CariPage() {
               {searchInput && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setSearchInput('');
-                    const newParams = new URLSearchParams(searchParams);
-                    newParams.delete('q');
-                    setSearchParams(newParams);
-                  }}
-                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  onClick={handleClearSearch}
+                  aria-label="Hapus kata kunci pencarian"
+                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -326,12 +361,12 @@ export function CariPage() {
               <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-2 pointer-events-none" />
             </div>
 
-            {/* Quick Segment Filter Chips */}
+            {/* Quick Category Filter Chips */}
             {[
-              { slug: '', label: 'Semua' },
-              { slug: 'premium', label: 'Premium' },
-              { slug: 'keluarga-muda', label: 'Keluarga Muda' },
-              { slug: 'ekonomis', label: 'Ekonomis' },
+              { slug: '', label: 'Semua Kelas' },
+              { slug: 'premium', label: 'Kelas Premium & SUV' },
+              { slug: 'keluarga-muda', label: 'Kelas Keluarga & MPV' },
+              { slug: 'ekonomis', label: 'Kelas Hemat & Harian' },
             ].map((chip) => {
               const isSelected = (!segmen && chip.slug === '') || segmen === chip.slug;
               return (
@@ -352,27 +387,27 @@ export function CariPage() {
         {/* Content Area */}
         <div className="px-4 py-4 space-y-4">
           
-          {/* Mobile Segmen Tester Toggle Banner */}
+          {/* Mobile Budget & Criteria Guide Banner */}
           <div className="rounded-2xl border border-blue-200/90 dark:border-blue-900 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600 p-3.5 text-white shadow-xs">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 font-bold text-xs">
                 <Sparkles className="w-4 h-4 text-amber-300 flex-shrink-0" />
-                <span>Simulasi Segmen Pasar Cerdas</span>
+                <span>Panduan Budget &amp; Rekomendasi Mobil</span>
               </div>
               <button
                 type="button"
                 onClick={() => setShowKmeansTester(!showKmeansTester)}
                 className="px-2.5 py-1 rounded-lg bg-white text-blue-700 font-bold text-[11px] shadow-2xs whitespace-nowrap active:scale-95 transition-all cursor-pointer"
               >
-                {showKmeansTester ? 'Tutup' : 'Coba Tanpa Login'}
+                {showKmeansTester ? 'Tutup' : 'Cek Rekomendasi'}
               </button>
             </div>
             {showKmeansTester && (
               <div className="mt-3 text-slate-900 dark:text-slate-100">
                 <BuyerKmeansTester
                   compact
-                  title="Asisten Pintar Pencocok Mobil"
-                  subtitle="Geser budget dan kriteria Anda, lalu sistem akan mencocokkan kategori mobil yang paling sesuai."
+                  title="Panduan Pemilihan Mobil Sesuai Budget"
+                  subtitle="Geser budget dan kriteria Anda untuk menemukan kelas mobil terbaik yang cocok dengan kebutuhan."
                   onApplyFilters={(applied) => {
                     const newParams = new URLSearchParams(searchParams);
                     if (applied.segmen) newParams.set('segmen', applied.segmen);
@@ -410,7 +445,7 @@ export function CariPage() {
               )}
               {segmen && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 text-[11px] font-bold border border-purple-200 dark:border-purple-800">
-                  <span>Klaster: {segmen === 'premium' ? 'Premium' : segmen === 'keluarga-muda' ? 'Keluarga Muda' : 'Ekonomis'}</span>
+                  <span>Kelas: {segmen === 'premium' ? 'Premium & SUV' : segmen === 'keluarga-muda' ? 'Keluarga & MPV' : 'Hemat & Harian'}</span>
                   <button
                     onClick={() => {
                       const newParams = new URLSearchParams(searchParams);
@@ -419,7 +454,7 @@ export function CariPage() {
                       setSearchParams(newParams);
                     }}
                     className="hover:text-purple-950 dark:hover:text-white p-0.5 cursor-pointer"
-                    aria-label="Hapus filter klaster"
+                    aria-label="Hapus filter kategori kelas mobil"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -535,7 +570,7 @@ export function CariPage() {
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-amber-500" />
-                      <span>Mobil Serupa di Segmen yang Sama</span>
+                      <span>Pilihan Mobil Serupa di Kelas Ini</span>
                     </h3>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                       {content.search.recommendationCaption}
@@ -656,17 +691,17 @@ export function CariPage() {
                 )}
               </div>
 
-              {/* Segmen Klaster Pasar Mobil */}
+              {/* Kategori Kelas Mobil */}
               <div>
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-2.5">
-                  Kategori Segmen Pasar
+                  Kategori Kelas Mobil
                 </span>
                 <div className="space-y-1.5">
                   {[
-                    { slug: '', label: 'Semua Segmen', dot: '#71717A' },
-                    { slug: 'premium', label: 'Premium', dot: '#2563EB' },
-                    { slug: 'keluarga-muda', label: 'Keluarga Muda', dot: '#10B981' },
-                    { slug: 'ekonomis', label: 'Ekonomis', dot: '#F59E0B' },
+                    { slug: '', label: 'Semua Kelas Mobil', dot: '#71717A' },
+                    { slug: 'premium', label: 'Kelas Premium & SUV', dot: '#2563EB' },
+                    { slug: 'keluarga-muda', label: 'Kelas Keluarga & MPV', dot: '#10B981' },
+                    { slug: 'ekonomis', label: 'Kelas Hemat & Harian', dot: '#F59E0B' },
                   ].map((segItem) => {
                     const isSelected = (!segmen && segItem.slug === '') || segmen === segItem.slug;
                     return (
@@ -765,7 +800,7 @@ export function CariPage() {
                 </div>
               </div>
 
-              {/* Shortcut Simulation Tester */}
+              {/* Shortcut Budget Guide */}
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
@@ -773,7 +808,7 @@ export function CariPage() {
                   className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 transition-all cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                  <span>{showKmeansTester ? 'Tutup Simulasi' : 'Simulasi Segmen Pasar'}</span>
+                  <span>{showKmeansTester ? 'Tutup Panduan Budget' : 'Panduan Budget Mobil'}</span>
                 </button>
               </div>
 
@@ -783,15 +818,15 @@ export function CariPage() {
           {/* Desktop Right Main Catalog */}
           <div className="md:col-span-3 space-y-6">
             
-            {/* Desktop Simulation Model Tester Banner */}
+            {/* Desktop Budget & Category Recommender Banner */}
             <div className="rounded-2xl border border-blue-200/90 dark:border-blue-900 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600 p-4 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <div className="flex items-center gap-1.5 font-bold text-sm">
                   <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>Simulasi Segmen Pasar (Publik & Tanpa Login)</span>
+                  <span>Panduan Budget &amp; Rekomendasi Kelas Mobil</span>
                 </div>
                 <p className="text-xs text-blue-100 mt-0.5">
-                  Simulasikan harga, tahun, odometer, dan fitur untuk mengetahui segmen pasarnya secara objektif serta langsung memfilter katalog.
+                  Atur kisaran harga, tahun rakitan, kilometer, dan kelengkapan fitur untuk menemukan kategori mobil terbaik beserta stok yang siap dibawa pulang.
                 </p>
               </div>
               <button
@@ -800,7 +835,7 @@ export function CariPage() {
                 className="self-start sm:self-auto px-4 py-2 rounded-xl bg-white text-blue-700 font-bold text-xs hover:bg-blue-50 transition-all shadow-xs whitespace-nowrap cursor-pointer flex items-center gap-1.5"
               >
                 <Sparkles className="w-3.5 h-3.5 text-blue-700" />
-                <span>{showKmeansTester ? 'Tutup Simulasi' : 'Mulai Simulasi Segmen'}</span>
+                <span>{showKmeansTester ? 'Tutup Panduan Budget' : 'Cek Rekomendasi Budget'}</span>
               </button>
             </div>
 
@@ -842,7 +877,7 @@ export function CariPage() {
                 )}
                 {segmen && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 text-xs font-semibold border border-purple-200 dark:border-purple-800">
-                    <span>Klaster: {segmen === 'premium' ? 'Premium' : segmen === 'keluarga-muda' ? 'Keluarga Muda' : 'Ekonomis'}</span>
+                    <span>Kelas Mobil: {segmen === 'premium' ? 'Premium & SUV' : segmen === 'keluarga-muda' ? 'Keluarga & MPV' : 'Hemat & Harian'}</span>
                     <button
                       onClick={() => {
                         const newParams = new URLSearchParams(searchParams);
@@ -851,7 +886,7 @@ export function CariPage() {
                         setSearchParams(newParams);
                       }}
                       className="hover:text-purple-950 dark:hover:text-white p-0.5 cursor-pointer"
-                      aria-label="Hapus filter klaster"
+                      aria-label="Hapus filter kategori kelas mobil"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -890,10 +925,21 @@ export function CariPage() {
                   type="text"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="Cari merek atau model mobil..."
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 py-2.5 pl-10 pr-8 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-blue-500 transition-all"
+                  placeholder="Cari merek atau model mobil (contoh: Xenia, Avanza, HR-V)..."
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 py-2.5 pl-10 pr-9 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-blue-500 transition-all"
                 />
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                {searchInput && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    aria-label="Hapus kata kunci pencarian"
+                    title="Reset pencarian ke katalog awal"
+                    className="absolute right-3 top-2.5 rounded-full p-0.5 text-slate-400 hover:bg-slate-200/70 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-white transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </form>
 
               <div className="flex items-center gap-3">
@@ -972,7 +1018,7 @@ export function CariPage() {
                     <div>
                       <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-amber-500" />
-                        <span>Mobil Serupa di Segmen yang Sama</span>
+                        <span>Pilihan Mobil Serupa di Kelas Ini</span>
                       </h3>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         {content.search.recommendationCaption}

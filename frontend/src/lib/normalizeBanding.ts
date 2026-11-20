@@ -41,6 +41,7 @@ export interface NormalizedCompareCar {
   features?: CompareFeature[];
   fitur_list?: string[];
   posisi_harga?: PosisiHarga;
+  catatan?: string | null;
 }
 
 export interface NormalizedAlternative {
@@ -114,6 +115,7 @@ export function normalizeCompareCar(entry: Raw): NormalizedCompareCar | null {
     foto: pickFoto(m),
     features,
     posisi_harga: posisi && typeof posisi === 'object' ? posisi : undefined,
+    catatan: typeof entry.catatan === 'string' ? entry.catatan : typeof m.catatan === 'string' ? m.catatan : null,
   };
 }
 
@@ -152,6 +154,50 @@ export async function fetchCompareCars(ids: number[]): Promise<NormalizedCompare
     }
   }
   return [];
+}
+
+/**
+ * Fetch detailed normalized car objects for any number of car IDs (1..N).
+ * Uses `/bandingkan` for batches of 2..4 and falls back to `/mobil/{id}` for single/remaining cars
+ * so 1-car favorites or 1-car compare previews never return an empty list.
+ */
+export async function fetchCarsByIds(ids: number[]): Promise<NormalizedCompareCar[]> {
+  const uniqueIds = Array.from(new Set(ids.filter((id) => Number.isFinite(id) && id > 0)));
+  if (uniqueIds.length === 0) return [];
+
+  const results: NormalizedCompareCar[] = [];
+
+  for (let i = 0; i < uniqueIds.length; i += 4) {
+    const chunk = uniqueIds.slice(i, i + 4);
+    if (chunk.length >= 2) {
+      try {
+        const batch = await fetchCompareCars(chunk);
+        results.push(...batch);
+        continue;
+      } catch {
+        // Fallback to single-car endpoint below
+      }
+    }
+
+    const singles = await Promise.allSettled(
+      chunk.map(async (id) => {
+        const detail = await apiFetch<Raw>(`/mobil/${id}`);
+        return normalizeCompareCar(detail);
+      })
+    );
+    for (const res of singles) {
+      if (res.status === 'fulfilled' && res.value) {
+        results.push(res.value);
+      }
+    }
+  }
+
+  // Deduplicate preserving original order
+  const byId = new Map<number, NormalizedCompareCar>();
+  for (const car of results) {
+    byId.set(car.id, car);
+  }
+  return uniqueIds.map((id) => byId.get(id)).filter((c): c is NormalizedCompareCar => !!c);
 }
 
 /** Flatten `[{ mobil, hemat_rp }]` into alternative items. */

@@ -136,12 +136,12 @@ export function FilterSheet({
     <BottomSheet isOpen={isOpen} onClose={onClose} title="Filter Pencarian Mobil">
       <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-1 pb-4">
         
-        {/* 1. Segmen K-Means */}
+        {/* 1. Kategori Kelas Mobil */}
         <div>
           <div className="flex items-center justify-between mb-2.5">
             <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              <span>Segmen Pasar Mobil</span>
+              <span>Kategori Kelas Mobil</span>
             </label>
             {draft.segmen && (
               <button

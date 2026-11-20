@@ -5,15 +5,15 @@ export const content = {
   brand: {
     name: 'CekGarasi',
     tagline: 'Cek dulu harganya, baru nego',
-    description: 'Bandingkan harga mobil bekas dengan mobil sejenis di segmennya, hitung perkiraan cicilan, lalu jadwalkan test drive.',
+    description: 'Bandingkan harga mobil bekas dengan unit sekelas di pasaran, hitung perkiraan cicilan, lalu jadwalkan test drive.',
     altLogo: 'CekGarasi',
   },
 
   segments: {
     names: {
-      0: 'Premium',
-      1: 'Keluarga Muda',
-      2: 'Ekonomis',
+      0: 'Premium & SUV',
+      1: 'Keluarga & MPV',
+      2: 'Hemat & Harian',
     } as Record<number, string>,
     slugs: {
       0: 'premium',
@@ -25,17 +25,17 @@ export const content = {
       1: '#0CA678',
       2: '#AE3EC9',
     } as Record<number, string>,
-    chipLabel: 'Pengelompokan Segmen Pasar',
-    chipPopover: 'Mobil dikelompokkan otomatis berdasarkan harga, tahun, jarak tempuh, dan jumlah fitur.',
-    methodologyTitle: 'Bagaimana segmen ini dibuat?',
+    chipLabel: 'Panduan Kategori Kelas Mobil',
+    chipPopover: 'Mobil dikelompokkan berdasarkan kisaran harga, tahun rakitan, kilometer, dan kelengkapan fitur untuk memudahkan perbandingan.',
+    methodologyTitle: 'Bagaimana CekGarasi mengelompokkan kategori harga?',
     methodologyBody: (total: number | string) =>
-      `Mobil dikelompokkan ke dalam 3 segmen pasar pada ${total} unit mobil berdasarkan 4 variabel utama: harga penawaran listing, tahun pembuatan, jarak tempuh pemakaian, dan kelengkapan 11 fitur penting (kamera belakang, sunroof, spion lipat otomatis, rem parkir elektrik, navigasi, kontrol stabilitas, keyless start, mode sport, kamera 360, pintu geser elektrik, cruise control). Pengelompokan ini menunjukkan kemiripan karakteristik unit untuk memudahkan perbandingan adil, bukan penilaian kualitas mutlak.`,
+      `Seluruh ${total} unit mobil dikelompokkan ke dalam 3 kelas pasar utama berdasarkan 4 hal utama: harga penawaran showroom, tahun pembuatan, jarak tempuh pemakaian, dan kelengkapan 11 fitur penting (kamera belakang, sunroof, spion lipat otomatis, rem parkir elektrik, navigasi, kontrol stabilitas, keyless start, mode sport, kamera 360, pintu geser elektrik, cruise control) agar perbandingan antar unit lebih adil dan relevan.`,
   },
 
   trustStrip: [
     {
       title: 'Harga dibandingkan otomatis',
-      desc: 'Tiap mobil dibandingkan dengan mobil sejenis di segmennya.',
+      desc: 'Tiap mobil dibandingkan dengan unit sekelas di harga pasaran wajarnya.',
     },
     {
       title: 'Cicilan bisa dihitung',
@@ -51,12 +51,12 @@ export const content = {
     {
       step: 1,
       title: 'Bandingkan harga',
-      desc: 'Tiap mobil dibandingkan dengan mobil sejenis di segmennya.',
+      desc: 'Tiap mobil dibandingkan dengan unit sekelas di pasaran.',
     },
     {
       step: 2,
       title: 'Lihat detailnya',
-      desc: 'Spesifikasi, fitur, dan posisi harga di segmen.',
+      desc: 'Spesifikasi, kelengkapan fitur, dan posisi harga pasaran wajar.',
     },
     {
       step: 3,
@@ -73,7 +73,7 @@ export const content = {
   navigation: {
     home: 'Beranda',
     search: 'Cari',
-    segments: 'Segmen',
+    segments: 'Bandingkan',
     favorites: 'Favorit',
     account: 'Akun',
     login: 'Masuk',
@@ -93,7 +93,7 @@ export const content = {
     emptyTitle: 'Tidak ada mobil yang cocok dengan filter kamu',
     emptyResetCta: 'Atur Ulang Filter',
     loadMore: 'Muat lebih banyak',
-    recommendationCaption: 'Ini mobil di segmen yang sama dan paling dekat dengan harga dan tahun yang kamu cari.',
+    recommendationCaption: 'Pilihan mobil di kategori harga yang sama dan paling dekat dengan kriteria yang kamu cari.',
   },
 
   finance: {

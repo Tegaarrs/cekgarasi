@@ -60,10 +60,10 @@ export function getSegmentMeta(klaster: number): SegmentMeta {
   return (
     SEGMENTS[klaster] || {
       klaster,
-      slug: `segmen-${klaster}`,
-      nama: `Segmen ${klaster}`,
-      namaLengkap: `Segmen ${klaster}`,
-      deskripsi: 'Kelompok mobil berdasarkan analisis K-Means.',
+      slug: `kelas-${klaster}`,
+      nama: `Kategori ${klaster + 1}`,
+      namaLengkap: `Kategori Mobil ${klaster + 1}`,
+      deskripsi: 'Pengelompokan unit mobil bekas berdasarkan kisaran harga pasar.',
       colorHex: '#2563EB',
       colorHexDark: '#60A5FA',
       badgeBg: 'bg-slate-500/10 dark:bg-slate-500/15',

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Search, Layers, Heart, User } from 'lucide-react';
+import { Home, Search, Scale, Heart, User } from 'lucide-react';
 import { getToken } from '@/services/api';
 import {
   subscribeFavorites,
@@ -55,7 +55,7 @@ export function MobileBottomNav() {
   const navItems = [
     { to: '/', label: 'Beranda', icon: Home, exact: true },
     { to: '/cari', label: 'Katalog', icon: Search },
-    { to: '/segmen', label: 'Segmen', icon: Layers },
+    { to: '/bandingkan', label: 'Bandingkan', icon: Scale },
     { to: '/favorit', label: 'Favorit', icon: Heart, badge: favoriteCount },
     { to: '/akun', label: 'Akun', icon: User },
   ];

@@ -210,7 +210,7 @@ export function AboutUsPage() {
                   Simulasi Cicilan &amp; Posisi Harga Wajar
                 </h3>
                 <p className="text-xs sm:text-sm text-[#6B6B80] dark:text-[#A1A1B5] mt-1 leading-relaxed">
-                  Setiap detail mobil menampilkan posisi harganya dibandingkan rentang kuartil segmen sejenis beserta kalkulator perkiraan uang muka (DP) dan tenor cicilan bulanan.
+                  Setiap detail mobil menampilkan perbandingan harga unit terhadap harga pasaran wajar di kelasnya beserta kalkulator perkiraan uang muka (DP) dan tenor cicilan bulanan.
                 </p>
               </div>
             </div>

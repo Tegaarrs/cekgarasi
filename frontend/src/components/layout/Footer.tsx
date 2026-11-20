@@ -26,8 +26,7 @@ export function Footer() {
             <ul className="space-y-2 text-xs text-zinc-400">
               <li><Link to="/" className="hover:text-white transition-colors">Beranda</Link></li>
               <li><Link to="/cari" className="hover:text-white transition-colors">Katalog Mobil</Link></li>
-              <li><Link to="/segmen" className="hover:text-white transition-colors">Segmen Pasar</Link></li>
-              <li><Link to="/bandingkan" className="hover:text-white transition-colors">Bandingkan Unit</Link></li>
+              <li><Link to="/bandingkan" className="hover:text-white transition-colors">Bandingkan &amp; Harga Pasar</Link></li>
               <li><Link to="/favorit" className="hover:text-white transition-colors">Mobil Favorit</Link></li>
               <li><Link to="/about-us" className="hover:text-white transition-colors">About Us</Link></li>
               <li><Link to="/contact-us" className="hover:text-white transition-colors">Contact Us</Link></li>

@@ -12,10 +12,6 @@ import {
   ShieldCheck,
   Gauge,
   Sparkles,
-  Crown,
-  Wallet,
-  Layers,
-  Sliders,
   ArrowRight,
   Car,
   Scale,
@@ -88,8 +84,8 @@ export function Navbar() {
 
   const isHomeActive = location.pathname === '/';
   const isKatalogActive = location.pathname === '/cari';
-  const isSegmenActive = location.pathname.startsWith('/segmen');
-  const isBandingkanActive = location.pathname.startsWith('/bandingkan');
+  const isBandingkanActive =
+    location.pathname.startsWith('/bandingkan') || location.pathname.startsWith('/segmen');
   const isFavoritActive = location.pathname.startsWith('/favorit');
 
   return (
@@ -277,153 +273,7 @@ export function Navbar() {
               )}
             </div>
 
-            {/* 3. Segmen Pasar (Dropdown) */}
-            <div
-              className="relative"
-              onMouseEnter={() => setActiveMenu('segmen')}
-              onMouseLeave={() => setActiveMenu(null)}
-            >
-              <button
-                type="button"
-                onClick={() => setActiveMenu(activeMenu === 'segmen' ? null : 'segmen')}
-                className={`rounded-full px-3.5 py-1.5 transition-colors cursor-pointer inline-flex items-center gap-1.5 ${
-                  isSegmenActive || activeMenu === 'segmen'
-                    ? 'bg-[#2A2A33] text-white font-semibold'
-                    : 'text-zinc-300 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                <span>Segmen</span>
-                <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                    activeMenu === 'segmen' ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-
-              {/* Flyout Dropdown Menu */}
-              {activeMenu === 'segmen' && (
-                <div className="absolute left-0 top-full pt-2 w-[480px] z-50">
-                  <div className="rounded-2xl border border-zinc-200 dark:border-[#2A2A38] bg-white dark:bg-[#1A1A24] text-zinc-900 dark:text-zinc-100 p-4 shadow-xl grid grid-cols-2 gap-3">
-                    <div>
-                      <span className="text-[11px] font-semibold tracking-wider text-zinc-400 dark:text-zinc-500 mb-2.5 block uppercase">
-                        Klaster K-Means (K=3)
-                      </span>
-                      <div className="space-y-1">
-                        <Link
-                          to="/cari?segmen=premium"
-                          onClick={() => setActiveMenu(null)}
-                          className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group"
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-blue-500/15 text-[#2563EB] dark:text-[#60A5FA] flex items-center justify-center flex-shrink-0">
-                            <Crown className="w-3.5 h-3.5" />
-                          </div>
-                          <div>
-                            <span className="text-xs font-semibold text-zinc-900 dark:text-white block">
-                              Premium (260 Unit)
-                            </span>
-                            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block leading-tight">
-                              Fitur mewah &amp; prestise
-                            </span>
-                          </div>
-                        </Link>
-
-                        <Link
-                          to="/cari?segmen=keluarga-muda"
-                          onClick={() => setActiveMenu(null)}
-                          className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group"
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-[#10B981] dark:text-[#34D399] flex items-center justify-center flex-shrink-0">
-                            <Users className="w-3.5 h-3.5" />
-                          </div>
-                          <div>
-                            <span className="text-xs font-semibold text-zinc-900 dark:text-white block">
-                              Keluarga Muda (195 Unit)
-                            </span>
-                            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block leading-tight">
-                              Kabin lapang &amp; hemat BBM
-                            </span>
-                          </div>
-                        </Link>
-
-                        <Link
-                          to="/cari?segmen=ekonomis"
-                          onClick={() => setActiveMenu(null)}
-                          className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group"
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-[#D97706] dark:text-[#FBBF24] flex items-center justify-center flex-shrink-0">
-                            <Wallet className="w-3.5 h-3.5" />
-                          </div>
-                          <div>
-                            <span className="text-xs font-semibold text-zinc-900 dark:text-white block">
-                              Ekonomis &amp; Praktis (155 Unit)
-                            </span>
-                            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block leading-tight">
-                              Biaya ringan &amp; perawatan mudah
-                            </span>
-                          </div>
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="text-[11px] font-semibold tracking-wider text-zinc-400 dark:text-zinc-500 mb-2.5 block uppercase">
-                        Eksplorasi
-                      </span>
-                      <div className="space-y-1">
-                        <Link
-                          to="/segmen"
-                          onClick={() => setActiveMenu(null)}
-                          className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group"
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center flex-shrink-0">
-                            <Layers className="w-3.5 h-3.5" />
-                          </div>
-                          <div>
-                            <span className="text-xs font-semibold text-zinc-900 dark:text-white block">
-                              Analisis Segmen
-                            </span>
-                            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block leading-tight">
-                              Statistik median harga &amp; sebaran
-                            </span>
-                          </div>
-                        </Link>
-
-                        <Link
-                          to="/preferensi"
-                          onClick={() => setActiveMenu(null)}
-                          className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group"
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#5B4EF0] flex items-center justify-center flex-shrink-0">
-                            <Sliders className="w-3.5 h-3.5" />
-                          </div>
-                          <div>
-                            <span className="text-xs font-semibold text-zinc-900 dark:text-white block">
-                              Kuis Preferensi
-                            </span>
-                            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block leading-tight">
-                              Temukan segmen sesuai kebutuhan
-                            </span>
-                          </div>
-                        </Link>
-
-                        <div className="pt-2">
-                          <Link
-                            to="/segmen"
-                            onClick={() => setActiveMenu(null)}
-                            className="flex items-center justify-between p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white transition-colors font-medium text-xs"
-                          >
-                            <span>Buka Ringkasan Segmen</span>
-                            <ArrowRight className="w-3.5 h-3.5 text-[#5B4EF0]" />
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 4. Bandingkan (Direct Link with Badge) */}
+            {/* 3. Bandingkan & Panduan Harga Pasar (Unified) */}
             <Link
               to="/bandingkan"
               onClick={() => setActiveMenu(null)}
@@ -433,7 +283,7 @@ export function Navbar() {
                   : 'text-zinc-300 hover:text-white hover:bg-white/10'
               }`}
             >
-              <span>Bandingkan</span>
+              <span>Bandingkan &amp; Harga Pasar</span>
               {compareCount > 0 && (
                 <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#5B4EF0] px-1 text-[10px] font-bold text-white shadow-xs">
                   {compareCount}
@@ -632,22 +482,13 @@ export function Navbar() {
             Katalog Mobil
           </Link>
           <Link
-            to="/segmen"
-            onClick={() => setMobileOpen(false)}
-            className={`block px-3 py-2 rounded-xl text-sm font-medium ${
-              isSegmenActive ? 'bg-[#2A2A33] text-white font-semibold' : 'text-zinc-300 hover:bg-white/10'
-            }`}
-          >
-            Segmen Pasar
-          </Link>
-          <Link
             to="/bandingkan"
             onClick={() => setMobileOpen(false)}
             className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium ${
               isBandingkanActive ? 'bg-[#2A2A33] text-white font-semibold' : 'text-zinc-300 hover:bg-white/10'
             }`}
           >
-            <span>Bandingkan</span>
+            <span>Bandingkan &amp; Harga Pasar</span>
             {compareCount > 0 && (
               <span className="h-5 min-w-[20px] rounded-full bg-[#5B4EF0] px-1.5 text-xs font-bold text-white flex items-center justify-center">
                 {compareCount}

@@ -159,7 +159,7 @@ export function PreferensiPage() {
                 </div>
               </div>
               <span className="text-[10px] text-blue-300 px-2 py-0.5 rounded bg-blue-950/80 font-mono font-bold shrink-0 border border-blue-800">
-                Segmen 01
+                Kelas 01
               </span>
             </div>
 
@@ -173,14 +173,14 @@ export function PreferensiPage() {
                 <span className="w-2.5 h-2.5 rounded-full bg-[#059669] shadow-[0_0_8px_#059669]" />
                 <div>
                   <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                    Keluarga Muda
+                    Keluarga &amp; MPV
                     {predictedSegment.klaster === 1 && <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />}
                   </p>
                   <p className="text-[11px] text-slate-300">Tahun perakitan muda, efisiensi BBM tinggi, kabin lapang dan ramah keluarga.</p>
                 </div>
               </div>
               <span className="text-[10px] text-emerald-300 px-2 py-0.5 rounded bg-emerald-950/80 font-mono font-bold shrink-0 border border-emerald-800">
-                Segmen 02
+                Kelas 02
               </span>
             </div>
 
@@ -194,14 +194,14 @@ export function PreferensiPage() {
                 <span className="w-2.5 h-2.5 rounded-full bg-[#7C3AED] shadow-[0_0_8px_#7C3AED]" />
                 <div>
                   <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                    Ekonomis
+                    Hemat &amp; Harian
                     {predictedSegment.klaster === 2 && <ShieldCheck className="h-3.5 w-3.5 text-purple-400" />}
                   </p>
                   <p className="text-[11px] text-slate-300">Perawatan terjangkau, suku cadang melimpah, rasio nilai-terhadap-biaya optimal.</p>
                 </div>
               </div>
               <span className="text-[10px] text-purple-300 px-2 py-0.5 rounded bg-purple-950/80 font-mono font-bold shrink-0 border border-purple-800">
-                Segmen 03
+                Kelas 03
               </span>
             </div>
           </div>
@@ -317,7 +317,7 @@ export function PreferensiPage() {
                 Kriteria Utama Pilihan Anda
               </label>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Pilihan kriteria membantu menentukan klaster segmen yang paling relevan.
+                Pilihan kriteria membantu menentukan kategori mobil bekas yang paling relevan untuk kebutuhan Anda.
               </p>
               
               <div className="flex flex-wrap gap-2 pt-1">

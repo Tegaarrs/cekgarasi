@@ -28,10 +28,12 @@ import {
 import { getToken, apiFetch } from '@/services/api';
 import {
   toggleFavorite,
+  removeFavorite,
   subscribeFavorites,
   saveFavoriteNote,
   fetchFavoriteIds,
   getFavoriteIds,
+  isPendingRemoval,
 } from '@/services/favoriteStore';
 import {
   getCompareIds,
@@ -47,8 +49,10 @@ import { formatInstallment, calculateInstallment } from '@/lib/finance';
 import { buatRingkasanBanding } from '@/lib/ringkasanBanding';
 import {
   fetchCompareCars,
+  fetchCarsByIds,
   normalizeAlternatives,
   formatAngka,
+  NormalizedCompareCar,
 } from '@/lib/normalizeBanding';
 import { SegmentBadge } from '@/components/motion/SegmentBadge';
 import { Skeleton } from '@/components/motion/Skeleton';
@@ -237,88 +241,133 @@ function FavoritPageContent() {
     }
   }, []);
 
-  // Fetch list of favorites with fallback
+  const mapNormalizedToFavoriteItem = useCallback((c: NormalizedCompareCar): FavoriteItem => ({
+    id: c.id,
+    nama_mobil: c.nama_mobil,
+    tahun: c.tahun || 2020,
+    harga_rp: c.harga_rp,
+    jarak_tempuh_ribu_km: c.jarak_tempuh_ribu_km || 30,
+    klaster: c.klaster || 0,
+    catatan: c.catatan || null,
+    disimpan_pada: new Date().toISOString(),
+    car: {
+      id: c.id,
+      nama_mobil: c.nama_mobil,
+      tahun: c.tahun || 2020,
+      harga_rp: c.harga_rp,
+      jarak_tempuh_ribu_km: c.jarak_tempuh_ribu_km || 30,
+      lokasi: c.lokasi || 'DKI Jakarta',
+      transmisi: c.transmisi || 'Automatic',
+      klaster: c.klaster || 0,
+      nama_segmen: c.nama_segmen,
+      warna_segmen: c.warna_segmen,
+      foto: c.foto,
+      foto_url: c.foto,
+    },
+    posisi_harga: c.posisi_harga
+      ? {
+          q1: c.posisi_harga.q1 || c.harga_rp * 0.95,
+          median: c.posisi_harga.median || c.harga_rp,
+          q3: c.posisi_harga.q3 || c.harga_rp * 1.05,
+          verdict: c.posisi_harga.verdict || 'Wajar',
+          selisih_median_rp: c.posisi_harga.selisih_median_rp || 0,
+        }
+      : undefined,
+  }), []);
+
+  const sortFavoriteItems = useCallback((list: FavoriteItem[], sortBy: string): FavoriteItem[] => {
+    const arr = [...list];
+    if (sortBy === 'harga_asc') return arr.sort((a, b) => a.harga_rp - b.harga_rp);
+    if (sortBy === 'harga_desc') return arr.sort((a, b) => b.harga_rp - a.harga_rp);
+    if (sortBy === 'tahun_desc') return arr.sort((a, b) => b.tahun - a.tahun);
+    if (sortBy === 'km_asc') return arr.sort((a, b) => a.jarak_tempuh_ribu_km - b.jarak_tempuh_ribu_km);
+    return arr;
+  }, []);
+
+  // Fetch list of favorites with rock-solid hydration & optimistic delete filtering
   const loadFavorites = useCallback(async () => {
     try {
       setLoading(true);
       const token = getToken();
+      const storeIds = getFavoriteIds().filter((id) => !isPendingRemoval(id));
+
       if (!token) {
-        // Guest mode: fetch details for locally stored favorite IDs
-        const localIds = getFavoriteIds();
-        if (localIds.length === 0) {
+        if (storeIds.length === 0) {
           setItems([]);
           setLoading(false);
           return;
         }
-        const miniCars = await fetchCompareCars(localIds);
-        const guestItems: FavoriteItem[] = miniCars.map((c) => ({
-          id: c.id,
-          nama_mobil: c.nama_mobil,
-          tahun: c.tahun || 2020,
-          harga_rp: c.harga_rp,
-          jarak_tempuh_ribu_km: c.jarak_tempuh_ribu_km || 30,
-          klaster: c.klaster || 0,
-          catatan: null,
-          disimpan_pada: new Date().toISOString(),
-          car: {
-            id: c.id,
-            nama_mobil: c.nama_mobil,
-            tahun: c.tahun || 2020,
-            harga_rp: c.harga_rp,
-            jarak_tempuh_ribu_km: c.jarak_tempuh_ribu_km || 30,
-            lokasi: c.lokasi || 'DKI Jakarta',
-            transmisi: c.transmisi || 'Automatic',
-            klaster: c.klaster || 0,
-            nama_segmen: c.nama_segmen,
-            warna_segmen: c.warna_segmen,
-            foto: c.foto,
-            foto_url: c.foto,
-          },
-          posisi_harga: c.posisi_harga
-            ? {
-                q1: c.posisi_harga.q1 || c.harga_rp * 0.95,
-                median: c.posisi_harga.median || c.harga_rp,
-                q3: c.posisi_harga.q3 || c.harga_rp * 1.05,
-                verdict: c.posisi_harga.verdict || 'Wajar',
-                selisih_median_rp: c.posisi_harga.selisih_median_rp || 0,
-              }
-            : undefined,
-        }));
-        setItems(guestItems);
+        const hydrated = await fetchCarsByIds(storeIds);
+        const guestItems = sortFavoriteItems(hydrated.map(mapNormalizedToFavoriteItem), sort);
+        setItems(guestItems.filter((it) => !isPendingRemoval(it.id)));
         setLoading(false);
         return;
       }
 
-      const data = await apiFetch<FavoriteItem[]>(`/favorit?urut=${sort}`);
-      const list = Array.isArray(data) ? data : [];
-      setItems(list);
+      let serverList: FavoriteItem[] = [];
+      try {
+        const data = await apiFetch<FavoriteItem[]>(`/favorit?urut=${sort}`);
+        serverList = Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error('Failed to load favorites with sort:', err);
+        try {
+          const fallbackData = await apiFetch<FavoriteItem[]>('/favorit');
+          if (Array.isArray(fallbackData)) {
+            serverList = fallbackData;
+          }
+        } catch (fallbackErr) {
+          console.error('Failed fallback favorites fetch:', fallbackErr);
+        }
+      }
+
+      // Never allow an item currently being deleted to bounce back from an in-flight GET
+      const cleanServerList = serverList.filter((it) => {
+        const id = it.car?.id ?? it.id;
+        return !isPendingRemoval(id);
+      });
+
+      // Hydrate any locally/newly favorited IDs not yet in server response (e.g., 1-car guest sync or in-flight POST)
+      const serverIdSet = new Set(cleanServerList.map((it) => it.car?.id ?? it.id));
+      const missingIds = storeIds.filter((id) => !serverIdSet.has(id) && !isPendingRemoval(id));
+
+      let combinedList = cleanServerList;
+      if (missingIds.length > 0) {
+        const extraCars = await fetchCarsByIds(missingIds);
+        const extraItems = extraCars
+          .filter((c) => !isPendingRemoval(c.id))
+          .map(mapNormalizedToFavoriteItem);
+        combinedList = sortFavoriteItems([...extraItems, ...cleanServerList], sort);
+      }
+
+      setItems(combinedList);
 
       // Populate notes state
       const initialNotes: Record<number, string> = {};
-      list.forEach((item) => {
+      combinedList.forEach((item) => {
         initialNotes[item.id] = item.catatan || '';
       });
-      setNotesState(initialNotes);
-    } catch (err) {
-      console.error('Failed to load favorites with sort:', err);
-      // Fallback request to /favorit without query params
-      try {
-        const fallbackData = await apiFetch<FavoriteItem[]>('/favorit');
-        if (Array.isArray(fallbackData)) {
-          setItems(fallbackData);
-          const initialNotes: Record<number, string> = {};
-          fallbackData.forEach((item) => {
-            initialNotes[item.id] = item.catatan || '';
-          });
-          setNotesState(initialNotes);
-        }
-      } catch (fallbackErr) {
-        console.error('Failed fallback favorites fetch:', fallbackErr);
-      }
+      setNotesState((prev) => ({ ...initialNotes, ...prev }));
     } finally {
       setLoading(false);
     }
-  }, [sort]);
+  }, [sort, mapNormalizedToFavoriteItem, sortFavoriteItems]);
+
+  // Explicit optimistic remove handler for Saved Vault
+  const handleRemoveFavorite = useCallback(async (carId: number) => {
+    setItems((prev) => prev.filter((item) => (item.car?.id ?? item.id) !== carId));
+    setSummary((prev) =>
+      prev
+        ? {
+            ...prev,
+            jumlah: Math.max(0, prev.jumlah - 1),
+          }
+        : prev
+    );
+    if (isCompared(carId)) {
+      removeCompare(carId);
+    }
+    await removeFavorite(carId);
+  }, []);
 
   useEffect(() => {
     loadFavorites();
@@ -328,10 +377,12 @@ function FavoritPageContent() {
     loadSummaryAndRecs();
   }, [loadSummaryAndRecs]);
 
-  // Subscribe to favoriteStore changes
+  // Subscribe to favoriteStore changes: optimistically prune removed items immediately, then sync
   useEffect(() => {
     fetchFavoriteIds(true);
     const unsub = subscribeFavorites(() => {
+      const currentIds = new Set(getFavoriteIds());
+      setItems((prev) => prev.filter((it) => currentIds.has(it.car?.id ?? it.id)));
       loadFavorites();
       loadSummaryAndRecs();
     });
@@ -1032,11 +1083,11 @@ function FavoritPageContent() {
                           </tr>
                         )}
 
-                        {/* Posisi Harga Segmen */}
+                        {/* Evaluasi Harga Pasaran */}
                         {(!showOnlyDifferences || isSpecDifferent((c) => c.posisi_harga?.verdict)) && (
                           <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
                             <td className="p-4 font-semibold text-slate-500 dark:text-slate-400">
-                              Posisi Harga di Segmen
+                              Evaluasi Harga Pasaran
                             </td>
                             {comparedCars.map((car) => (
                               <td key={car.id} className="p-4 border-l border-slate-100 dark:border-slate-800">
@@ -1050,7 +1101,11 @@ function FavoritPageContent() {
                                         : 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
                                     }`}
                                   >
-                                    Harga {car.posisi_harga.verdict}
+                                    {car.posisi_harga.verdict === 'di bawah rentang'
+                                      ? 'Lebih Hemat dari Pasaran'
+                                      : car.posisi_harga.verdict === 'di atas rentang'
+                                      ? 'Di Atas Harga Pasaran'
+                                      : 'Harga Pasaran Wajar'}
                                   </span>
                                 ) : (
                                   <span className="text-slate-400">-</span>
@@ -1153,7 +1208,7 @@ function FavoritPageContent() {
                   {summary.segmen_dominan && (
                     <SegmentBadge
                       klaster={summary.segmen_dominan.id}
-                      nama={`Dominan: ${summary.segmen_dominan.nama} (${summary.segmen_dominan.persen}%)`}
+                      nama={`Kategori Dominan: ${summary.segmen_dominan.nama} (${summary.segmen_dominan.persen}%)`}
                       size="sm"
                     />
                   )}
@@ -1162,7 +1217,7 @@ function FavoritPageContent() {
                 {/* Key Metrics Grid */}
                 <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
                   <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
-                    <span className="block text-[11px] font-medium text-slate-400">Harga Median</span>
+                    <span className="block text-[11px] font-medium text-slate-400">Patokan Harga Pasaran</span>
                     <span className="font-display text-base font-extrabold text-slate-900 dark:text-white sm:text-lg">
                       Rp {Math.round(summary.harga_median / 1_000_000)} Jt
                     </span>
@@ -1172,11 +1227,11 @@ function FavoritPageContent() {
                   </div>
 
                   <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
-                    <span className="block text-[11px] font-medium text-slate-400">Tahun Khas</span>
+                    <span className="block text-[11px] font-medium text-slate-400">Tahun Rakitan Umum</span>
                     <span className="font-display text-base font-extrabold text-slate-900 dark:text-white sm:text-lg">
                       {summary.tahun_median || '-'}
                     </span>
-                    <span className="block text-[10px] text-slate-400">Median tahun rakitan</span>
+                    <span className="block text-[10px] text-slate-400">Rata-rata tahun koleksi</span>
                   </div>
 
                   <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
@@ -1210,11 +1265,11 @@ function FavoritPageContent() {
                   </div>
                 </div>
 
-                {/* Segment Distribution Bar */}
+                {/* Category Distribution Bar */}
                 {summary.sebaran_segmen && summary.sebaran_segmen.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                     <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                      <span className="font-medium text-[11px]">Distribusi Segmen Pilihanmu:</span>
+                      <span className="font-medium text-[11px]">Sebaran Kategori Kelas Mobil Pilihanmu:</span>
                       <div className="flex items-center gap-3">
                         {summary.sebaran_segmen.map((seg) => (
                           <div key={seg.id} className="flex items-center gap-1 text-[11px]">
@@ -1390,9 +1445,10 @@ function FavoritPageContent() {
                       {/* Remove Favorite Button */}
                       <button
                         type="button"
-                        onClick={() => toggleFavorite(car.id)}
+                        onClick={() => handleRemoveFavorite(car.id)}
                         aria-label="Hapus dari favorit"
-                        className="absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-rose-500 shadow-md hover:bg-white active:scale-90 transition-all cursor-pointer dark:bg-slate-900/90"
+                        title="Hapus dari Favorit & Saved Vault"
+                        className="absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-rose-500 shadow-md hover:bg-rose-50 active:scale-90 transition-all cursor-pointer dark:bg-slate-900/90"
                       >
                         <Heart className="h-4 w-4 fill-rose-500" />
                       </button>
@@ -1451,10 +1507,10 @@ function FavoritPageContent() {
                         </span>
                       </div>
 
-                      {/* Segment Price Position */}
+                      {/* Market Price Position */}
                       {item.posisi_harga && (
                         <div className="rounded-lg bg-slate-50 px-2.5 py-1.5 text-[11px] border border-slate-100 flex items-center justify-between dark:bg-slate-800/40 dark:border-slate-800">
-                          <span className="text-slate-500 dark:text-slate-400">Posisi Harga:</span>
+                          <span className="text-slate-500 dark:text-slate-400">Evaluasi Harga Pasar:</span>
                           <span
                             className={`font-semibold ${
                               item.posisi_harga.verdict === 'di bawah rentang'
@@ -1465,10 +1521,10 @@ function FavoritPageContent() {
                             }`}
                           >
                             {item.posisi_harga.verdict === 'di bawah rentang'
-                              ? 'Harga Hemat di Segmen'
+                              ? 'Lebih Hemat dari Pasaran'
                               : item.posisi_harga.verdict === 'di atas rentang'
-                              ? 'Harga di Atas Rata-rata'
-                              : 'Harga Wajar di Segmen'}
+                              ? 'Di Atas Harga Pasaran'
+                              : 'Harga Pasaran Wajar'}
                           </span>
                         </div>
                       )}

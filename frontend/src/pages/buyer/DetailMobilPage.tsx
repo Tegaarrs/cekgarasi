@@ -333,11 +333,11 @@ export function DetailMobilPage() {
               </div>
             </div>
 
-            {/* Posisi harga di segmennya benchmark */}
+            {/* Evaluasi harga pasaran terhadap unit sekelas */}
             <div className="mt-6 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-5 border border-slate-200 dark:border-slate-800">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                  Posisi Harga di {car.nama_segmen || car.segmen_nama || 'Segmen Pasar'}
+                  Evaluasi Harga di {car.nama_segmen || car.segmen_nama || 'Kategori Mobil'}
                 </span>
                 <motion.span
                   initial={{ opacity: 0 }}
@@ -351,7 +351,11 @@ export function DetailMobilPage() {
                       : 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300'
                   }`}
                 >
-                  Harga {car.posisi_harga?.verdict || 'Wajar di Kuartil Pasar'}
+                  {car.posisi_harga?.verdict === 'di bawah rentang'
+                    ? 'Lebih Hemat dari Pasaran'
+                    : car.posisi_harga?.verdict === 'di atas rentang'
+                    ? 'Di Atas Harga Pasaran'
+                    : 'Harga Pasaran Wajar'}
                 </motion.span>
               </div>
 
@@ -378,15 +382,15 @@ export function DetailMobilPage() {
 
               <div className="flex justify-between text-[11px] text-slate-500 font-medium pt-1">
                 <div>
-                  <span className="block text-slate-400">Kuartil 1 (Q1)</span>
+                  <span className="block text-slate-400">Harga Termurah Pasar</span>
                   <span>Rp {Math.round(q1 / 1000000)} Jt</span>
                 </div>
                 <div className="text-center">
-                  <span className="block text-slate-400">Median Pasar</span>
+                  <span className="block text-slate-400">Harga Pasaran Wajar</span>
                   <span className="font-bold text-slate-700">Rp {Math.round((car.posisi_harga?.median ?? car.harga_rp) / 1000000)} Jt</span>
                 </div>
                 <div className="text-right">
-                  <span className="block text-slate-400">Kuartil 3 (Q3)</span>
+                  <span className="block text-slate-400">Batas Harga Atas</span>
                   <span>Rp {Math.round(q3 / 1000000)} Jt</span>
                 </div>
               </div>
@@ -551,7 +555,7 @@ export function DetailMobilPage() {
           {car.mobil_serupa && car.mobil_serupa.length > 0 && (
             <Reveal className="pt-6">
               <h3 className="font-display text-xl font-bold text-slate-900 mb-4">
-                Mobil Serupa dalam {car.nama_segmen || car.segmen_nama || 'Segmen Pilihan'}
+                Mobil Serupa di Kelas yang Sama
               </h3>
               <Stagger className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {car.mobil_serupa.map((similar, idx) => (
