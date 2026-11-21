@@ -162,14 +162,14 @@ export function BerandaPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0D0D14] transition-colors duration-200">
+    <div className="min-h-screen bg-[#E4E9F0] dark:bg-[#0D0D14] transition-colors duration-200">
       {/* ============================================================ */}
       {/* UNIFIED RESPONSIVE SHOWROOM VIEW (MOBILE & DESKTOP)          */}
       {/* ============================================================ */}
       <div className="block">
         
         {/* 1. Flagship Automotive Hero */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-[#F8FAFC] via-[#FFFFFF] to-[#F8FAFC] dark:from-[#0B0B0F] dark:via-[#0B0B0F] dark:to-[#0D0D14] py-10 sm:py-16 lg:py-20 border-b border-slate-200/80 dark:border-white/10 transition-colors duration-200 bg-grid-hairline">
+        <section className="relative overflow-hidden bg-gradient-to-b from-[#E4E9F0] via-[#ECF0F5] to-[#E4E9F0] dark:from-[#0B0B0F] dark:via-[#0B0B0F] dark:to-[#0D0D14] py-10 sm:py-16 lg:py-20 border-b border-[#C7D1DE] dark:border-white/10 transition-colors duration-200 bg-grid-hairline">
           {/* Ambient Showroom Spotlights: Brilliant Sapphire Lighting in Dark Mode */}
           <div className="hidden dark:block absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-gradient-to-b from-blue-600/35 via-indigo-600/15 to-transparent blur-3xl pointer-events-none" />
           <div className="dark:hidden absolute top-0 right-1/4 w-[700px] h-[450px] bg-gradient-to-bl from-blue-500/10 via-indigo-500/5 to-transparent blur-3xl pointer-events-none" />
@@ -179,9 +179,9 @@ export function BerandaPage() {
             <HeroBackground />
           </div>
 
-          {/* Light Mode Directional Legibility Overlay (clean studio white on left, cars emerge naturally on right) */}
-          <div className="dark:hidden absolute inset-0 bg-gradient-to-r from-[#F8FAFC] via-[#F8FAFC]/85 via-45% to-transparent pointer-events-none z-[1]" />
-          <div className="dark:hidden absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-[#F8FAFC] to-transparent pointer-events-none z-[1]" />
+          {/* Light Mode Directional Legibility Overlay (soft daylight mist on left, cars emerge naturally on right) */}
+          <div className="dark:hidden absolute inset-0 bg-gradient-to-r from-[#E4E9F0] via-[#E4E9F0]/88 via-45% to-transparent pointer-events-none z-[1]" />
+          <div className="dark:hidden absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-[#E4E9F0] to-transparent pointer-events-none z-[1]" />
 
           {/* Dark Mode Directional Legibility Gradient (keeps text ultra-readable on left, cars gleaming on right) */}
           <div className="hidden dark:block absolute inset-0 bg-gradient-to-r from-[#0B0B0F]/90 via-[#0B0B0F]/55 via-45% to-transparent pointer-events-none z-[1]" />
@@ -333,7 +333,7 @@ export function BerandaPage() {
         </section>
 
         {/* Running Marquee Strip */}
-        <div className="border-b border-slate-200/80 dark:border-white/10 bg-[#F8FAFC] dark:bg-[#0B0B0F] py-3 sm:py-3.5 overflow-hidden select-none transition-colors duration-200">
+        <div className="border-b border-[#C7D1DE] dark:border-white/10 bg-[#DCE3EC] dark:bg-[#0B0B0F] py-3 sm:py-3.5 overflow-hidden select-none transition-colors duration-200">
           <div className="velox-marquee-track text-xs tracking-wider text-slate-600 dark:text-zinc-400 font-semibold">
             <span className="mx-6 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-600"></span>CekGarasi</span>
             <span className="mx-6 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-zinc-600"></span>610 Unit Mobil</span>

@@ -122,7 +122,7 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-[#F6F6FB] dark:bg-[#0D0D14] text-[#14141F] dark:text-[#E8E8F0] flex flex-col font-sans transition-colors duration-200">
+      <div className="soft-light-shell min-h-screen bg-[#E4E9F0] dark:bg-[#0D0D14] text-[#161D2A] dark:text-[#E8E8F0] flex flex-col font-sans transition-colors duration-200">
         {/* Editorial Top Navigation Progress Bar for Page Transitions */}
         <motion.div
           key={location.pathname}

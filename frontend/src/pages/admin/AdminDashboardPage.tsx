@@ -916,7 +916,7 @@ export function AdminDashboardPage() {
             </div>
 
             {/* Interactive SVG Scatter Plot Container */}
-            <div className="relative w-full bg-[#F8FAFC] rounded-2xl p-4 overflow-hidden border border-slate-200/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+            <div className="relative w-full bg-[#E6ECF3] dark:bg-[#14141E] rounded-2xl p-4 overflow-hidden border border-[#C7D1DE] dark:border-[#2A2A38] shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
               <svg 
                 className="w-full min-w-[560px] h-[350px]" 
                 fill="none" 

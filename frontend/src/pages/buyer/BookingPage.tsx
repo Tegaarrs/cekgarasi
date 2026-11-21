@@ -81,7 +81,7 @@ export function BookingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B132B] py-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto transition-colors duration-200">
+    <div className="min-h-screen bg-[#E4E9F0] dark:bg-[#0B132B] py-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto transition-colors duration-200">
       
       <button
         onClick={() => navigate(-1)}

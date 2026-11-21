@@ -55,7 +55,7 @@ export function MobileBottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-30 bg-[#F6F6FB]/95 dark:bg-[#0D0D14]/95 backdrop-blur-md border-t border-[#E4E4EE] dark:border-[#2A2A38] shadow-md md:hidden pb-[calc(0.5rem+env(safe-area-inset-bottom))] transition-colors duration-200"
+      className="fixed bottom-0 left-0 right-0 z-30 bg-[#E4E9F0]/95 dark:bg-[#0D0D14]/95 backdrop-blur-md border-t border-[#C7D1DE] dark:border-[#2A2A38] shadow-md md:hidden pb-[calc(0.5rem+env(safe-area-inset-bottom))] transition-colors duration-200"
       aria-label="Navigasi Utama Mobile"
     >
       <div className="grid grid-cols-5 h-14 max-w-md mx-auto items-center">

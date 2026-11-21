@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { Spinner } from '@/components/motion/Spinner';
 import { apiFetch, setToken, setUser } from '@/services/api';
 import {
@@ -49,7 +49,7 @@ const INDONESIAN_CITIES = [
 ];
 
 const INPUT_CLASS =
-  'cg-auth-input w-full min-h-[44px] rounded-xl border border-slate-300/90 dark:border-[#2E2E40] bg-[#F6F6FB] dark:bg-[#16161F] px-3.5 py-2.5 text-sm text-[#14141F] dark:text-[#E8E8F0] placeholder:text-[#6B6B80] dark:placeholder:text-[#9A9AB0] focus:bg-white dark:focus:bg-[#16161F] focus:border-[#2563EB] dark:focus:border-[#60A5FA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 dark:focus-visible:ring-[#60A5FA]/35 transition-colors';
+  'cg-auth-input w-full min-h-[44px] rounded-xl border border-[#C7D1DE] dark:border-[#2E2E40] bg-[#E6ECF3] dark:bg-[#16161F] px-3.5 py-2.5 text-sm text-[#161D2A] dark:text-[#E8E8F0] placeholder:text-[#55637A] dark:placeholder:text-[#9A9AB0] focus:bg-[#F1F4F8] dark:focus:bg-[#16161F] focus:border-[#2563EB] dark:focus:border-[#60A5FA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 dark:focus-visible:ring-[#60A5FA]/35 transition-colors';
 
 function BrandCarHeader() {
   return (
@@ -241,12 +241,12 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
     regPassword.length >= 6 && confirmPassword.length > 0 && regPassword === confirmPassword;
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-[#EEF2FA] dark:bg-[#0D0D14] text-[#0F172A] dark:text-[#E8E8F0] flex items-center justify-center px-3 py-6 sm:px-6 lg:px-8 transition-colors duration-200 overflow-x-hidden">
+    <div className="min-h-[calc(100vh-4rem)] bg-[#E4E9F0] dark:bg-[#0D0D14] text-[#161D2A] dark:text-[#E8E8F0] flex items-center justify-center px-3 py-6 sm:px-6 lg:px-8 transition-colors duration-200 overflow-x-hidden">
       <motion.div
         initial={shouldReduce ? { opacity: 1 } : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-[1060px] rounded-[24px] bg-white dark:bg-[#161722] border border-slate-200/90 dark:border-[#2A2A38] shadow-[0_18px_48px_rgba(15,23,42,0.08)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.55)] p-4 sm:p-6 lg:p-7 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch transition-colors duration-200"
+        className="w-full max-w-[1060px] rounded-[24px] bg-[#F1F4F8] dark:bg-[#161722] border border-[#C7D1DE] dark:border-[#2A2A38] shadow-[0_18px_48px_rgba(15,23,42,0.08)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.55)] p-4 sm:p-6 lg:p-7 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch transition-colors duration-200"
       >
         {/* Left column: Chery OMODA 5 showcase photo */}
         <aside className="lg:col-span-6 relative rounded-[18px] overflow-hidden aspect-[4/3] sm:aspect-[16/10] lg:aspect-auto lg:min-h-[580px] bg-slate-100 dark:bg-[#11121A]">
@@ -392,8 +392,8 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                     </button>
                   </form>
 
-                  <div className="mt-6 pt-5 border-t border-slate-200/80 dark:border-[#2A2A38] text-center">
-                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                  <div className="mt-6 pt-5 border-t border-[#C7D1DE]/80 dark:border-[#2A2A38] text-center space-y-2.5">
+                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
                       Belum terdaftar sebagai pembeli?{' '}
                       <button
                         type="button"
@@ -403,6 +403,16 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
                         Daftar Sebagai Pembeli
                       </button>
                     </p>
+
+                    <div className="flex justify-center">
+                      <Link
+                        to="/admin/login"
+                        className="inline-flex items-center justify-center gap-1.5 min-h-[44px] sm:min-h-[36px] px-3.5 py-1.5 rounded-lg border border-[#C7D1DE] dark:border-[#2E2E40] bg-[#DCE3EC]/80 dark:bg-[#1B1D2B] hover:bg-[#CFD8E4] dark:hover:bg-[#25283B] text-xs font-semibold text-[#1E293B] dark:text-slate-200 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]"
+                      >
+                        <ShieldCheck aria-hidden="true" className="w-3.5 h-3.5 text-[#2563EB] dark:text-[#60A5FA]" />
+                        <span>Login Sebagai Administrator</span>
+                      </Link>
+                    </div>
                   </div>
                 </motion.div>
               )}

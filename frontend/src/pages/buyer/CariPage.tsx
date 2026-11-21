@@ -290,7 +290,7 @@ export function CariPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B132B] transition-colors duration-200">
+    <div className="min-h-screen bg-[#E4E9F0] dark:bg-[#0B132B] transition-colors duration-200">
       {/* ============================================================ */}
       {/* UNIFIED RESPONSIVE SHOWROOM CATALOG (MOBILE & DESKTOP)       */}
       {/* ============================================================ */}

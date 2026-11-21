@@ -520,7 +520,7 @@ function FavoritPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F3] dark:bg-[#070709] pb-24 pt-6 transition-colors">
+    <div className="min-h-screen bg-[#E4E9F0] dark:bg-[#070709] pb-24 pt-6 transition-colors duration-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Page Title & Main Header */}

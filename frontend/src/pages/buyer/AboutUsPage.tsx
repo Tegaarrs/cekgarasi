@@ -53,7 +53,7 @@ export function AboutUsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F6F6FB] dark:bg-[#0D0D14] text-[#14141F] dark:text-[#E8E8F0] transition-colors duration-200">
+    <div className="min-h-screen bg-[#E4E9F0] dark:bg-[#0D0D14] text-[#161D2A] dark:text-[#E8E8F0] transition-colors duration-200">
       {/* 1. Split Showroom Intro Section */}
       <section className="border-b border-[#E4E4EE] dark:border-[#2A2A38] bg-white dark:bg-[#14151D]">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">

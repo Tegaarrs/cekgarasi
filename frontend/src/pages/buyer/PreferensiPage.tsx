@@ -87,7 +87,7 @@ export function PreferensiPage() {
   };
 
   return (
-    <div className="w-full min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row bg-slate-50 dark:bg-[#0B132B] transition-colors duration-200">
+    <div className="w-full min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row bg-[#E4E9F0] dark:bg-[#0B132B] transition-colors duration-200">
       
       {/* ============================================================ */}
       {/* SPLIT SCREEN LEFT: Brand, Editorial & ML Architecture       */}

@@ -37,7 +37,7 @@ export function BookingSuccessPage() {
   ];
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-[#0B132B] transition-colors duration-200">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#E4E9F0] dark:bg-[#0B132B] transition-colors duration-200">
       <div className="w-full max-w-lg rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#0E172A] p-6 sm:p-8 shadow-soft-lg dark:shadow-[0_16px_40px_rgba(0,0,0,0.6)] text-center">
         
         {/* Animated Check */}

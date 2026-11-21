@@ -1,5 +1,5 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { motion, useReducedMotion } from 'motion/react';
+import { useEffect, useRef } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, PieChart, Car, Users, UserCheck, Database, 
   ArrowLeft, LogOut, BarChart3, Sun, Moon, BookOpen
@@ -9,9 +9,14 @@ import { useTheme } from '@/context/ThemeContext';
 
 export function AdminLayout() {
   const navigate = useNavigate();
-  const shouldReduce = useReducedMotion();
+  const location = useLocation();
+  const mainScrollRef = useRef<HTMLElement>(null);
   const { theme, toggleTheme } = useTheme();
   const user = getUser<{ nama: string; role: string }>();
+
+  useEffect(() => {
+    mainScrollRef.current?.scrollTo({ top: 0, left: 0 });
+  }, [location.pathname]);
 
   if (!user || user.role !== 'admin') {
     return (
@@ -45,20 +50,22 @@ export function AdminLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F6F6FB] dark:bg-[#0D0D14] text-[#14141F] dark:text-[#E8E8F0] flex flex-col md:flex-row transition-colors duration-200">
+    <div className="soft-light-shell min-h-screen md:h-screen md:overflow-hidden bg-[#E4E9F0] dark:bg-[#0D0D14] text-[#161D2A] dark:text-[#E8E8F0] flex flex-col md:flex-row transition-colors duration-200">
       
-      {/* Sidebar - CekGarasi Control Room */}
-      <aside className="w-full md:w-[272px] bg-[#0B0B0F] dark:bg-[#11111A] text-white flex-shrink-0 flex flex-col justify-between border-r border-white/10 font-sans transition-colors duration-200">
+      {/* Static Sidebar - CekGarasi Control Room */}
+      <aside className="w-full md:w-[272px] md:h-screen md:sticky md:top-0 md:overflow-y-auto bg-[#0B0B0F] dark:bg-[#11111A] text-white flex-shrink-0 flex flex-col justify-between border-b md:border-b-0 md:border-r border-white/10 font-sans transition-colors duration-200">
         <div>
           <div className="p-4 border-b border-white/10 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <img
                 src="/images/logo.png"
-                alt="CekGarasi Logo"
+                alt="Logo CekGarasi"
+                width={40}
+                height={40}
                 className="h-10 w-10 object-contain rounded-full ring-1 ring-white/20 shadow-sm bg-zinc-900"
               />
               <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#9E95FF] block">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#60A5FA] block">
                   PORTAL DEALER
                 </span>
                 <div className="text-lg font-bold text-white leading-tight">
@@ -66,25 +73,18 @@ export function AdminLayout() {
                 </div>
               </div>
             </div>
-            <span className="rounded-full bg-[#5B4EF0] px-2.5 py-0.5 text-xs font-bold text-white">
+            <span className="rounded-md bg-[#2563EB] px-2.5 py-0.5 text-xs font-bold text-white">
               Admin
             </span>
           </div>
 
-          <nav className="p-3 space-y-1.5">
-            {navItems.map((item, idx) => (
-              <motion.div
-                key={item.to}
-                initial={shouldReduce ? { opacity: 1 } : { opacity: 0, x: -6 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: shouldReduce ? 0 : idx * 0.04, duration: 0.2 }}
-                whileHover={shouldReduce ? {} : { x: 3 }}
-                whileTap={shouldReduce ? {} : { scale: 0.98 }}
-              >
+          <nav aria-label="Menu Navigasi Admin" className="p-3 space-y-1.5">
+            {navItems.map((item) => (
+              <div key={item.to}>
                 <NavLink
                   to={item.to}
                   className={({ isActive }) =>
-                    `group relative flex items-center justify-between rounded-[10px] px-3 py-2.5 text-sm font-medium transition-colors duration-200 ${
+                    `group relative flex items-center justify-between min-h-[44px] rounded-[10px] px-3 py-2.5 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                       isActive
                         ? 'bg-[#2A2A33] text-white font-semibold'
                         : 'text-zinc-300 hover:text-white hover:bg-white/5'
@@ -97,35 +97,31 @@ export function AdminLayout() {
                         <div
                           className={`p-1.5 rounded-[8px] transition-colors ${
                             isActive
-                              ? 'bg-[#5B4EF0] text-white shadow-xs'
+                              ? 'bg-[#2563EB] text-white shadow-xs'
                               : 'bg-zinc-800/80 text-zinc-400 group-hover:text-white group-hover:bg-zinc-700'
                           }`}
                         >
-                          <item.icon className="h-4 w-4" />
+                          <item.icon aria-hidden="true" className="h-4 w-4" />
                         </div>
                         <span>{item.label}</span>
                       </div>
 
                       {isActive && (
-                        <motion.div
-                          layoutId="sidebar-active-pill"
-                          className="relative z-10 w-1.5 h-4 rounded-full bg-[#5B4EF0]"
-                          transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-                        />
+                        <div className="relative z-10 w-1.5 h-4 rounded-full bg-[#3B82F6]" />
                       )}
                     </>
                   )}
                 </NavLink>
-              </motion.div>
+              </div>
             ))}
           </nav>
         </div>
       </aside>
 
-      {/* Main Content Area with Sticky Top Navigation Bar */}
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden bg-[#F6F6FB] dark:bg-[#0D0D14] transition-colors duration-200">
+      {/* Main Content Area with Fixed Top Header & Independent Scroll */}
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen md:min-h-0 md:h-screen md:overflow-hidden bg-[#E4E9F0] dark:bg-[#0D0D14] transition-colors duration-200">
         {/* Top Bar Header */}
-        <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 px-6 py-3 bg-[#0B0B0F] dark:bg-[#11111A] text-white border-b border-white/10 select-none transition-colors duration-200">
+        <header className="sticky top-0 md:static flex-shrink-0 z-30 flex flex-wrap items-center justify-between gap-2 px-6 py-3 bg-[#0B0B0F] dark:bg-[#11111A] text-white border-b border-white/10 select-none transition-colors duration-200">
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-[13px] font-medium bg-white/10 border border-white/10 text-white">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -150,38 +146,39 @@ export function AdminLayout() {
             </button>
 
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] text-[13px] font-medium text-white border border-white/10 bg-white/10">
-              <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="h-2 w-2 rounded-full bg-emerald-400" />
               <span className="truncate max-w-[140px] sm:max-w-none">{user.nama}</span>
             </div>
 
-            <motion.button
+            <button
               type="button"
               onClick={() => navigate('/')}
-              whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-medium border border-white/15 bg-white/10 hover:bg-white/15 text-white transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 min-h-[38px] px-3 py-1.5 rounded-[10px] text-[13px] font-medium border border-white/15 bg-white/10 hover:bg-white/15 text-white transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
-              <ArrowLeft className="h-3.5 w-3.5 text-zinc-300" />
+              <ArrowLeft aria-hidden="true" className="h-3.5 w-3.5 text-zinc-300" />
               <span>Kembali ke Website</span>
-            </motion.button>
+            </button>
 
-            <motion.button
+            <button
               type="button"
               onClick={() => {
                 removeToken();
                 localStorage.removeItem('cekgarasi_user');
                 navigate('/admin/login', { replace: true });
               }}
-              whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-semibold bg-red-600 hover:bg-red-700 text-white shadow-xs transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 min-h-[38px] px-3 py-1.5 rounded-[10px] text-[13px] font-semibold bg-red-600 hover:bg-red-700 text-white shadow-xs transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
             >
-              <LogOut className="h-3.5 w-3.5" />
+              <LogOut aria-hidden="true" className="h-3.5 w-3.5" />
               <span>Keluar</span>
-            </motion.button>
+            </button>
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="admin-workspace flex-1 overflow-auto p-4 sm:p-6 lg:p-8 text-[#14141F] dark:text-[#E8E8F0] transition-colors duration-200">
+        {/* Independently Scrollable Page Content */}
+        <main
+          ref={mainScrollRef}
+          className="admin-workspace flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 text-[#161D2A] dark:text-[#E8E8F0] transition-colors duration-200"
+        >
           <Outlet />
         </main>
       </div>

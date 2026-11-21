@@ -10,14 +10,14 @@
 
 @layer base {
   :root {
-    /* CekGarasi Central Design Tokens (Mode Terang) */
-    --color-bg-base: #F6F6FB;           /* Latar terang */
-    --color-panel-soft: #EEEDFB;        /* Panel lembut */
-    --color-surface: #FFFFFF;           /* Kartu putih */
-    --color-border: #E4E4EE;            /* Border terang */
-    --color-border-subtle: #ECECF4;
-    --color-text-main: #14141F;         /* Teks utama */
-    --color-text-muted: #6B6B80;        /* Teks sekunder */
+    /* CekGarasi Central Design Tokens (Mode Terang Nyaman di Mata - Soft Daylight Mist) */
+    --color-bg-base: #E4E9F0;           /* Latar body terang lembut bebas silau */
+    --color-panel-soft: #DCE3EC;        /* Panel & input lembut */
+    --color-surface: #F1F4F8;           /* Kartu porcelain lembut */
+    --color-border: #C7D1DE;            /* Border struktural lembut */
+    --color-border-subtle: #D4DCE6;
+    --color-text-main: #161D2A;         /* Teks utama kontras tinggi */
+    --color-text-muted: #475569;        /* Teks sekunder kontras AA */
     
     --color-primary: #2563EB;           /* Aksen utama Royal Sapphire Blue */
     --color-primary-hover: #1D4ED8;     /* Hover aksen */
@@ -222,8 +222,8 @@
 .cg-auth-input:-webkit-autofill:hover,
 .cg-auth-input:-webkit-autofill:focus,
 .cg-auth-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #F6F6FB inset !important;
-  -webkit-text-fill-color: #14141F !important;
+  -webkit-box-shadow: 0 0 0 1000px #E6ECF3 inset !important;
+  -webkit-text-fill-color: #161D2A !important;
   caret-color: #2563EB !important;
   transition: background-color 9999s ease-in-out 0s;
 }
@@ -751,5 +751,38 @@
 
 .dark .admin-workspace .recharts-cartesian-grid line {
   stroke: #2A2A38 !important;
+}
+
+/* ============================================================ */
+/* EYE-FRIENDLY SOFT DAYLIGHT LIGHT MODE (ALL BUYER & ADMIN)    */
+/* Replaces harsh #FFFFFF / #F8FAFC glare with calm Mist tones  */
+/* ============================================================ */
+html:not(.dark) .soft-light-shell .bg-white {
+  background-color: #F1F4F8 !important;
+}
+
+html:not(.dark) .soft-light-shell .bg-white\/95,
+html:not(.dark) .soft-light-shell .bg-white\/90,
+html:not(.dark) .soft-light-shell .bg-white\/80,
+html:not(.dark) .soft-light-shell .bg-white\/70 {
+  background-color: rgba(241, 244, 248, 0.94) !important;
+}
+
+html:not(.dark) .soft-light-shell .bg-slate-50,
+html:not(.dark) .soft-light-shell .bg-slate-50\/90,
+html:not(.dark) .soft-light-shell .bg-slate-50\/80,
+html:not(.dark) .soft-light-shell .bg-slate-50\/70,
+html:not(.dark) .soft-light-shell .bg-slate-50\/60,
+html:not(.dark) .soft-light-shell .bg-slate-50\/50,
+html:not(.dark) .soft-light-shell .bg-zinc-50 {
+  background-color: #DCE3EC !important;
+}
+
+html:not(.dark) .soft-light-shell .border-slate-100,
+html:not(.dark) .soft-light-shell .border-slate-200,
+html:not(.dark) .soft-light-shell .border-slate-200\/80,
+html:not(.dark) .soft-light-shell .border-slate-200\/90,
+html:not(.dark) .soft-light-shell .border-\[\#E4E4EE\] {
+  border-color: #C7D1DE;
 }
 

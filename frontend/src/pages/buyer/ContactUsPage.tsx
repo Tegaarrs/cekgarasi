@@ -78,7 +78,7 @@ export function ContactUsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F6FB] dark:bg-[#0D0D14] text-[#14141F] dark:text-[#E8E8F0] transition-colors duration-200">
+    <div className="min-h-screen bg-[#E4E9F0] dark:bg-[#0D0D14] text-[#161D2A] dark:text-[#E8E8F0] transition-colors duration-200">
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
         <div className="mb-8 max-w-2xl">
           <span className="inline-block text-xs font-semibold uppercase tracking-[0.12em] text-[#0277BD] dark:text-[#38BDF8]">

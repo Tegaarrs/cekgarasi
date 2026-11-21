@@ -111,7 +111,7 @@ export function MetodologiPage() {
   const clusterColors = ['#1D4ED8', '#059669', '#7C3AED'];
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-transparent py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-10">
 
         {/* Error Notification */}
