@@ -695,11 +695,11 @@ export function AdminLeadsPage() {
                       key={lead.id}
                       animate={
                         isHighlighted && !shouldReduce
-                          ? { backgroundColor: ['rgba(37,99,235,0.18)', 'rgba(37,99,235,0.06)', 'rgba(255,255,255,1)'] }
-                          : { backgroundColor: 'rgba(255,255,255,1)' }
+                          ? { backgroundColor: ['rgba(37,99,235,0.22)', 'rgba(37,99,235,0.08)', 'rgba(255,255,255,0)'] }
+                          : { backgroundColor: 'rgba(255,255,255,0)' }
                       }
                       transition={{ duration: 1.0 }}
-                      className="hover:bg-slate-50/80 transition-colors"
+                      className="hover:bg-slate-50/80 dark:hover:bg-[#222230] transition-colors"
                     >
                       {/* 1. Kode Booking */}
                       <td className="py-4 px-5">
@@ -746,15 +746,10 @@ export function AdminLeadsPage() {
                       <td className="py-4 px-5">
                         <div className="font-bold text-slate-900">{lead.mobil?.nama_mobil || 'Unit CekGarasi'}</div>
                         <div className="flex items-center gap-1.5 mt-1">
-                          <span 
-                            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-extrabold border shadow-2xs"
-                            style={{ 
-                              backgroundColor: `${segmen.fill}15`, 
-                              borderColor: `${segmen.fill}40`, 
-                              color: segmen.fill 
-                            }}
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-extrabold border shadow-2xs ${segmen.bg} ${segmen.text} ${segmen.border}`}
                           >
-                            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: segmen.fill }} />
+                            <span className="h-1.5 w-1.5 rounded-full bg-current" />
                             {lead.mobil?.nama_segmen || segmen.short}
                           </span>
                         </div>

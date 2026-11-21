@@ -704,7 +704,7 @@ export function AdminUsersPage() {
               <div className="space-y-6">
                 {/* Simulated Security Email Dispatch Notification Box */}
                 {simulasiEmail && (
-                  <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50/90 via-blue-50/60 to-white border border-indigo-200 shadow-xs space-y-3">
+                  <div className="p-5 rounded-2xl bg-indigo-50/80 dark:bg-[#14141E] border border-indigo-200 dark:border-indigo-500/30 shadow-xs space-y-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-indigo-200/60">
                       <div className="flex items-center gap-2">
                         <span className="p-1.5 rounded-lg bg-indigo-600 text-white">

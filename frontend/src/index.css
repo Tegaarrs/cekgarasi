@@ -586,8 +586,9 @@
   color: #475569;
 }
 
-/* Dark mode adaptive surfaces, borders, and high-contrast fonts */
+/* Dark mode adaptive surfaces, borders, hover states, and high-contrast fonts */
 .dark .admin-workspace .bg-white,
+.dark .admin-workspace .bg-white\/60,
 .dark .admin-workspace .bg-white\/70,
 .dark .admin-workspace .bg-white\/80,
 .dark .admin-workspace .bg-white\/90,
@@ -601,6 +602,7 @@
 .dark .admin-workspace .bg-slate-50\/60,
 .dark .admin-workspace .bg-slate-50\/70,
 .dark .admin-workspace .bg-slate-50\/80,
+.dark .admin-workspace .bg-slate-50\/90,
 .dark .admin-workspace .bg-slate-100,
 .dark .admin-workspace .bg-slate-100\/60,
 .dark .admin-workspace .bg-slate-100\/80,
@@ -608,45 +610,138 @@
   background-color: #14141E !important;
 }
 
+.dark .admin-workspace .bg-slate-200,
+.dark .admin-workspace .bg-slate-200\/80,
+.dark .admin-workspace .bg-slate-200\/90 {
+  background-color: #242433 !important;
+}
+
 .dark .admin-workspace .bg-blue-50,
+.dark .admin-workspace .bg-blue-50\/20,
+.dark .admin-workspace .bg-blue-50\/30,
+.dark .admin-workspace .bg-blue-50\/40,
 .dark .admin-workspace .bg-blue-50\/50,
 .dark .admin-workspace .bg-blue-50\/60,
 .dark .admin-workspace .bg-blue-50\/70,
 .dark .admin-workspace .bg-blue-50\/80,
-.dark .admin-workspace .bg-blue-100 {
+.dark .admin-workspace .bg-blue-50\/90,
+.dark .admin-workspace .bg-blue-100,
+.dark .admin-workspace .bg-\[\#EDF2FE\] {
   background-color: rgba(37, 99, 235, 0.16) !important;
 }
 
 .dark .admin-workspace .bg-indigo-50,
 .dark .admin-workspace .bg-indigo-50\/50,
-.dark .admin-workspace .bg-indigo-100 {
+.dark .admin-workspace .bg-indigo-50\/60,
+.dark .admin-workspace .bg-indigo-100,
+.dark .admin-workspace .bg-indigo-200\/80 {
   background-color: rgba(99, 102, 241, 0.16) !important;
 }
 
 .dark .admin-workspace .bg-emerald-50,
+.dark .admin-workspace .bg-emerald-50\/20,
 .dark .admin-workspace .bg-emerald-50\/50,
-.dark .admin-workspace .bg-emerald-100 {
+.dark .admin-workspace .bg-emerald-50\/60,
+.dark .admin-workspace .bg-emerald-50\/80,
+.dark .admin-workspace .bg-emerald-100,
+.dark .admin-workspace .bg-emerald-100\/90,
+.dark .admin-workspace .bg-emerald-200,
+.dark .admin-workspace .bg-emerald-200\/80,
+.dark .admin-workspace .bg-\[\#E6F7F0\] {
   background-color: rgba(16, 185, 129, 0.16) !important;
+}
+
+.dark .admin-workspace .bg-teal-50\/20,
+.dark .admin-workspace .bg-teal-50\/30,
+.dark .admin-workspace .bg-teal-50\/50,
+.dark .admin-workspace .bg-teal-50\/60,
+.dark .admin-workspace .bg-teal-50\/70,
+.dark .admin-workspace .bg-teal-100 {
+  background-color: rgba(20, 184, 166, 0.16) !important;
 }
 
 .dark .admin-workspace .bg-amber-50,
 .dark .admin-workspace .bg-amber-50\/40,
+.dark .admin-workspace .bg-amber-50\/50,
+.dark .admin-workspace .bg-amber-50\/60,
+.dark .admin-workspace .bg-amber-50\/80,
 .dark .admin-workspace .bg-amber-50\/90,
 .dark .admin-workspace .bg-amber-100,
+.dark .admin-workspace .bg-amber-100\/90,
+.dark .admin-workspace .bg-amber-200,
+.dark .admin-workspace .bg-amber-200\/80,
 .dark .admin-workspace .bg-orange-50,
+.dark .admin-workspace .bg-orange-50\/60,
 .dark .admin-workspace .bg-orange-50\/90,
-.dark .admin-workspace .bg-orange-100\/70 {
-  background-color: rgba(245, 158, 11, 0.15) !important;
+.dark .admin-workspace .bg-orange-100,
+.dark .admin-workspace .bg-orange-100\/70,
+.dark .admin-workspace .bg-orange-200\/80 {
+  background-color: rgba(245, 158, 11, 0.16) !important;
 }
 
 .dark .admin-workspace .bg-rose-50,
-.dark .admin-workspace .bg-rose-100 {
+.dark .admin-workspace .bg-rose-50\/30,
+.dark .admin-workspace .bg-rose-50\/50,
+.dark .admin-workspace .bg-rose-50\/60,
+.dark .admin-workspace .bg-rose-50\/80,
+.dark .admin-workspace .bg-rose-100,
+.dark .admin-workspace .bg-rose-100\/90,
+.dark .admin-workspace .bg-red-50 {
   background-color: rgba(244, 63, 94, 0.16) !important;
 }
 
 .dark .admin-workspace .bg-purple-50,
-.dark .admin-workspace .bg-purple-100 {
+.dark .admin-workspace .bg-purple-50\/20,
+.dark .admin-workspace .bg-purple-50\/30,
+.dark .admin-workspace .bg-purple-50\/50,
+.dark .admin-workspace .bg-purple-50\/60,
+.dark .admin-workspace .bg-purple-50\/70,
+.dark .admin-workspace .bg-purple-100,
+.dark .admin-workspace .bg-\[\#F8EDFB\] {
   background-color: rgba(168, 85, 247, 0.16) !important;
+}
+
+/* Prevent pale light gradients from bleeding white into Dark Mode */
+.dark .admin-workspace [class*="bg-gradient-to-"][class*="to-white"],
+.dark .admin-workspace [class*="bg-gradient-to-"][class*="from-sky-"],
+.dark .admin-workspace [class*="bg-gradient-to-"][class*="from-blue-50"],
+.dark .admin-workspace [class*="bg-gradient-to-"][class*="from-emerald-50"],
+.dark .admin-workspace [class*="bg-gradient-to-"][class*="from-purple-50"],
+.dark .admin-workspace [class*="bg-gradient-to-"][class*="from-indigo-50"] {
+  background-image: none !important;
+  background-color: #1A1A24 !important;
+}
+
+/* Dark mode hover states so hovering rows/buttons never flashes bright white */
+.dark .admin-workspace .hover\:bg-white:hover,
+.dark .admin-workspace .hover\:bg-white\/80:hover,
+.dark .admin-workspace .hover\:bg-slate-50:hover,
+.dark .admin-workspace .hover\:bg-slate-50\/80:hover,
+.dark .admin-workspace .hover\:bg-slate-100:hover,
+.dark .admin-workspace .hover\:bg-slate-200:hover,
+.dark .admin-workspace .group:hover .group-hover\:bg-\[\#EDF2FE\],
+.dark .admin-workspace .group:hover .group-hover\:bg-\[\#E6F7F0\],
+.dark .admin-workspace .group:hover .group-hover\:bg-\[\#F8EDFB\] {
+  background-color: #232333 !important;
+}
+
+.dark .admin-workspace .hover\:bg-blue-50:hover,
+.dark .admin-workspace .hover\:bg-indigo-50:hover {
+  background-color: rgba(59, 130, 246, 0.22) !important;
+}
+
+.dark .admin-workspace .hover\:bg-emerald-50:hover,
+.dark .admin-workspace .hover\:bg-emerald-100:hover,
+.dark .admin-workspace .hover\:bg-emerald-200:hover {
+  background-color: rgba(16, 185, 129, 0.24) !important;
+}
+
+.dark .admin-workspace .hover\:bg-amber-200:hover {
+  background-color: rgba(245, 158, 11, 0.24) !important;
+}
+
+.dark .admin-workspace .hover\:bg-rose-50:hover {
+  background-color: rgba(244, 63, 94, 0.24) !important;
 }
 
 .dark .admin-workspace .border-slate-100,
@@ -657,6 +752,36 @@
 .dark .admin-workspace .border-slate-300,
 .dark .admin-workspace .border-slate-300\/80 {
   border-color: #2A2A38 !important;
+}
+
+.dark .admin-workspace .border-blue-200,
+.dark .admin-workspace .border-blue-200\/80,
+.dark .admin-workspace .border-blue-300,
+.dark .admin-workspace .border-indigo-200,
+.dark .admin-workspace .border-indigo-300 {
+  border-color: rgba(96, 165, 250, 0.32) !important;
+}
+
+.dark .admin-workspace .border-emerald-200,
+.dark .admin-workspace .border-emerald-300,
+.dark .admin-workspace .border-teal-200 {
+  border-color: rgba(52, 211, 153, 0.32) !important;
+}
+
+.dark .admin-workspace .border-purple-200,
+.dark .admin-workspace .border-purple-300 {
+  border-color: rgba(192, 132, 252, 0.32) !important;
+}
+
+.dark .admin-workspace .border-amber-200,
+.dark .admin-workspace .border-amber-300,
+.dark .admin-workspace .border-orange-200 {
+  border-color: rgba(251, 191, 36, 0.32) !important;
+}
+
+.dark .admin-workspace .border-rose-200,
+.dark .admin-workspace .border-rose-300 {
+  border-color: rgba(251, 113, 133, 0.32) !important;
 }
 
 .dark .admin-workspace .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
@@ -688,6 +813,7 @@
   color: #FDBA74 !important;
 }
 
+.dark .admin-workspace .text-blue-600,
 .dark .admin-workspace .text-blue-700,
 .dark .admin-workspace .text-blue-800,
 .dark .admin-workspace .text-blue-900,
@@ -702,13 +828,17 @@
   color: #818CF8 !important;
 }
 
+.dark .admin-workspace .text-emerald-600,
 .dark .admin-workspace .text-emerald-700,
 .dark .admin-workspace .text-emerald-800,
 .dark .admin-workspace .text-emerald-900,
+.dark .admin-workspace .text-teal-700,
+.dark .admin-workspace .text-teal-800,
 .dark .admin-workspace .text-\[\#0CA678\] {
   color: #34D399 !important;
 }
 
+.dark .admin-workspace .text-amber-600,
 .dark .admin-workspace .text-amber-700,
 .dark .admin-workspace .text-amber-800,
 .dark .admin-workspace .text-amber-900,
@@ -716,12 +846,15 @@
   color: #FBBF24 !important;
 }
 
+.dark .admin-workspace .text-rose-600,
 .dark .admin-workspace .text-rose-700,
 .dark .admin-workspace .text-rose-800,
-.dark .admin-workspace .text-rose-900 {
+.dark .admin-workspace .text-rose-900,
+.dark .admin-workspace .text-red-600 {
   color: #FB7185 !important;
 }
 
+.dark .admin-workspace .text-purple-600,
 .dark .admin-workspace .text-purple-700,
 .dark .admin-workspace .text-purple-800,
 .dark .admin-workspace .text-purple-900,

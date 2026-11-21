@@ -1093,18 +1093,18 @@ export function AdminInventoriPage() {
       </div>
 
       {/* Filter Bar Container */}
-      <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-r from-sky-100/60 via-blue-100/60 to-indigo-100/60 backdrop-blur-sm p-4 shadow-sm space-y-3">
+      <div className="rounded-2xl border border-[#C7D1DE] dark:border-[#2A2A38] bg-[#DCE3EC] dark:bg-[#1A1A24] p-4 shadow-sm space-y-3 transition-colors duration-200">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-3">
           
           {/* Search Input Bar */}
           <div className="lg:col-span-2 relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-blue-600" />
+            <Search aria-hidden="true" className="absolute left-3 top-2.5 h-4 w-4 text-blue-600 dark:text-blue-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nomor polisi, merek, model..."
-              className="w-full rounded-xl border border-blue-300/80 bg-gradient-to-r from-sky-100/60 via-blue-100/60 to-cyan-100/60 backdrop-blur-sm py-2 pl-9 pr-4 text-xs text-slate-900 placeholder-slate-500 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/30 shadow-xs transition-all"
+              className="w-full rounded-xl border border-[#C7D1DE] dark:border-[#2A2A38] bg-[#F1F4F8] dark:bg-[#14141E] py-2 pl-9 pr-4 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400/30 shadow-xs transition-all"
             />
           </div>
 
@@ -1365,8 +1365,8 @@ export function AdminInventoriPage() {
                       initial={shouldReduce || idx >= 10 ? false : { opacity: 0, y: 4 }}
                       animate={shouldReduce || idx >= 10 ? false : { opacity: 1, y: 0 }}
                       transition={{ delay: idx < 10 ? idx * 0.03 : 0, duration: 0.2 }}
-                      className={`transition-colors hover:bg-slate-50/80 ${
-                        isSelected ? 'bg-blue-50/40' : ''
+                      className={`transition-colors hover:bg-slate-50/80 dark:hover:bg-[#222230] ${
+                        isSelected ? 'bg-blue-50/60 dark:bg-blue-500/15' : ''
                       }`}
                     >
                       <td className="py-3.5 px-4 text-center">
@@ -1467,7 +1467,9 @@ export function AdminInventoriPage() {
                       </td>
 
                       {/* Action Buttons Column */}
-                      <td className="py-3.5 px-4 text-center sticky right-0 z-10 bg-white shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]">
+                      <td className={`py-3.5 px-4 text-center sticky right-0 z-10 shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)] ${
+                        isSelected ? 'bg-blue-50 dark:bg-[#1B2540]' : 'bg-white dark:bg-[#1A1A24]'
+                      }`}>
                         <div className="flex items-center justify-center gap-1.5">
                           {/* Edit Button */}
                           <button
@@ -2181,7 +2183,7 @@ export function AdminInventoriPage() {
                 </div>
 
                 {/* Real-Time ML Panel */}
-                <div className="p-4 rounded-xl bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 border border-blue-200 shadow-xs space-y-3.5">
+                <div className="p-4 rounded-xl bg-blue-50/70 dark:bg-[#14141E] border border-blue-200 dark:border-blue-500/30 shadow-xs space-y-3.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <Sparkles className="h-4 w-4 text-[#FE6A2B]" />
@@ -2621,7 +2623,7 @@ export function AdminInventoriPage() {
                 </div>
 
                 {/* REAL-TIME ML PANEL */}
-                <div className="p-4 rounded-xl bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 border border-blue-200 shadow-xs space-y-3.5">
+                <div className="p-4 rounded-xl bg-blue-50/70 dark:bg-[#14141E] border border-blue-200 dark:border-blue-500/30 shadow-xs space-y-3.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <Sparkles className="h-4 w-4 text-[#FE6A2B]" />

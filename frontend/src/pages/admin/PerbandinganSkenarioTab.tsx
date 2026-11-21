@@ -304,7 +304,7 @@ export function PerbandinganSkenarioTab() {
       </div>
 
       {/* Mandatory Note & Methodology Alert Card */}
-      <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-slate-50 p-5 shadow-sm">
+      <div className="rounded-2xl border border-blue-200/80 dark:border-blue-500/30 bg-blue-50/70 dark:bg-[#1A1A24] p-5 shadow-sm">
         <div className="flex items-start gap-3">
           <div className="rounded-xl bg-blue-600 p-2 text-white shadow-sm flex-shrink-0 mt-0.5">
             <Info className="h-4 w-4" />

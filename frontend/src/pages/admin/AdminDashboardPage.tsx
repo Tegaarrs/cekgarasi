@@ -1048,7 +1048,7 @@ export function AdminDashboardPage() {
                 >
                   <rect fill="#2557D6" height="16" transform="rotate(45)" width="16" x="-8" y="-8" rx="2" />
                   <circle cx="0" cy="0" fill="#ffffff" r="3" />
-                  <text className="text-[11px] font-extrabold fill-[#2557D6] filter drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]" x="14" y="4">
+                  <text className="text-[11px] font-extrabold fill-[#2557D6] dark:fill-[#60A5FA] filter drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]" x="14" y="4">
                     {scatterMode === 'tahun' ? 'C1 (2019, Rp 212 Jt)' : 'C1 (44k km, Rp 212 Jt)'}
                   </text>
                 </g>
@@ -1063,7 +1063,7 @@ export function AdminDashboardPage() {
                 >
                   <rect fill="#0CA678" height="16" transform="rotate(45)" width="16" x="-8" y="-8" rx="2" />
                   <circle cx="0" cy="0" fill="#ffffff" r="3" />
-                  <text className="text-[11px] font-extrabold fill-[#0CA678] filter drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]" x="14" y="4">
+                  <text className="text-[11px] font-extrabold fill-[#0CA678] dark:fill-[#34D399] filter drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]" x="14" y="4">
                     {scatterMode === 'tahun' ? 'C2 (2019, Rp 141 Jt)' : 'C2 (39k km, Rp 141 Jt)'}
                   </text>
                 </g>
@@ -1078,7 +1078,7 @@ export function AdminDashboardPage() {
                 >
                   <rect fill="#AE3EC9" height="16" transform="rotate(45)" width="16" x="-8" y="-8" rx="2" />
                   <circle cx="0" cy="0" fill="#ffffff" r="3" />
-                  <text className="text-[11px] font-extrabold fill-[#AE3EC9] filter drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]" x="14" y="4">
+                  <text className="text-[11px] font-extrabold fill-[#AE3EC9] dark:fill-[#E879F9] filter drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]" x="14" y="4">
                     {scatterMode === 'tahun' ? 'C3 (2016, Rp 139 Jt)' : 'C3 (95k km, Rp 139 Jt)'}
                   </text>
                 </g>
@@ -1199,12 +1199,14 @@ export function AdminDashboardPage() {
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-bold text-[#001540]">{selectedCar.nama}</span>
-                      <span 
-                        className="text-[10px] font-extrabold px-2 py-0.5 rounded-full"
-                        style={{
-                          backgroundColor: selectedCar.klaster === 0 ? '#DBEAFE' : selectedCar.klaster === 1 ? '#D1FAE5' : '#F3E8FF',
-                          color: selectedCar.klaster === 0 ? '#1E40AF' : selectedCar.klaster === 1 ? '#065F46' : '#6B21A8'
-                        }}
+                      <span
+                        className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                          selectedCar.klaster === 0
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'
+                            : selectedCar.klaster === 1
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300'
+                            : 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300'
+                        }`}
                       >
                         {selectedCar.klaster === 0 ? 'Premium & SUV' : selectedCar.klaster === 1 ? 'Keluarga Muda' : 'LCGC & Ekonomis'}
                       </span>

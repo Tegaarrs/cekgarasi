@@ -124,7 +124,7 @@ export function AlgorithmScenarioTester({
   };
 
   return (
-    <div className={`rounded-2xl border border-blue-200/90 bg-gradient-to-br from-sky-50/80 via-blue-50/60 to-indigo-50/70 p-5 sm:p-6 shadow-md backdrop-blur-sm space-y-6 ${compact ? 'text-xs' : ''}`}>
+    <div className={`rounded-2xl border border-blue-200/90 dark:border-blue-500/30 bg-blue-50/70 dark:bg-[#1A1A24] p-5 sm:p-6 shadow-md backdrop-blur-sm space-y-6 ${compact ? 'text-xs' : ''}`}>
       
       {/* Title & Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-blue-200/60">

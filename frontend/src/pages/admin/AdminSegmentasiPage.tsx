@@ -284,8 +284,8 @@ export function AdminSegmentasiPage() {
                   {/* Card 1: Inertia (SSE) */}
                   <div className={`rounded-2xl border p-5 shadow-sm transition-all duration-300 ${
                     selectedK === 3 
-                      ? 'border-blue-300 bg-gradient-to-br from-blue-50/80 via-white to-white ring-1 ring-blue-400/30' 
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? 'border-blue-300 dark:border-blue-500/40 bg-gradient-to-br from-blue-50/80 via-white to-white dark:bg-none dark:bg-[#1A1A24] ring-1 ring-blue-400/30' 
+                      : 'border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#1A1A24] hover:border-slate-300'
                   }`}>
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
@@ -314,8 +314,8 @@ export function AdminSegmentasiPage() {
                   {/* Card 2: Silhouette Score */}
                   <div className={`rounded-2xl border p-5 shadow-sm transition-all duration-300 ${
                     selectedK === 3 
-                      ? 'border-emerald-300 bg-gradient-to-br from-emerald-50/90 via-white to-white ring-2 ring-emerald-500/20' 
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? 'border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50/90 via-white to-white dark:bg-none dark:bg-[#1A1A24] ring-2 ring-emerald-500/20' 
+                      : 'border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#1A1A24] hover:border-slate-300'
                   }`}>
                     <div className="flex items-center justify-between">
                       <span className={`text-[11px] font-bold uppercase tracking-wider ${
@@ -351,8 +351,8 @@ export function AdminSegmentasiPage() {
                   {/* Card 3: Davies-Bouldin Index */}
                   <div className={`rounded-2xl border p-5 shadow-sm transition-all duration-300 ${
                     selectedK === 3 
-                      ? 'border-purple-300 bg-gradient-to-br from-purple-50/80 via-white to-white ring-1 ring-purple-400/30' 
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? 'border-purple-300 dark:border-purple-500/40 bg-gradient-to-br from-purple-50/80 via-white to-white dark:bg-none dark:bg-[#1A1A24] ring-1 ring-purple-400/30' 
+                      : 'border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#1A1A24] hover:border-slate-300'
                   }`}>
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -378,8 +378,8 @@ export function AdminSegmentasiPage() {
                   {/* Card 4: Calinski-Harabasz Index */}
                   <div className={`rounded-2xl border p-5 shadow-sm transition-all duration-300 ${
                     selectedK === 3 
-                      ? 'border-indigo-300 bg-gradient-to-br from-indigo-50/80 via-white to-white ring-1 ring-indigo-400/30' 
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? 'border-indigo-300 dark:border-indigo-500/40 bg-gradient-to-br from-indigo-50/80 via-white to-white dark:bg-none dark:bg-[#1A1A24] ring-1 ring-indigo-400/30' 
+                      : 'border-slate-200 dark:border-[#2A2A38] bg-white dark:bg-[#1A1A24] hover:border-slate-300'
                   }`}>
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
