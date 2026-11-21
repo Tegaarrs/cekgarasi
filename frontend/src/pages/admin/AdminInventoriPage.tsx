@@ -1380,7 +1380,7 @@ export function AdminInventoriPage() {
 
                       <td className="py-3.5 px-4">
                         <a
-                          href={`/mobil/${car.id}`}
+                          href={`/mobil/${car.id}?from=admin-inventori`}
                           target="_blank"
                           rel="noreferrer"
                           className="flex items-center gap-3 group cursor-pointer"
@@ -1494,7 +1494,7 @@ export function AdminInventoriPage() {
 
                           {/* View on Web */}
                           <a
-                            href={`/mobil/${car.id}`}
+                            href={`/mobil/${car.id}?from=admin-inventori`}
                             target="_blank"
                             rel="noreferrer"
                             className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-colors shadow-2xs cursor-pointer inline-flex items-center"

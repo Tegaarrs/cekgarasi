@@ -20,7 +20,12 @@ import { getUser, removeToken } from '@/services/api';
 import { Logo } from '@/components/common/Logo';
 import { AnimatedMenuToggle } from '@/components/motion/AnimatedMenuToggle';
 import { useTheme } from '@/context/ThemeContext';
-import { subscribeFavorites, fetchFavoriteIds, getFavoriteCount } from '@/services/favoriteStore';
+import {
+  subscribeFavorites,
+  fetchFavoriteIds,
+  getFavoriteCount,
+  resetFavoriteCache,
+} from '@/services/favoriteStore';
 import { getCompareIds, subscribeCompare } from '@/services/compareStore';
 
 interface UserProfile {
@@ -48,7 +53,7 @@ export function Navbar() {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
-    fetchFavoriteIds().then(() => {
+    fetchFavoriteIds(true).then(() => {
       setFavCount(getFavoriteCount());
     });
     const unsubFav = subscribeFavorites(() => {
@@ -61,7 +66,7 @@ export function Navbar() {
       unsubFav();
       unsubComp();
     };
-  }, [user]);
+  }, [user?.id]);
 
   // Click outside to close active dropdown menu
   useEffect(() => {
@@ -77,7 +82,9 @@ export function Navbar() {
   const handleLogout = () => {
     removeToken();
     localStorage.removeItem('cekgarasi_user');
+    resetFavoriteCache();
     setUserState(null);
+    setFavCount(0);
     setActiveMenu(null);
     navigate('/');
   };

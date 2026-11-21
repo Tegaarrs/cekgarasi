@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -31,9 +31,10 @@ import {
   removeFavorite,
   subscribeFavorites,
   saveFavoriteNote,
-  fetchFavoriteIds,
   getFavoriteIds,
   isPendingRemoval,
+  getPendingAdditionIds,
+  syncFavoriteIdsFromServer,
 } from '@/services/favoriteStore';
 import {
   getCompareIds,
@@ -188,6 +189,7 @@ function FavoritPageContent() {
   const [activeTab, setActiveTab] = useState<'koleksi' | 'bandingkan'>('koleksi');
 
   const [items, setItems] = useState<FavoriteItem[]>([]);
+  const itemsRef = useRef<FavoriteItem[]>([]);
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [recommendations, setRecommendations] = useState<RecommendationCar[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -281,20 +283,20 @@ function FavoritPageContent() {
     return arr;
   }, []);
 
-  // Fetch list of favorites with rock-solid hydration & optimistic delete filtering
+  // Fetch list of favorites strictly from authoritative source (server DB when logged in, v2 guest store when guest)
   const loadFavorites = useCallback(async () => {
     try {
       setLoading(true);
       const token = getToken();
-      const storeIds = getFavoriteIds().filter((id) => !isPendingRemoval(id));
 
       if (!token) {
-        if (storeIds.length === 0) {
+        const guestIds = getFavoriteIds().filter((id) => !isPendingRemoval(id));
+        if (guestIds.length === 0) {
           setItems([]);
           setLoading(false);
           return;
         }
-        const hydrated = await fetchCarsByIds(storeIds);
+        const hydrated = await fetchCarsByIds(guestIds);
         const guestItems = sortFavoriteItems(hydrated.map(mapNormalizedToFavoriteItem), sort);
         setItems(guestItems.filter((it) => !isPendingRemoval(it.id)));
         setLoading(false);
@@ -302,15 +304,18 @@ function FavoritPageContent() {
       }
 
       let serverList: FavoriteItem[] = [];
+      let serverSucceeded = false;
       try {
         const data = await apiFetch<FavoriteItem[]>(`/favorit?urut=${sort}`);
         serverList = Array.isArray(data) ? data : [];
+        serverSucceeded = true;
       } catch (err) {
         console.error('Failed to load favorites with sort:', err);
         try {
           const fallbackData = await apiFetch<FavoriteItem[]>('/favorit');
           if (Array.isArray(fallbackData)) {
             serverList = fallbackData;
+            serverSucceeded = true;
           }
         } catch (fallbackErr) {
           console.error('Failed fallback favorites fetch:', fallbackErr);
@@ -323,13 +328,21 @@ function FavoritPageContent() {
         return !isPendingRemoval(id);
       });
 
-      // Hydrate any locally/newly favorited IDs not yet in server response (e.g., 1-car guest sync or in-flight POST)
-      const serverIdSet = new Set(cleanServerList.map((it) => it.car?.id ?? it.id));
-      const missingIds = storeIds.filter((id) => !serverIdSet.has(id) && !isPendingRemoval(id));
+      const serverIds = cleanServerList.map((it) => it.car?.id ?? it.id);
+      if (serverSucceeded) {
+        // Keep store & Navbar heart badge strictly aligned with authoritative server DB
+        syncFavoriteIdsFromServer(serverIds);
+      }
+
+      // Only hydrate IDs whose POST /favorit is currently in-flight (never stale localStorage ghosts)
+      const serverIdSet = new Set(serverIds);
+      const inflightAddIds = getPendingAdditionIds().filter(
+        (id) => !serverIdSet.has(id) && !isPendingRemoval(id)
+      );
 
       let combinedList = cleanServerList;
-      if (missingIds.length > 0) {
-        const extraCars = await fetchCarsByIds(missingIds);
+      if (inflightAddIds.length > 0) {
+        const extraCars = await fetchCarsByIds(inflightAddIds);
         const extraItems = extraCars
           .filter((c) => !isPendingRemoval(c.id))
           .map(mapNormalizedToFavoriteItem);
@@ -374,13 +387,26 @@ function FavoritPageContent() {
     loadSummaryAndRecs();
   }, [loadSummaryAndRecs]);
 
-  // Subscribe to favoriteStore changes: optimistically prune removed items immediately, then sync
   useEffect(() => {
-    fetchFavoriteIds(true);
+    itemsRef.current = items;
+  }, [items]);
+
+  // Subscribe to favoriteStore changes: prune removals immediately, refetch only when a new item is added
+  useEffect(() => {
     const unsub = subscribeFavorites(() => {
       const currentIds = new Set(getFavoriteIds());
+      const prevIds = new Set(itemsRef.current.map((it) => it.car?.id ?? it.id));
+      let hasNewAddition = false;
+      for (const id of currentIds) {
+        if (!prevIds.has(id)) {
+          hasNewAddition = true;
+          break;
+        }
+      }
       setItems((prev) => prev.filter((it) => currentIds.has(it.car?.id ?? it.id)));
-      loadFavorites();
+      if (hasNewAddition) {
+        loadFavorites();
+      }
       loadSummaryAndRecs();
     });
     return unsub;

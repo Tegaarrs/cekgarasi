@@ -1,4 +1,4 @@
-import { apiFetch, getToken } from './api';
+import { apiFetch, getToken, getUser } from './api';
 
 export interface PendingFavorite {
   type: 'favorit';
@@ -18,9 +18,14 @@ export interface ToastState {
 }
 
 const STORAGE_PENDING_KEY = 'cg.pending_favorite';
-const STORAGE_LOCAL_FAVS = 'cg.local_favorites';
-const STORAGE_GUEST_FAVS = 'cg.guest_favorites';
+// Legacy unscoped keys purged on load so old cross-account/stale favorites never leak
+const LEGACY_LOCAL_FAVS = 'cg.local_favorites';
+const LEGACY_GUEST_FAVS = 'cg.guest_favorites';
+// V2 user-scoped storage keys
+const STORAGE_USER_FAVS_PREFIX = 'cg.favs.v2.user.';
+const STORAGE_GUEST_FAVS_V2 = 'cg.favs.v2.guest';
 
+let activeScopeKey: string | null = null;
 let favoriteIdsCache: number[] = [];
 let isInitialized = false;
 let isLoading = false;
@@ -30,59 +35,126 @@ const listeners = new Set<() => void>();
 const toastListeners = new Set<(toast: ToastState) => void>();
 let undoTimer: ReturnType<typeof setTimeout> | null = null;
 
-function readLocalFavorites(): number[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_LOCAL_FAVS);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'number') : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeLocalFavorites(ids: number[]) {
+function purgeLegacyStorage() {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_LOCAL_FAVS, JSON.stringify(ids));
+    localStorage.removeItem(LEGACY_LOCAL_FAVS);
+    localStorage.removeItem(LEGACY_GUEST_FAVS);
   } catch {}
 }
 
-function readGuestFavorites(): number[] {
+purgeLegacyStorage();
+
+function getCurrentScopeKey(): string {
+  const token = getToken();
+  if (!token) return 'guest';
+  const user = getUser<{ id?: number; email?: string }>();
+  if (user?.id !== undefined && user?.id !== null) {
+    return `user:${user.id}`;
+  }
+  if (user?.email) {
+    return `user:${user.email.toLowerCase()}`;
+  }
+  return 'user:auth';
+}
+
+function getStorageKeyForScope(scope: string): string {
+  if (scope === 'guest') return STORAGE_GUEST_FAVS_V2;
+  return `${STORAGE_USER_FAVS_PREFIX}${scope.slice(5)}`;
+}
+
+function readIdsFromKey(storageKey: string): number[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem(STORAGE_GUEST_FAVS);
+    const raw = localStorage.getItem(storageKey);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'number') : [];
+    return Array.isArray(parsed)
+      ? Array.from(new Set(parsed.filter((id) => typeof id === 'number' && Number.isFinite(id))))
+      : [];
   } catch {
     return [];
   }
 }
 
-function writeGuestFavorites(ids: number[]) {
+function writeIdsToKey(storageKey: string, ids: number[]) {
   if (typeof window === 'undefined') return;
   try {
-    if (ids.length === 0) {
-      localStorage.removeItem(STORAGE_GUEST_FAVS);
+    const unique = Array.from(new Set(ids.filter((id) => typeof id === 'number' && Number.isFinite(id))));
+    if (unique.length === 0) {
+      localStorage.removeItem(storageKey);
     } else {
-      localStorage.setItem(STORAGE_GUEST_FAVS, JSON.stringify(ids));
+      localStorage.setItem(storageKey, JSON.stringify(unique));
     }
   } catch {}
 }
 
+function readGuestFavorites(): number[] {
+  return readIdsFromKey(STORAGE_GUEST_FAVS_V2);
+}
+
+function writeGuestFavorites(ids: number[]) {
+  writeIdsToKey(STORAGE_GUEST_FAVS_V2, ids);
+}
+
+function ensureScopeSynced(): string {
+  const scope = getCurrentScopeKey();
+  if (activeScopeKey !== scope) {
+    activeScopeKey = scope;
+    isInitialized = false;
+    isLoading = false;
+    pendingRemovalIds.clear();
+    pendingAdditionIds.clear();
+    // For guests, load explicit v2 guest favorites only.
+    // For logged-in users, start from that specific user's v2 cache until server responds.
+    favoriteIdsCache = readIdsFromKey(getStorageKeyForScope(scope));
+  }
+  return scope;
+}
+
+function areIdListsEqual(a: number[], b: number[]): boolean {
+  if (a.length !== b.length) return false;
+  const setA = new Set(a);
+  return b.every((id) => setA.has(id));
+}
+
 export function isPendingRemoval(carId: number): boolean {
+  ensureScopeSynced();
   return pendingRemovalIds.has(carId);
 }
 
+export function getPendingAdditionIds(): number[] {
+  ensureScopeSynced();
+  return Array.from(pendingAdditionIds);
+}
+
 export function resetFavoriteCache(): void {
+  purgeLegacyStorage();
+  activeScopeKey = getCurrentScopeKey();
   isInitialized = false;
+  isLoading = false;
   pendingRemovalIds.clear();
   pendingAdditionIds.clear();
-  favoriteIdsCache = readGuestFavorites();
-  writeLocalFavorites(favoriteIdsCache);
+  favoriteIdsCache = readIdsFromKey(getStorageKeyForScope(activeScopeKey));
   notifySubscribers();
+}
+
+export function syncFavoriteIdsFromServer(serverIds: number[]): void {
+  const scope = ensureScopeSynced();
+  if (scope === 'guest') return;
+  const resolved = Array.from(
+    new Set([
+      ...serverIds.filter((id) => !pendingRemovalIds.has(id)),
+      ...Array.from(pendingAdditionIds),
+    ])
+  );
+  const changed = !areIdListsEqual(favoriteIdsCache, resolved);
+  favoriteIdsCache = resolved;
+  writeIdsToKey(getStorageKeyForScope(scope), resolved);
+  isInitialized = true;
+  if (changed) {
+    notifySubscribers();
+  }
 }
 
 export function sanitizeInternalPath(path: string | null | undefined, fallback = '/'): string {
@@ -153,9 +225,7 @@ export function notifyToast(toast: ToastState) {
 }
 
 export function subscribeFavorites(listener: () => void): () => void {
-  if (!isInitialized) {
-    favoriteIdsCache = readLocalFavorites();
-  }
+  ensureScopeSynced();
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
@@ -170,35 +240,44 @@ export function subscribeToast(listener: (toast: ToastState) => void): () => voi
 }
 
 export async function fetchFavoriteIds(force = false): Promise<number[]> {
-  const localFavs = readLocalFavorites();
-  const guestFavs = readGuestFavorites();
+  const scope = ensureScopeSynced();
   const token = getToken();
 
-  if (!token) {
-    const base = guestFavs.length > 0 ? guestFavs : localFavs;
-    favoriteIdsCache = Array.from(
+  if (!token || scope === 'guest') {
+    const guestFavs = readGuestFavorites();
+    const resolved = Array.from(
       new Set([
-        ...base.filter((id) => !pendingRemovalIds.has(id)),
+        ...guestFavs.filter((id) => !pendingRemovalIds.has(id)),
         ...Array.from(pendingAdditionIds),
       ])
     );
+    const changed = !areIdListsEqual(favoriteIdsCache, resolved);
+    favoriteIdsCache = resolved;
     isInitialized = true;
-    notifySubscribers();
-    return favoriteIdsCache;
+    if (changed) {
+      notifySubscribers();
+    }
+    return [...favoriteIdsCache];
   }
 
   if (isInitialized && !force) {
-    return favoriteIdsCache;
+    return [...favoriteIdsCache];
   }
 
   if (isLoading) {
-    return favoriteIdsCache;
+    return [...favoriteIdsCache];
   }
 
   isLoading = true;
   try {
     const serverIds = await apiFetch<number[]>('/favorit/ids');
+    // Ignore stale response if user logged out or switched accounts mid-flight
+    if (getCurrentScopeKey() !== scope) {
+      return [...favoriteIdsCache];
+    }
+
     if (Array.isArray(serverIds)) {
+      const guestFavs = readGuestFavorites();
       const guestToSync = guestFavs.filter(
         (id) => !serverIds.includes(id) && !pendingRemovalIds.has(id)
       );
@@ -219,11 +298,11 @@ export async function fetchFavoriteIds(force = false): Promise<number[]> {
       );
 
       favoriteIdsCache = resolved;
-      writeLocalFavorites(resolved);
+      writeIdsToKey(getStorageKeyForScope(scope), resolved);
       isInitialized = true;
       notifySubscribers();
 
-      // Sync any guest favorites that were added before login to the server
+      // Sync only explicit v2 guest favorites added before login
       if (guestToSync.length > 0) {
         await Promise.allSettled(
           guestToSync.map((id) =>
@@ -239,42 +318,35 @@ export async function fetchFavoriteIds(force = false): Promise<number[]> {
       }
     }
   } catch {
-    // If server call fails, fallback to local storage seamlessly
-    favoriteIdsCache = Array.from(
-      new Set([
-        ...localFavs.filter((id) => !pendingRemovalIds.has(id)),
-        ...Array.from(pendingAdditionIds),
-      ])
-    );
-    isInitialized = true;
-    notifySubscribers();
+    // Keep only this user's own v2 cache if server is temporarily unreachable
+    if (getCurrentScopeKey() === scope) {
+      const ownCached = readIdsFromKey(getStorageKeyForScope(scope));
+      favoriteIdsCache = Array.from(
+        new Set([
+          ...ownCached.filter((id) => !pendingRemovalIds.has(id)),
+          ...Array.from(pendingAdditionIds),
+        ])
+      );
+      isInitialized = true;
+      notifySubscribers();
+    }
   } finally {
     isLoading = false;
-  }
-  return favoriteIdsCache;
-}
-
-export function getFavoriteIds(): number[] {
-  if (!isInitialized) {
-    favoriteIdsCache = readLocalFavorites().filter((id) => !pendingRemovalIds.has(id));
-    isInitialized = true;
   }
   return [...favoriteIdsCache];
 }
 
+export function getFavoriteIds(): number[] {
+  ensureScopeSynced();
+  return favoriteIdsCache.filter((id) => !pendingRemovalIds.has(id));
+}
+
 export function getFavoriteCount(): number {
-  if (!isInitialized) {
-    favoriteIdsCache = readLocalFavorites().filter((id) => !pendingRemovalIds.has(id));
-    isInitialized = true;
-  }
-  return favoriteIdsCache.length;
+  return getFavoriteIds().length;
 }
 
 export function isFavorite(carId: number): boolean {
-  if (!isInitialized) {
-    favoriteIdsCache = readLocalFavorites().filter((id) => !pendingRemovalIds.has(id));
-    isInitialized = true;
-  }
+  ensureScopeSynced();
   return favoriteIdsCache.includes(carId) && !pendingRemovalIds.has(carId);
 }
 
@@ -288,6 +360,7 @@ async function applyAddFavorite(
   carId: number,
   options?: { returnTo?: string; silentToast?: boolean; toastMessage?: string }
 ): Promise<boolean> {
+  const scope = ensureScopeSynced();
   const token = getToken();
   pendingAdditionIds.add(carId);
   pendingRemovalIds.delete(carId);
@@ -295,14 +368,7 @@ async function applyAddFavorite(
   if (!favoriteIdsCache.includes(carId)) {
     favoriteIdsCache = [...favoriteIdsCache, carId];
   }
-  writeLocalFavorites(favoriteIdsCache);
-
-  if (!token) {
-    const guest = readGuestFavorites();
-    if (!guest.includes(carId)) {
-      writeGuestFavorites([...guest, carId]);
-    }
-  }
+  writeIdsToKey(getStorageKeyForScope(scope), favoriteIdsCache);
 
   notifySubscribers();
 
@@ -321,7 +387,11 @@ async function applyAddFavorite(
         body: JSON.stringify({ car_id: carId }),
       });
     } catch {
-      // keep optimistic local state if network hiccups
+      // Revert optimistic add if backend rejects it
+      if (getCurrentScopeKey() === scope) {
+        favoriteIdsCache = favoriteIdsCache.filter((id) => id !== carId);
+        writeIdsToKey(getStorageKeyForScope(scope), favoriteIdsCache);
+      }
     } finally {
       pendingAdditionIds.delete(carId);
       notifySubscribers();
@@ -340,12 +410,13 @@ async function applyAddFavorite(
 }
 
 async function applyRemoveFavorite(carId: number): Promise<boolean> {
+  const scope = ensureScopeSynced();
   const token = getToken();
   pendingRemovalIds.add(carId);
   pendingAdditionIds.delete(carId);
 
   favoriteIdsCache = favoriteIdsCache.filter((id) => id !== carId);
-  writeLocalFavorites(favoriteIdsCache);
+  writeIdsToKey(getStorageKeyForScope(scope), favoriteIdsCache);
   writeGuestFavorites(readGuestFavorites().filter((id) => id !== carId));
   notifySubscribers();
 
@@ -379,10 +450,7 @@ async function applyRemoveFavorite(carId: number): Promise<boolean> {
 }
 
 export async function removeFavorite(carId: number): Promise<void> {
-  if (!isInitialized) {
-    favoriteIdsCache = readLocalFavorites();
-    isInitialized = true;
-  }
+  ensureScopeSynced();
   await applyRemoveFavorite(carId);
 }
 
@@ -393,11 +461,7 @@ export async function toggleFavorite(
     onRequireLogin?: () => void;
   }
 ): Promise<boolean> {
-  if (!isInitialized) {
-    favoriteIdsCache = readLocalFavorites();
-    isInitialized = true;
-  }
-
+  ensureScopeSynced();
   const alreadyFavorited = favoriteIdsCache.includes(carId) && !pendingRemovalIds.has(carId);
 
   if (undoTimer) {
@@ -420,15 +484,16 @@ export async function processPendingFavorite(navigate?: (to: string) => void): P
   const token = getToken();
   if (!token) return;
 
+  const scope = ensureScopeSynced();
   try {
     await apiFetch('/favorit', {
       method: 'POST',
       body: JSON.stringify({ car_id: pending.carId }),
     });
 
-    if (!favoriteIdsCache.includes(pending.carId)) {
+    if (getCurrentScopeKey() === scope && !favoriteIdsCache.includes(pending.carId)) {
       favoriteIdsCache = [...favoriteIdsCache, pending.carId];
-      writeLocalFavorites(favoriteIdsCache);
+      writeIdsToKey(getStorageKeyForScope(scope), favoriteIdsCache);
       notifySubscribers();
     }
 

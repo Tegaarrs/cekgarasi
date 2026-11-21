@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { spring } from '@/lib/motion';
 import { SegmentBadge } from '@/components/motion/SegmentBadge';
@@ -84,7 +84,30 @@ interface CarDetail {
 export function DetailMobilPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const shouldReduce = useReducedMotion();
+
+  const navState = location.state as { from?: string; backLabel?: string } | null;
+  const fromParam = searchParams.get('from');
+  const backTarget =
+    navState?.from ||
+    (fromParam === 'admin-bi'
+      ? '/admin/bi'
+      : fromParam === 'admin-inventori'
+      ? '/admin/inventori'
+      : fromParam === 'admin-dashboard'
+      ? '/admin/dashboard'
+      : null);
+  const backLabel =
+    navState?.backLabel ||
+    (fromParam === 'admin-bi'
+      ? 'Kembali ke Dashboard BI K-Means'
+      : fromParam === 'admin-inventori'
+      ? 'Kembali ke Manajemen Inventori'
+      : fromParam === 'admin-dashboard'
+      ? 'Kembali ke Ringkasan KPI'
+      : 'Kembali ke Hasil Pencarian');
 
   const [car, setCar] = useState<CarDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -173,19 +196,31 @@ export function DetailMobilPage() {
       
       {/* Back button */}
       <button
+        type="button"
         onClick={() => {
-          if ('startViewTransition' in document) {
-            (document as any).startViewTransition(() => {
+          const goBack = () => {
+            if (backTarget) {
+              navigate(backTarget);
+              return;
+            }
+            const histIdx = typeof window !== 'undefined' ? (window.history.state?.idx ?? 0) : 0;
+            if (histIdx > 0) {
               navigate(-1);
-            });
+            } else {
+              navigate('/cari');
+            }
+          };
+
+          if ('startViewTransition' in document) {
+            (document as any).startViewTransition(goBack);
           } else {
-            navigate(-1);
+            goBack();
           }
         }}
-        className="ios-glass-pill inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 mb-6 transition-all cursor-pointer"
+        className="ios-glass-pill inline-flex items-center gap-1.5 min-h-[40px] px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 mb-6 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
       >
-        <ArrowLeft className="h-4 w-4" />
-        <span>Kembali ke Hasil Pencarian</span>
+        <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+        <span>{backLabel}</span>
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

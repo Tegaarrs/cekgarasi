@@ -497,7 +497,14 @@ export function AdminBIPage() {
                     {data.perhatian.map((u) => (
                       <tr key={u.id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors">
                         <td className="px-5 py-3.5 font-semibold text-[#001540] dark:text-white transition-colors duration-200">
-                          {u.nama_mobil} <span className="text-slate-500 dark:text-slate-400 font-normal">({u.tahun})</span>
+                          <Link
+                            to={`/mobil/${u.id}?from=admin-bi`}
+                            state={{ from: '/admin/bi', backLabel: 'Kembali ke Dashboard BI K-Means' }}
+                            className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors"
+                          >
+                            {u.nama_mobil}
+                          </Link>{' '}
+                          <span className="text-slate-500 dark:text-slate-400 font-normal">({u.tahun})</span>
                         </td>
                         <td className="px-4 py-3.5 font-semibold" style={{ color: warna[u.klaster] }}>{u.nama_segmen}</td>
                         <td className="px-4 py-3.5">{rpJt(u.harga_rp)}</td>
@@ -508,12 +515,12 @@ export function AdminBIPage() {
                         <td className="px-4 py-3.5 text-slate-600 dark:text-slate-300 transition-colors duration-200">{u.catatan}</td>
                         <td className="px-4 py-3.5">
                           <Link
-                            to={`/mobil/${u.id}`}
-                            target="_blank"
-                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
-                            aria-label={`Lihat ${u.nama_mobil}`}
+                            to={`/mobil/${u.id}?from=admin-bi`}
+                            state={{ from: '/admin/bi', backLabel: 'Kembali ke Dashboard BI K-Means' }}
+                            className="inline-flex items-center justify-center p-1.5 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-500/15 transition-colors duration-200"
+                            aria-label={`Lihat detail ${u.nama_mobil}`}
                           >
-                            <ExternalLink className="h-4 w-4" />
+                            <ExternalLink aria-hidden="true" className="h-4 w-4" />
                           </Link>
                         </td>
                       </tr>

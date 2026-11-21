@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, PieChart, Car, Users, UserCheck, Database, 
+import {
+  LayoutDashboard, PieChart, Car, Users, UserCheck, Database,
   ArrowLeft, LogOut, BarChart3, Sun, Moon, BookOpen
 } from 'lucide-react';
 import { getUser, removeToken } from '@/services/api';
+import { resetFavoriteCache } from '@/services/favoriteStore';
 import { useTheme } from '@/context/ThemeContext';
 
 export function AdminLayout() {
@@ -51,7 +52,7 @@ export function AdminLayout() {
 
   return (
     <div className="soft-light-shell min-h-screen md:h-screen md:overflow-hidden bg-[#E4E9F0] dark:bg-[#0D0D14] text-[#161D2A] dark:text-[#E8E8F0] flex flex-col md:flex-row transition-colors duration-200">
-      
+
       {/* Static Sidebar - CekGarasi Control Room */}
       <aside className="w-full md:w-[272px] md:h-screen md:sticky md:top-0 md:overflow-y-auto bg-[#0B0B0F] dark:bg-[#11111A] text-white flex-shrink-0 flex flex-col justify-between border-b md:border-b-0 md:border-r border-white/10 font-sans transition-colors duration-200">
         <div>
@@ -84,10 +85,9 @@ export function AdminLayout() {
                 <NavLink
                   to={item.to}
                   className={({ isActive }) =>
-                    `group relative flex items-center justify-between min-h-[44px] rounded-[10px] px-3 py-2.5 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                      isActive
-                        ? 'bg-[#2A2A33] text-white font-semibold'
-                        : 'text-zinc-300 hover:text-white hover:bg-white/5'
+                    `group relative flex items-center justify-between min-h-[44px] rounded-[10px] px-3 py-2.5 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${isActive
+                      ? 'bg-[#2A2A33] text-white font-semibold'
+                      : 'text-zinc-300 hover:text-white hover:bg-white/5'
                     }`
                   }
                 >
@@ -95,11 +95,10 @@ export function AdminLayout() {
                     <>
                       <div className="flex items-center gap-2.5 relative z-10">
                         <div
-                          className={`p-1.5 rounded-[8px] transition-colors ${
-                            isActive
-                              ? 'bg-[#2563EB] text-white shadow-xs'
-                              : 'bg-zinc-800/80 text-zinc-400 group-hover:text-white group-hover:bg-zinc-700'
-                          }`}
+                          className={`p-1.5 rounded-[8px] transition-colors ${isActive
+                            ? 'bg-[#2563EB] text-white shadow-xs'
+                            : 'bg-zinc-800/80 text-zinc-400 group-hover:text-white group-hover:bg-zinc-700'
+                            }`}
                         >
                           <item.icon aria-hidden="true" className="h-4 w-4" />
                         </div>
@@ -164,6 +163,7 @@ export function AdminLayout() {
               onClick={() => {
                 removeToken();
                 localStorage.removeItem('cekgarasi_user');
+                resetFavoriteCache();
                 navigate('/admin/login', { replace: true });
               }}
               className="flex items-center gap-1.5 min-h-[38px] px-3 py-1.5 rounded-[10px] text-[13px] font-semibold bg-red-600 hover:bg-red-700 text-white shadow-xs transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"

@@ -7,6 +7,7 @@ import { apiFetch, setToken, setUser } from '@/services/api';
 import {
   getPendingFavorite,
   processPendingFavorite,
+  resetFavoriteCache,
   sanitizeInternalPath,
 } from '@/services/favoriteStore';
 
@@ -127,6 +128,7 @@ export function MasukPage({ initialView }: { initialView?: AuthFlowView }) {
   const completeLoginRedirect = async (token: string, user: AuthUserResponse) => {
     setToken(token);
     setUser(user);
+    resetFavoriteCache();
 
     if (user.role === 'admin') {
       navigate('/admin/bi', { replace: true });

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'motion/react';
 import { Spinner } from '@/components/motion/Spinner';
 import { apiFetch, setToken, setUser } from '@/services/api';
+import { resetFavoriteCache } from '@/services/favoriteStore';
 import {
   AlertCircle,
   ShieldCheck,
@@ -49,6 +50,7 @@ export function AdminLoginPage() {
 
       setToken(data.access_token);
       setUser(data.user);
+      resetFavoriteCache();
       navigate('/admin/bi', { replace: true });
     } catch (err: unknown) {
       const msg =
