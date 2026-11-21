@@ -71,19 +71,6 @@ class WhatsAppConfigRequest(BaseModel):
     test_phone: Optional[str] = None
 
 
-class ForgotPasswordRequest(BaseModel):
-    email: Optional[str] = None
-    no_hp: Optional[str] = None
-
-
-class ResetPasswordRequest(BaseModel):
-    email: Optional[str] = None
-    no_hp: Optional[str] = None
-    kode_otp: Optional[str] = None
-    new_password: str = Field(..., min_length=6)
-    confirm_password: Optional[str] = None
-
-
 class SmtpConfigRequest(BaseModel):
     smtp_user: str
     smtp_pass: str

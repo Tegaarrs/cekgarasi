@@ -362,12 +362,7 @@ def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)):
         )
 
     raw_phone = (user_in.no_hp or user_in.no_telepon or "").strip()
-    norm_phone = _normalize_wa_phone(raw_phone)
-    if not norm_phone or len(norm_phone) < 9:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Nomor telepon aktif wajib diisi (minimal 9 digit)."
-        )
+    norm_phone = _normalize_wa_phone(raw_phone) or None
 
     if user_in.confirm_password and user_in.password != user_in.confirm_password:
         raise HTTPException(
@@ -510,7 +505,7 @@ def login(login_in: schemas.UserLogin, db: Session = Depends(get_db)):
     if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email / nomor telepon atau kata sandi tidak cocok."
+            detail="Email atau kata sandi tidak cocok."
         )
 
     if not user.is_active:
@@ -628,126 +623,6 @@ def verify_otp(
         "access_token": token,
         "token_type": "bearer",
         "user": user_out,
-    }
-
-
-@router.post("/forgot-password")
-@router.post("/lupa-password")
-def forgot_password(payload: schemas.ForgotPasswordRequest, db: Session = Depends(get_db)):
-    clean_email = (payload.email or "").strip().lower()
-    raw_phone = (payload.no_hp or payload.email or "").strip()
-    norm_phone = _normalize_wa_phone(raw_phone)
-
-    user = None
-    if clean_email and "@" in clean_email:
-        user = (
-            db.query(models.User)
-            .filter(func.lower(func.trim(models.User.email)) == clean_email)
-            .first()
-        )
-    if not user and norm_phone and len(norm_phone) >= 9:
-        user = (
-            db.query(models.User)
-            .filter(
-                or_(
-                    models.User.no_hp == norm_phone,
-                    models.User.no_hp == raw_phone,
-                    models.User.no_hp == ("0" + norm_phone[2:] if norm_phone.startswith("62") else norm_phone),
-                )
-            )
-            .order_by(models.User.id.desc())
-            .first()
-        )
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Akun pembeli dengan email atau nomor telepon tersebut belum terdaftar di database."
-        )
-
-    if user.role == "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Pemulihan kata sandi ini khusus untuk akun pembeli. Hubungi administrator untuk akun admin."
-        )
-
-    return {
-        "status": "account_verified",
-        "email": user.email,
-        "no_hp": user.no_hp or "",
-        "nama": user.nama,
-        "message": f"Akun pembeli atas nama {user.nama} ditemukan. Silakan buat kata sandi baru Anda.",
-    }
-
-
-@router.post("/reset-password")
-def reset_password(payload: schemas.ResetPasswordRequest, db: Session = Depends(get_db)):
-    clean_email = (payload.email or "").strip().lower()
-    raw_phone = (payload.no_hp or payload.email or "").strip()
-    norm_phone = _normalize_wa_phone(raw_phone)
-    new_pw = payload.new_password or ""
-
-    if len(new_pw) < 6:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Kata sandi baru minimal harus 6 karakter."
-        )
-
-    if payload.confirm_password and new_pw != payload.confirm_password:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Konfirmasi kata sandi baru tidak cocok."
-        )
-
-    user = None
-    if clean_email and "@" in clean_email:
-        user = (
-            db.query(models.User)
-            .filter(func.lower(func.trim(models.User.email)) == clean_email)
-            .first()
-        )
-    if not user and norm_phone:
-        user = (
-            db.query(models.User)
-            .filter(
-                or_(
-                    models.User.no_hp == norm_phone,
-                    models.User.no_hp == raw_phone,
-                    models.User.no_hp == ("0" + norm_phone[2:] if norm_phone.startswith("62") else norm_phone),
-                )
-            )
-            .order_by(models.User.id.desc())
-            .first()
-        )
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Akun pembeli tidak ditemukan."
-        )
-
-    if user.role == "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Pemulihan kata sandi ini khusus untuk akun pembeli."
-        )
-
-    user.password_terdaftar = new_pw
-    user.password_hash = auth.hash_password(new_pw)
-    user.hp_terverifikasi = 1
-    user.terakhir_reset_at = datetime.utcnow()
-    user.terakhir_login_at = datetime.utcnow()
-
-    db.commit()
-    db.refresh(user)
-
-    token = auth.create_access_token({"sub": str(user.id), "role": user.role})
-    return {
-        "status": "password_reset_success",
-        "message": "Kata sandi Anda berhasil diperbarui!",
-        "access_token": token,
-        "token_type": "bearer",
-        "user": schemas.UserOut.model_validate(user) if hasattr(schemas.UserOut, "model_validate") else user,
     }
 
 
