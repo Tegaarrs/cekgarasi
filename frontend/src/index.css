@@ -333,6 +333,26 @@
   color: #F87171 !important;
 }
 
+/* Success Button / Active Positive Tab (WCAG AA 5.48:1 white on #047857) */
+.btn-liquid-success {
+  background-color: #047857;
+  border: 1px solid #065F46;
+  color: #FFFFFF !important;
+  font-weight: 700;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px 0 rgba(4, 120, 87, 0.28);
+  transition: background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) ease;
+  cursor: pointer;
+}
+.btn-liquid-success:hover {
+  background-color: #065F46;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px -2px rgba(4, 120, 87, 0.36);
+}
+.btn-liquid-success:active {
+  transform: translateY(0);
+}
+
 /* Pills & Filter Badges */
 .ios-glass-pill {
   border-radius: 9999px;

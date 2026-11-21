@@ -1027,7 +1027,7 @@ export function AdminUsersPage() {
               whileTap={{ scale: 0.96 }}
               className={`btn-liquid-tab liquid-shine px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 statusFilter === 'verified'
-                  ? 'btn-liquid-success text-white'
+                  ? 'btn-liquid-success bg-emerald-700 hover:bg-emerald-800 text-white'
                   : 'bg-emerald-50/80 text-emerald-800 hover:bg-emerald-100/90 border border-emerald-200/80 shadow-2xs'
               }`}
             >

@@ -1030,9 +1030,9 @@ export function AdminInventoriPage() {
             onClick={() => setStatusTab('tayang')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
-            className={`btn-liquid-tab flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
+            className={`btn-liquid-tab flex-1 min-h-[40px] py-2 px-3 rounded-lg text-xs font-bold transition-all text-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${
               statusTab === 'tayang'
-                ? 'btn-liquid-success text-white'
+                ? 'btn-liquid-success bg-emerald-700 hover:bg-emerald-800 text-white'
                 : 'text-slate-600 hover:text-[#001540]'
             }`}
           >
