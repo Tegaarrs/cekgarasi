@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/database", tags=["Web Database Explorer"])
 
 class SQLQueryRequest(BaseModel):
     query: str
-    limit: Optional[int] = 100
+    limit: Optional[int] = 200
 
 
 ALLOWED_TABLES = [
@@ -101,6 +101,7 @@ def get_table_data(
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=200),
     q: Optional[str] = None,
+    search: Optional[str] = None,
     sort_by: Optional[str] = None,
     sort_dir: Optional[str] = "asc",
     db: Session = Depends(get_db)
@@ -116,15 +117,17 @@ def get_table_data(
     count_sql = f"SELECT COUNT(*) FROM `{clean_table}`"
     params: Dict[str, Any] = {}
 
+    keyword = (q or search or "").strip()
+    cast_type = "CHAR" if engine.dialect.name == "mysql" else "TEXT"
     where_clauses = []
-    if q and q.strip():
-        # Search text/varchar columns
+    if keyword:
+        # Search across all columns safely
         search_terms = []
         for col_name in columns:
-            search_terms.append(f"CAST(`{col_name}` AS TEXT) LIKE :search_query")
+            search_terms.append(f"CAST(`{col_name}` AS {cast_type}) LIKE :search_query")
         if search_terms:
             where_clauses.append(f"({' OR '.join(search_terms)})")
-            params["search_query"] = f"%{q.strip()}%"
+            params["search_query"] = f"%{keyword}%"
 
     where_sql = f" WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
     total_count = db.execute(text(f"{count_sql}{where_sql}"), params).scalar() or 0
@@ -173,12 +176,13 @@ def execute_sql_query(
 ):
     query_str = payload.query.strip()
 
-    # Safety check: only allow SELECT queries for the web database viewer
+    # Safety check: only allow read-only queries for the web database viewer
     clean_check = query_str.lstrip(" \t\n\r;(").upper()
-    if not clean_check.startswith("SELECT") and not clean_check.startswith("SHOW") and not clean_check.startswith("EXPLAIN") and not clean_check.startswith("PRAGMA"):
+    allowed_prefixes = ("SELECT", "WITH", "SHOW", "EXPLAIN", "PRAGMA")
+    if not clean_check.startswith(allowed_prefixes):
         raise HTTPException(
             status_code=400,
-            detail="Demi keamanan data, hanya query baca (SELECT / SHOW / EXPLAIN / PRAGMA) yang diizinkan melalui Web SQL Console."
+            detail="Demi keamanan data, hanya query baca (SELECT / WITH / SHOW / EXPLAIN / PRAGMA) yang diizinkan melalui Web SQL Console."
         )
 
     # Disallow destructive statements inside query
@@ -190,6 +194,7 @@ def execute_sql_query(
                 detail=f"Operasi manipulasi data '{word}' tidak diizinkan di Web SQL Console."
             )
 
+    max_rows = min(max(int(payload.limit or 200), 1), 1000)
     start_time = time.time()
     try:
         result = db.execute(text(query_str))
@@ -197,7 +202,7 @@ def execute_sql_query(
 
         if result.returns_rows:
             columns = list(result.keys())
-            rows = [dict(r) for r in result.mappings().fetchmany(payload.limit or 100)]
+            rows = [dict(r) for r in result.mappings().fetchmany(max_rows)]
             return {
                 "status": "success",
                 "columns": columns,
