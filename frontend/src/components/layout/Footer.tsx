@@ -14,7 +14,7 @@ export function Footer() {
               <Logo size="md" wordmarkClassName="text-white" />
             </Link>
             <p className="text-xs text-zinc-400 max-w-md leading-relaxed font-normal">
-              CekGarasi membantu Anda menemukan mobil bekas berkualitas dengan panduan harga pasar yang wajar, perbandingan spesifikasi lengkap, serta simulasi cicilan yang transparan.
+              CekGarasi membantu Anda menemukan mobil bekas berkualitas dengan panduan harga pasar yang wajar, perbandingan spesifikasi lengkap, serta jadwal test drive yang transparan.
             </p>
           </div>
 
@@ -49,7 +49,7 @@ export function Footer() {
               </div>
               <div className="flex items-start gap-2">
                 <GitBranch className="h-4 w-4 text-zinc-400 flex-shrink-0 mt-0.5" />
-                <span>Perbandingan Spesifikasi &amp; Cicilan</span>
+                <span>Perbandingan Spesifikasi &amp; Harga</span>
               </div>
               <div className="pt-2">
                 <Link

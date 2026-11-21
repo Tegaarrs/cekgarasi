@@ -4,8 +4,6 @@ import { motion } from 'motion/react';
 import { Calendar, Gauge, MapPin, Heart, Scale } from 'lucide-react';
 import { CarPlaceholder } from './CarPlaceholder';
 import { getCarPhoto } from '@/utils/carPhoto';
-import { formatInstallment } from '@/lib/finance';
-import { content } from '@/content/id';
 import { getSegmentMeta } from '@/utils/segmentConstants';
 import {
   isFavorite as checkIsFavorite,
@@ -74,7 +72,6 @@ export function CarCard({
   const SegmentIcon = meta.icon;
   const segmentName = car.nama_segmen || meta.nama;
   const segmentColor = car.warna_segmen || meta.colorHex;
-  const installmentText = formatInstallment(car.harga_rp);
   const photoUrl = getCarPhoto(car.nama_mobil, car.foto_url || car.foto || car.transmisi);
 
   const handleCardClick = () => {
@@ -230,14 +227,9 @@ export function CarCard({
           </h3>
 
           <div className="mt-1.5 flex items-baseline justify-between gap-2">
-            <div>
-              <span className="font-extrabold text-xl sm:text-2xl text-zinc-950 dark:text-white block leading-tight tracking-tight">
-                Rp {car.harga_rp.toLocaleString('id-ID')}
-              </span>
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block mt-0.5">
-                {content.finance.installmentLabel(installmentText)}
-              </span>
-            </div>
+            <span className="font-extrabold text-xl sm:text-2xl text-zinc-950 dark:text-white block leading-tight tracking-tight">
+              Rp {car.harga_rp.toLocaleString('id-ID')}
+            </span>
           </div>
         </div>
 

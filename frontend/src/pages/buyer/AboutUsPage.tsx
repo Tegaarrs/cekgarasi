@@ -5,7 +5,7 @@ import {
   MapPin,
   Clock,
   Scale,
-  Calculator,
+  BarChart3,
   CalendarCheck,
   ShieldCheck,
 } from 'lucide-react';
@@ -122,7 +122,7 @@ export function AboutUsPage() {
                       CekGarasi Indonesia
                     </div>
                     <p className="text-xs text-sky-100 mt-0.5 leading-relaxed">
-                      Katalog transparan dengan panduan harga pasar, simulasi cicilan, dan layanan uji jalan di 4 hub mitra.
+                      Katalog transparan dengan panduan harga pasar, perbandingan spesifikasi lengkap, dan layanan uji jalan di 4 hub mitra.
                     </p>
                   </div>
                 </div>
@@ -203,14 +203,14 @@ export function AboutUsPage() {
 
             <div className="rounded-xl border border-[#E4E4EE] dark:border-[#2A2A38] bg-white dark:bg-[#1A1A24] p-5 sm:p-6 flex items-start gap-4">
               <span className="w-10 h-10 rounded-lg bg-[#0277BD] text-white flex items-center justify-center shrink-0">
-                <Calculator className="w-5 h-5" aria-hidden="true" />
+                <BarChart3 className="w-5 h-5" aria-hidden="true" />
               </span>
               <div>
                 <h3 className="text-base font-bold text-[#14141F] dark:text-white">
-                  Simulasi Cicilan &amp; Posisi Harga Wajar
+                  Panduan Posisi Harga Wajar
                 </h3>
                 <p className="text-xs sm:text-sm text-[#6B6B80] dark:text-[#A1A1B5] mt-1 leading-relaxed">
-                  Setiap detail mobil menampilkan perbandingan harga unit terhadap harga pasaran wajar di kelasnya beserta kalkulator perkiraan uang muka (DP) dan tenor cicilan bulanan.
+                  Setiap detail mobil menampilkan perbandingan harga unit terhadap rentang harga pasaran wajar di kelasnya agar Anda tahu apakah penawaran sudah kompetitif.
                 </p>
               </div>
             </div>

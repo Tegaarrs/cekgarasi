@@ -12,7 +12,7 @@ import { apiFetch, getToken } from '@/services/api';
 import { getSegmentMeta } from '@/utils/segmentConstants';
 import { 
   Search, HelpCircle, ArrowRight, ChevronRight,
-  CheckCircle2, ShieldCheck, Scale, Calculator
+  CheckCircle2, ShieldCheck, Scale, CalendarCheck
 } from 'lucide-react';
 import { BuyerKmeansTester } from '@/components/algo/BuyerKmeansTester';
 import {
@@ -154,10 +154,10 @@ export function BerandaPage() {
     },
     {
       step: 4,
-      title: 'Simulasi Cicilan & Test Drive',
-      desc: 'Hitung estimasi DP dan angsuran bulanan yang realistis sesuai kantong, lalu jadwalkan inspeksi fisik dan uji jalan langsung.',
+      title: 'Jadwalkan Inspeksi & Test Drive',
+      desc: 'Pilih tanggal, jam, dan lokasi showroom terdekat untuk mengecek kondisi fisik mobil serta uji jalan secara langsung.',
       badge: 'Konsultasi & Cek Nyata',
-      icon: Calculator,
+      icon: CalendarCheck,
     },
   ];
 
@@ -203,7 +203,7 @@ export function BerandaPage() {
               </h1>
 
               <p className="mt-3 sm:mt-4 text-xs sm:text-base lg:text-lg text-slate-600 dark:text-zinc-300 leading-relaxed font-normal max-w-2xl">
-                Jelajahi lebih dari 600 mobil bekas siap pakai dari berbagai merek favorit. Cek perbandingan harga pasaran, jarak tempuh, dan simulasi cicilan dengan mudah agar Anda dapat mobil terbaik tanpa takut kemahalan.
+                Jelajahi lebih dari 600 mobil bekas siap pakai dari berbagai merek favorit. Cek perbandingan harga pasaran, jarak tempuh, dan kelengkapan fitur dengan mudah agar Anda dapat mobil terbaik tanpa takut kemahalan.
               </p>
             </motion.div>
 
@@ -392,7 +392,7 @@ export function BerandaPage() {
                 </div>
               </div>
               <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400 max-w-2xl font-normal">
-                Temukan mobil impian lebih cepat tanpa bingung pilih tipe—mulai dari mobil harian irit BBM, mobil keluarga yang lega dan nyaman, hingga kelas eksekutif premium dengan jaminan harga pasar yang jujur dan transparan.
+                Temukan mobil impian lebih cepat tanpa bingung pilih tipe, mulai dari mobil harian irit BBM, mobil keluarga yang lega dan nyaman, hingga kelas eksekutif premium dengan jaminan harga pasar yang jujur dan transparan.
               </p>
             </div>
             <Link

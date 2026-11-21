@@ -43,7 +43,6 @@ import {
 } from '@/services/compareStore';
 import { notifyToast } from '@/services/favoriteStore';
 import { getCarPhoto } from '@/utils/carPhoto';
-import { calculateInstallment } from '@/lib/finance';
 import { buatRingkasanBanding } from '@/lib/ringkasanBanding';
 import {
   fetchCarsByIds,
@@ -196,8 +195,6 @@ export function BandingkanPage() {
   const [loadingCompare, setLoadingCompare] = useState<boolean>(true);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [showOnlyDifferences, setShowOnlyDifferences] = useState<boolean>(false);
-  const [dpPercent, setDpPercent] = useState<number>(20);
-  const [tenorTahun, setTenorTahun] = useState<number>(4);
 
   // Add Car Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -545,7 +542,7 @@ export function BandingkanPage() {
               Bandingkan Mobil &amp; Panduan Harga Pasaran
             </h1>
             <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-1 max-w-2xl leading-relaxed">
-              Pahami standar harga pasaran dari {totalMobil} unit mobil bekas pilihan berdasarkan kelas kendaraan, lalu bandingkan spesifikasi serta simulasi cicilan hingga 4 mobil secara berdampingan.
+              Pahami standar harga pasaran dari {totalMobil} unit mobil bekas pilihan berdasarkan kelas kendaraan, lalu bandingkan spesifikasi, jarak tempuh, dan kelengkapan fitur hingga 4 mobil secara berdampingan.
             </p>
           </div>
 
@@ -726,83 +723,39 @@ export function BandingkanPage() {
                 </div>
               )}
 
-              {/* Shared Finance Controls & Differences Toggle */}
-              <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111D3D] p-5 shadow-xs">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+              {/* Differences Filter Toolbar */}
+              {comparedCars.length >= 2 && (
+                <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111D3D] px-5 py-3.5 shadow-xs flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      Simulasi Angsuran Kredit (Bunga Efektif 8% p.a.)
+                      Filter Tabel Perbandingan
                     </h3>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Sesuaikan Uang Muka (DP) dan lama cicilan untuk membandingkan angsuran bulanan semua unit secara bersamaan.
+                    <p className="text-xs text-slate-600 dark:text-slate-300">
+                      Saring baris spesifikasi agar hanya menampilkan perbedaan antar unit pilihan Anda.
                     </p>
                   </div>
 
-                  {comparedCars.length >= 2 && (
-                    <label className="flex items-center gap-2 cursor-pointer self-start sm:self-auto">
-                      <div className="relative inline-flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={showOnlyDifferences}
-                          onChange={(e) => setShowOnlyDifferences(e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600" />
-                      </div>
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                        <Filter className="h-3.5 w-3.5" />
-                        <span>Tampilkan hanya yang berbeda</span>
-                      </span>
-                    </label>
-                  )}
+                  <label
+                    htmlFor="bandingkan-diff-only"
+                    className="inline-flex items-center gap-2.5 min-h-[44px] cursor-pointer self-start sm:self-auto select-none"
+                  >
+                    <div className="relative inline-flex items-center">
+                      <input
+                        id="bandingkan-diff-only"
+                        type="checkbox"
+                        checked={showOnlyDifferences}
+                        onChange={(e) => setShowOnlyDifferences(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-slate-200 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600" />
+                    </div>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                      <Filter aria-hidden="true" className="h-3.5 w-3.5" />
+                      <span>Tampilkan hanya yang berbeda</span>
+                    </span>
+                  </label>
                 </div>
-
-                <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                      <span>Uang Muka / Down Payment (DP):</span>
-                      <span className="text-blue-600 dark:text-blue-400 font-bold">{dpPercent}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={10}
-                      max={50}
-                      step={5}
-                      value={dpPercent}
-                      onChange={(e) => setDpPercent(Number(e.target.value))}
-                      aria-label="Persentase DP"
-                      className="w-full accent-blue-600 cursor-pointer"
-                    />
-                    <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                      <span>10%</span>
-                      <span>30%</span>
-                      <span>50%</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                      <span>Jangka Waktu Kredit (Tenor):</span>
-                      <span className="text-blue-600 dark:text-blue-400 font-bold">{tenorTahun} Tahun ({tenorTahun * 12} Bulan)</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={1}
-                      max={5}
-                      step={1}
-                      value={tenorTahun}
-                      onChange={(e) => setTenorTahun(Number(e.target.value))}
-                      aria-label="Tenor Pinjaman"
-                      className="w-full accent-blue-600 cursor-pointer"
-                    />
-                    <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                      <span>1 Tahun</span>
-                      <span>3 Tahun</span>
-                      <span>5 Tahun</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              )}
 
               {/* Side-by-Side Comparison Matrix */}
               <div className="overflow-x-auto rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111D3D] shadow-sm">
@@ -812,14 +765,7 @@ export function BandingkanPage() {
                       <th className="w-48 min-w-[180px] p-4 font-bold text-slate-600 dark:text-slate-300">
                         Spesifikasi &amp; Poin Perbandingan
                       </th>
-                      {comparedCars.map((car) => {
-                        const angsuran = calculateInstallment(
-                          car.harga_rp,
-                          dpPercent,
-                          tenorTahun * 12,
-                          0.08
-                        );
-                        return (
+                      {comparedCars.map((car) => (
                           <th
                             key={car.id}
                             className="min-w-[230px] p-4 align-top font-normal border-l border-slate-100 dark:border-slate-800"
@@ -840,7 +786,7 @@ export function BandingkanPage() {
                                   aria-label={`Hapus ${car.nama_mobil} dari perbandingan`}
                                   className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-slate-500 shadow-md hover:bg-rose-600 hover:text-white transition-colors cursor-pointer dark:bg-slate-900/90"
                                 >
-                                  <X className="h-3.5 w-3.5" />
+                                  <X aria-hidden="true" className="h-3.5 w-3.5" />
                                 </button>
                               </div>
 
@@ -855,22 +801,18 @@ export function BandingkanPage() {
                                   <span className="font-extrabold text-base text-slate-900 dark:text-white">
                                     Rp {formatAngka(car.harga_rp)}
                                   </span>
-                                  <span className="block text-[11px] font-semibold text-blue-600 dark:text-blue-400">
-                                    Cicilan ~Rp {Math.round(angsuran / 1000).toLocaleString('id-ID')} rb/bln
-                                  </span>
                                 </div>
                               </div>
 
                               <Link
                                 to={`/mobil/${car.id}`}
-                                className="block w-full rounded-lg bg-blue-600 py-1.5 text-center text-[11px] font-bold text-white hover:bg-blue-500 transition-colors"
+                                className="flex min-h-[40px] items-center justify-center w-full rounded-lg bg-blue-600 py-1.5 text-center text-xs font-bold text-white hover:bg-blue-500 transition-colors"
                               >
                                 Lihat Detail Unit
                               </Link>
                             </div>
                           </th>
-                        );
-                      })}
+                        ))}
 
                       {Array.from({ length: 4 - comparedCars.length }).map((_, idx) => (
                         <th

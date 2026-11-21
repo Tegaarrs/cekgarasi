@@ -276,7 +276,7 @@ export function ContactUsPage() {
                       <option value="Pertanyaan Katalog & Unit">Pertanyaan Katalog &amp; Unit</option>
                       <option value="Jadwal Test Drive Showroom">Jadwal Test Drive Showroom</option>
                       <option value="Bantuan Akun & Login Pembeli">Bantuan Akun &amp; Login Pembeli</option>
-                      <option value="Simulasi Kredit & Harga Pasar">Simulasi Kredit &amp; Harga Pasar</option>
+                      <option value="Konsultasi Harga Pasar & Unit">Konsultasi Harga Pasar &amp; Unit</option>
                     </select>
                   </div>
 

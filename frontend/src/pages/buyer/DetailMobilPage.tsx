@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { spring } from '@/lib/motion';
 import { SegmentBadge } from '@/components/motion/SegmentBadge';
-import { AnimatedNumber } from '@/components/motion/AnimatedNumber';
 import { Reveal } from '@/components/motion/Reveal';
 import { Stagger, StaggerItem } from '@/components/motion/Stagger';
 import { PressableCard } from '@/components/motion/PressableCard';
@@ -90,11 +89,7 @@ export function DetailMobilPage() {
   const [car, setCar] = useState<CarDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState<'spesifikasi' | 'fitur' | 'simulasi' | 'inspeksi'>('spesifikasi');
-
-  // Installment Calculator states
-  const [dpPercent, setDpPercent] = useState(20);
-  const [tenorTahun, setTenorTahun] = useState(4);
+  const [activeTab, setActiveTab] = useState<'spesifikasi' | 'fitur' | 'inspeksi'>('spesifikasi');
 
   const [isFav, setIsFav] = useState(false);
 
@@ -172,18 +167,6 @@ export function DetailMobilPage() {
   const q3 = car.posisi_harga?.q3 ?? car.harga_rp * 1.1;
   const range = Math.max(q3 - q1, 10000000);
   const markerPos = Math.min(Math.max(((car.harga_rp - q1) / range) * 100, 5), 95);
-
-  // Credit calculation (8% annuity)
-  const harga = car.harga_rp;
-  const dpRp = (harga * dpPercent) / 100;
-  const pokokHutang = harga - dpRp;
-  const bungaTahunan = 0.08;
-  const bulan = tenorTahun * 12;
-  const bungaBulanan = bungaTahunan / 12;
-  const angsuran = Math.round(
-    (pokokHutang * (bungaBulanan * Math.pow(1 + bungaBulanan, bulan))) /
-      (Math.pow(1 + bungaBulanan, bulan) - 1)
-  );
 
   return (
     <div className="min-h-screen bg-transparent py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -403,13 +386,13 @@ export function DetailMobilPage() {
               {[
                 { id: 'spesifikasi', label: 'Spesifikasi Lengkap' },
                 { id: 'fitur', label: `Kelengkapan Fitur (${car.total_fitur}/11)` },
-                { id: 'simulasi', label: 'Simulasi Kredit Anuitas 8%' },
                 { id: 'inspeksi', label: 'Laporan Hasil Inspeksi 160 Titik' },
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as 'spesifikasi' | 'fitur' | 'simulasi' | 'inspeksi')}
-                  className={`relative py-3 px-3 sm:px-4 text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                  type="button"
+                  onClick={() => setActiveTab(tab.id as 'spesifikasi' | 'fitur' | 'inspeksi')}
+                  className={`relative min-h-[44px] py-3 px-3 sm:px-4 text-xs font-bold transition-colors whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                     activeTab === tab.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                 >
@@ -437,55 +420,6 @@ export function DetailMobilPage() {
                   fiturList={car.fitur_list}
                   totalFitur={car.total_fitur}
                 />
-              )}
-
-              {activeTab === 'simulasi' && (
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
-                        <span>Down Payment (DP):</span>
-                        <span className="text-blue-600">{dpPercent}% (Rp {Math.round(dpRp).toLocaleString('id-ID')})</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={20}
-                        max={50}
-                        step={5}
-                        value={dpPercent}
-                        onChange={(e) => setDpPercent(Number(e.target.value))}
-                        className="w-full accent-blue-600"
-                      />
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
-                        <span>Tenor Pinjaman:</span>
-                        <span className="text-blue-600">{tenorTahun} Tahun ({bulan} Bulan)</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={1}
-                        max={5}
-                        step={1}
-                        value={tenorTahun}
-                        onChange={(e) => setTenorTahun(Number(e.target.value))}
-                        className="w-full accent-blue-600"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Installment Estimate Animating with AnimatedNumber (0.4s) */}
-                  <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4 flex items-center justify-between">
-                    <div>
-                      <span className="text-xs text-slate-500">Estimasi Angsuran Bulanan</span>
-                      <div className="font-display text-2xl font-extrabold text-blue-700">
-                        Rp <AnimatedNumber value={angsuran} duration={0.4} /> /bulan
-                      </div>
-                    </div>
-                    <span className="text-[11px] text-blue-600 font-medium">Bunga Flat Efektif 8% p.a.</span>
-                  </div>
-                </div>
               )}
 
               {activeTab === 'inspeksi' && (
@@ -606,12 +540,6 @@ export function DetailMobilPage() {
               <div className="flex justify-between">
                 <span className="text-zinc-500 dark:text-zinc-400 uppercase text-[10px]">Harga Tunai:</span>
                 <span className="font-bold text-zinc-900 dark:text-white">Rp {(car.harga_rp ?? 0).toLocaleString('id-ID')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400 uppercase text-[10px]">Angsuran Mulai:</span>
-                <span className="font-bold text-[#5B4EF0] dark:text-[#8277FF]">
-                  Rp {(car.angsuran_bulanan_rp ?? car.cicilan_rp ?? 0).toLocaleString('id-ID')}/bln
-                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-500 dark:text-zinc-400 uppercase text-[10px]">Lokasi Dealer:</span>

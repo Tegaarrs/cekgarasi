@@ -45,7 +45,6 @@ import {
   addCompare,
 } from '@/services/compareStore';
 import { getCarPhoto } from '@/utils/carPhoto';
-import { formatInstallment, calculateInstallment } from '@/lib/finance';
 import { buatRingkasanBanding } from '@/lib/ringkasanBanding';
 import {
   fetchCompareCars,
@@ -200,8 +199,6 @@ function FavoritPageContent() {
   const [comparedCars, setComparedCars] = useState<ComparedCar[]>([]);
   const [loadingCompare, setLoadingCompare] = useState<boolean>(false);
   const [showOnlyDifferences, setShowOnlyDifferences] = useState<boolean>(false);
-  const [dpPercent, setDpPercent] = useState<number>(20);
-  const [tenorTahun, setTenorTahun] = useState<number>(4);
 
   // Alternatives cache: { [carId]: CheaperAlternative[] }
   const [alternativesCache, setAlternativesCache] = useState<Record<number, CheaperAlternative[]>>({});
@@ -708,7 +705,7 @@ function FavoritPageContent() {
                   Pilih Minimal 2 Mobil Favorit untuk Dibandingkan
                 </h3>
                 <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                  Kamu saat ini baru memilih {compareList.length} mobil. Pilih 2 hingga 4 mobil dari koleksi favoritmu untuk melihat komparasi spesifikasi, cicilan, dan catatan pribadimu di sini.
+                  Kamu saat ini baru memilih {compareList.length} mobil. Pilih 2 hingga 4 mobil dari koleksi favoritmu untuk melihat komparasi spesifikasi, harga, dan catatan pribadimu di sini.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
                   {items.length >= 2 && (
@@ -794,82 +791,36 @@ function FavoritPageContent() {
                   </div>
                 )}
 
-                {/* Finance Sliders & Differences Filter */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                        Simulasi Angsuran Bersama (Bunga Efektif 8% p.a.)
-                      </h3>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Atur DP dan tenor untuk melihat perbandingan cicilan bulanan masing-masing mobil secara realtime.
-                      </p>
-                    </div>
-
-                    {/* Diff-only toggle switch */}
-                    <label className="flex items-center gap-2 cursor-pointer self-start sm:self-auto">
-                      <div className="relative inline-flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={showOnlyDifferences}
-                          onChange={(e) => setShowOnlyDifferences(e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-                      </div>
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                        <Filter className="h-3.5 w-3.5" />
-                        <span>Tampilkan hanya perbedaan</span>
-                      </span>
-                    </label>
+                {/* Differences Filter Bar */}
+                <div className="rounded-2xl border border-slate-200 bg-white px-5 py-3.5 shadow-xs dark:border-slate-800 dark:bg-slate-900 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      Filter Tabel Komparasi
+                    </h3>
+                    <p className="text-xs text-slate-600 dark:text-slate-300">
+                      Saring baris spesifikasi untuk menyorot perbedaan antar mobil favorit pilihanmu.
+                    </p>
                   </div>
 
-                  {/* Sliders */}
-                  <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <div>
-                      <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                        <span>Down Payment (DP):</span>
-                        <span className="text-blue-600 font-bold">{dpPercent}%</span>
-                      </div>
+                  <label
+                    htmlFor="favorit-diff-only"
+                    className="inline-flex items-center gap-2.5 min-h-[44px] cursor-pointer self-start sm:self-auto select-none"
+                  >
+                    <div className="relative inline-flex items-center">
                       <input
-                        type="range"
-                        min={10}
-                        max={50}
-                        step={5}
-                        value={dpPercent}
-                        onChange={(e) => setDpPercent(parseInt(e.target.value, 10))}
-                        aria-label="Uang Muka Down Payment Persen"
-                        className="w-full accent-blue-600 cursor-pointer"
+                        id="favorit-diff-only"
+                        type="checkbox"
+                        checked={showOnlyDifferences}
+                        onChange={(e) => setShowOnlyDifferences(e.target.checked)}
+                        className="sr-only peer"
                       />
-                      <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                        <span>10%</span>
-                        <span>25%</span>
-                        <span>50%</span>
-                      </div>
+                      <div className="w-9 h-5 bg-slate-200 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                     </div>
-
-                    <div>
-                      <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                        <span>Jangka Waktu (Tenor):</span>
-                        <span className="text-blue-600 font-bold">{tenorTahun} Tahun ({tenorTahun * 12} Bulan)</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={1}
-                        max={5}
-                        step={1}
-                        value={tenorTahun}
-                        onChange={(e) => setTenorTahun(parseInt(e.target.value, 10))}
-                        aria-label="Jangka Waktu Tenor Tahun"
-                        className="w-full accent-blue-600 cursor-pointer"
-                      />
-                      <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                        <span>1 Tahun</span>
-                        <span>3 Tahun</span>
-                        <span>5 Tahun</span>
-                      </div>
-                    </div>
-                  </div>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                      <Filter aria-hidden="true" className="h-3.5 w-3.5" />
+                      <span>Tampilkan hanya perbedaan</span>
+                    </span>
+                  </label>
                 </div>
 
                 {/* Side-by-Side Comparison Table */}
@@ -989,25 +940,6 @@ function FavoritPageContent() {
                               </span>
                             </td>
                           ))}
-                          {comparedCars.length < 4 && <td className="border-l border-dashed border-slate-200 dark:border-slate-800" />}
-                        </tr>
-
-                        {/* Estimasi Cicilan Bulanan */}
-                        <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 bg-blue-50/30 dark:bg-blue-950/20">
-                          <td className="p-4 font-semibold text-slate-500 dark:text-slate-400">
-                            Simulasi Cicilan ({tenorTahun} Thn, DP {dpPercent}%)
-                          </td>
-                          {comparedCars.map((car) => {
-                            // calculateInstallment expects tenor in MONTHS
-                            const cicilan = calculateInstallment(car.harga_rp, dpPercent, tenorTahun * 12);
-                            return (
-                              <td key={car.id} className="p-4 font-bold text-slate-900 dark:text-white border-l border-slate-100 dark:border-slate-800">
-                                <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
-                                  Rp {formatAngka(Math.round(cicilan))}/bln
-                                </span>
-                              </td>
-                            );
-                          })}
                           {comparedCars.length < 4 && <td className="border-l border-dashed border-slate-200 dark:border-slate-800" />}
                         </tr>
 
@@ -1310,7 +1242,7 @@ function FavoritPageContent() {
                       {compareList.length} mobil favorit telah kamu pilih
                     </span>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Bandingkan spesifikasi, harga, dan angsuran langsung di dalam halaman ini.
+                      Bandingkan spesifikasi, harga, dan fitur langsung di dalam halaman ini.
                     </span>
                   </div>
                 </div>
@@ -1481,9 +1413,6 @@ function FavoritPageContent() {
                         <div className="mt-1 flex items-baseline justify-between">
                           <span className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">
                             Rp {formatAngka(car.harga_rp)}
-                          </span>
-                          <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                            ± Rp {formatInstallment(car.harga_rp || 0)}/bln
                           </span>
                         </div>
                       </div>

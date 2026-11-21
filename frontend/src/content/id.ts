@@ -5,7 +5,7 @@ export const content = {
   brand: {
     name: 'CekGarasi',
     tagline: 'Cek dulu harganya, baru nego',
-    description: 'Bandingkan harga mobil bekas dengan unit sekelas di pasaran, hitung perkiraan cicilan, lalu jadwalkan test drive.',
+    description: 'Bandingkan harga mobil bekas dengan unit sekelas di pasaran, cek kelengkapan spesifikasi, lalu jadwalkan test drive.',
     altLogo: 'CekGarasi',
   },
 
@@ -38,8 +38,8 @@ export const content = {
       desc: 'Tiap mobil dibandingkan dengan unit sekelas di harga pasaran wajarnya.',
     },
     {
-      title: 'Cicilan bisa dihitung',
-      desc: 'Perkiraan cicilan bulanan, atur DP dan tenor secara transparan.',
+      title: 'Komparasi hingga 4 unit',
+      desc: 'Bandingkan harga tunai, kilometer, tahun, dan fitur secara berdampingan.',
     },
     {
       title: 'Test drive online',
@@ -60,8 +60,8 @@ export const content = {
     },
     {
       step: 3,
-      title: 'Hitung cicilan',
-      desc: 'Perkiraan cicilan bulanan, atur DP dan tenor.',
+      title: 'Bandingkan unit',
+      desc: 'Jajarkan hingga 4 mobil incaran untuk melihat perbedaan harga dan fitur.',
     },
     {
       step: 4,
