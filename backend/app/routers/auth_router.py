@@ -366,7 +366,7 @@ def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)):
     if not norm_phone or len(norm_phone) < 9:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Nomor telepon WhatsApp wajib diisi untuk pengiriman kode OTP verifikasi."
+            detail="Nomor telepon aktif wajib diisi (minimal 9 digit)."
         )
 
     if user_in.confirm_password and user_in.password != user_in.confirm_password:
@@ -394,7 +394,6 @@ def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)):
 
     kota = (user_in.kota_domisili or "").strip() or None
     alamat = (user_in.alamat_lengkap or kota or "").strip() or None
-    input_otp = (user_in.kode_otp or "").strip()
 
     existing = (
         db.query(models.User)
@@ -402,104 +401,42 @@ def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)):
         .first()
     )
 
-    if existing and existing.hp_terverifikasi == 1:
+    if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email ini sudah terdaftar dan terverifikasi sebagai pembeli. Silakan masuk melalui halaman Sign In."
+            detail="Email ini sudah terdaftar sebagai pembeli. Silakan masuk melalui halaman Sign In."
         )
 
-    # Check if OTP code is already provided during registration or if we should generate & send WhatsApp OTP now
     now = datetime.utcnow()
-    expires_at = now + timedelta(minutes=15)
-
-    if input_otp:
-        latest_otp_log = (
-            db.query(models.AuthOtpLog)
-            .filter(models.AuthOtpLog.email.in_([norm_phone, clean_email]))
-            .order_by(models.AuthOtpLog.id.desc())
-            .first()
-        )
-        valid_otp = False
-        if input_otp == "123456":
-            valid_otp = True
-        elif existing and existing.otp_terakhir and secrets.compare_digest(input_otp, existing.otp_terakhir):
-            valid_otp = True
-        elif latest_otp_log and secrets.compare_digest(input_otp, latest_otp_log.kode_otp):
-            valid_otp = True
-
-        if not valid_otp:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Kode OTP WhatsApp tidak sesuai. Silakan periksa kembali kode 6 digit di WhatsApp Anda."
-            )
-        if latest_otp_log:
-            latest_otp_log.status = "verified"
-        otp_code = input_otp
-        is_verified = 1
-    else:
-        otp_code = f"{random.randint(100000, 999999)}"
-        is_verified = 0
-        otp_log = models.AuthOtpLog(
-            email=norm_phone,
-            kode_otp=otp_code,
-            tujuan="register",
-            provider="whatsapp",
-            status="sent",
-            expires_at=expires_at,
-        )
-        db.add(otp_log)
-
-    if existing:
-        existing.nama = full_name
-        existing.nama_depan = first_name
-        existing.nama_belakang = last_name or None
-        existing.no_hp = norm_phone
-        existing.kota_domisili = kota
-        existing.alamat_lengkap = alamat
-        existing.cabang = kota
-        existing.password_terdaftar = user_in.password
-        existing.password_hash = auth.hash_password(user_in.password)
-        existing.auth_provider = "whatsapp"
-        existing.otp_terakhir = otp_code
-        existing.otp_expires_at = expires_at
-        existing.hp_terverifikasi = is_verified
-        db.commit()
-        db.refresh(existing)
-        target_user = existing
-    else:
-        target_user = models.User(
-            nama=full_name,
-            nama_depan=first_name,
-            nama_belakang=last_name or None,
-            email=clean_email,
-            no_hp=norm_phone,
-            nik=(user_in.nik or "").strip() or None,
-            jenis_kelamin=(user_in.jenis_kelamin or "").strip() or None,
-            tanggal_lahir=(user_in.tanggal_lahir or "").strip() or None,
-            pekerjaan=(user_in.pekerjaan or "").strip() or None,
-            kota_domisili=kota,
-            alamat_lengkap=alamat,
-            cabang=kota,
-            auth_provider="whatsapp",
-            otp_terakhir=otp_code,
-            otp_expires_at=expires_at,
-            password_terdaftar=user_in.password,
-            password_hash=auth.hash_password(user_in.password),
-            role="pembeli",
-            hp_terverifikasi=is_verified,
-            segmen_awal_id=1,
-            pref_harga_min=150_000_000,
-            pref_harga_max=260_000_000,
-            fokus_penggunaan="Keluarga Lapang",
-            is_active=1,
-        )
-        db.add(target_user)
-        db.commit()
-        db.refresh(target_user)
-
-    wa_notif = None
-    if not is_verified:
-        wa_notif = _send_whatsapp_otp(norm_phone, otp_code, purpose="register", db=db)
+    default_segment = db.query(models.Segment.id).filter(models.Segment.id == 1).first()
+    target_user = models.User(
+        nama=full_name,
+        nama_depan=first_name,
+        nama_belakang=last_name or None,
+        email=clean_email,
+        no_hp=norm_phone,
+        nik=(user_in.nik or "").strip() or None,
+        jenis_kelamin=(user_in.jenis_kelamin or "").strip() or None,
+        tanggal_lahir=(user_in.tanggal_lahir or "").strip() or None,
+        pekerjaan=(user_in.pekerjaan or "").strip() or None,
+        kota_domisili=kota,
+        alamat_lengkap=alamat,
+        cabang=kota,
+        auth_provider="email",
+        password_terdaftar=user_in.password,
+        password_hash=auth.hash_password(user_in.password),
+        role="pembeli",
+        hp_terverifikasi=1,
+        segmen_awal_id=1 if default_segment else None,
+        pref_harga_min=150_000_000,
+        pref_harga_max=260_000_000,
+        fokus_penggunaan="Keluarga Lapang",
+        terakhir_login_at=now,
+        is_active=1,
+    )
+    db.add(target_user)
+    db.commit()
+    db.refresh(target_user)
 
     token = auth.create_access_token({"sub": str(target_user.id), "role": target_user.role})
     user_out = schemas.UserOut.model_validate(target_user) if hasattr(schemas.UserOut, "model_validate") else target_user
@@ -507,14 +444,9 @@ def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)):
         "access_token": token,
         "token_type": "bearer",
         "user": user_out,
-        "requires_whatsapp_otp": not bool(is_verified),
+        "requires_whatsapp_otp": False,
         "no_hp": norm_phone,
-        "whatsapp_notification": wa_notif,
-        "message": (
-            f"Pendaftaran disimpan. Kode OTP 6 digit telah dikirimkan ke WhatsApp +{norm_phone}."
-            if not is_verified
-            else "Pendaftaran & verifikasi OTP WhatsApp berhasil!"
-        ),
+        "message": "Pendaftaran akun pembeli berhasil! Anda sekarang telah masuk.",
     }
 
 
@@ -578,7 +510,7 @@ def login(login_in: schemas.UserLogin, db: Session = Depends(get_db)):
     if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email / nomor WhatsApp atau kata sandi tidak cocok."
+            detail="Email / nomor telepon atau kata sandi tidak cocok."
         )
 
     if not user.is_active:
@@ -587,29 +519,9 @@ def login(login_in: schemas.UserLogin, db: Session = Depends(get_db)):
             detail="Akun ini telah dinonaktifkan."
         )
 
-    # Enforce WhatsApp OTP verification for buyers
-    if user.role == "pembeli" and user.hp_terverifikasi == 0 and user.email != "buyer@cekgarasi.test":
-        target_phone = _normalize_wa_phone(user.no_hp)
-        if target_phone:
-            otp_code = f"{random.randint(100000, 999999)}"
-            now = datetime.utcnow()
-            expires_at = now + timedelta(minutes=15)
-            user.otp_terakhir = otp_code
-            user.otp_expires_at = expires_at
-            db.add(models.AuthOtpLog(
-                email=target_phone,
-                kode_otp=otp_code,
-                tujuan="register",
-                provider="whatsapp",
-                status="sent",
-                expires_at=expires_at,
-            ))
-            db.commit()
-            _send_whatsapp_otp(target_phone, otp_code, purpose="register", db=db)
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"UNVERIFIED_WA:{target_phone or ''}:Nomor WhatsApp akun Anda belum diverifikasi OTP. Kode OTP telah dikirim ke WhatsApp Anda."
-        )
+    # Auto-activate previously unverified buyer accounts upon valid password login (OTP removed)
+    if user.role == "pembeli" and user.hp_terverifikasi == 0:
+        user.hp_terverifikasi = 1
 
     if needs_hash_sync and raw_password:
         user.password_hash = auth.hash_password(raw_password)
@@ -750,45 +662,21 @@ def forgot_password(payload: schemas.ForgotPasswordRequest, db: Session = Depend
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Akun pembeli dengan nomor WhatsApp / email tersebut belum terdaftar di database."
+            detail="Akun pembeli dengan email atau nomor telepon tersebut belum terdaftar di database."
         )
 
-    target_wa = _normalize_wa_phone(user.no_hp) or norm_phone
-    if not target_wa:
+    if user.role == "admin":
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Akun ini belum memiliki nomor WhatsApp terdaftar. Masukkan nomor WhatsApp Anda."
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Pemulihan kata sandi ini khusus untuk akun pembeli. Hubungi administrator untuk akun admin."
         )
 
-    otp_code = f"{random.randint(100000, 999999)}"
-    now = datetime.utcnow()
-    expires_at = now + timedelta(minutes=15)
-
-    user.otp_terakhir = otp_code
-    user.otp_expires_at = expires_at
-    if not user.no_hp:
-        user.no_hp = target_wa
-
-    otp_log = models.AuthOtpLog(
-        email=target_wa,
-        kode_otp=otp_code,
-        tujuan="reset_password",
-        provider="whatsapp",
-        status="sent",
-        expires_at=expires_at,
-    )
-    db.add(otp_log)
-    db.commit()
-
-    wa_notif = _send_whatsapp_otp(target_wa, otp_code, purpose="reset_password", db=db)
     return {
-        "status": "recovery_wa_sent",
+        "status": "account_verified",
         "email": user.email,
-        "no_hp": target_wa,
+        "no_hp": user.no_hp or "",
         "nama": user.nama,
-        "expires_in_seconds": 900,
-        "message": f"Kode OTP pemulihan kata sandi telah dikirimkan ke WhatsApp +{target_wa}.",
-        "whatsapp_notification": wa_notif,
+        "message": f"Akun pembeli atas nama {user.nama} ditemukan. Silakan buat kata sandi baru Anda.",
     }
 
 
@@ -797,7 +685,6 @@ def reset_password(payload: schemas.ResetPasswordRequest, db: Session = Depends(
     clean_email = (payload.email or "").strip().lower()
     raw_phone = (payload.no_hp or payload.email or "").strip()
     norm_phone = _normalize_wa_phone(raw_phone)
-    input_otp = (payload.kode_otp or "").strip()
     new_pw = payload.new_password or ""
 
     if len(new_pw) < 6:
@@ -839,29 +726,10 @@ def reset_password(payload: schemas.ResetPasswordRequest, db: Session = Depends(
             detail="Akun pembeli tidak ditemukan."
         )
 
-    lookup_keys = [k for k in [norm_phone, _normalize_wa_phone(user.no_hp), user.email] if k]
-    latest_log = (
-        db.query(models.AuthOtpLog)
-        .filter(
-            models.AuthOtpLog.email.in_(lookup_keys),
-            models.AuthOtpLog.tujuan == "reset_password",
-        )
-        .order_by(models.AuthOtpLog.id.desc())
-        .first()
-    )
-
-    is_otp_valid = False
-    if input_otp == "123456":
-        is_otp_valid = True
-    elif user.otp_terakhir and secrets.compare_digest(input_otp, user.otp_terakhir):
-        is_otp_valid = True
-    elif latest_log and secrets.compare_digest(input_otp, latest_log.kode_otp):
-        is_otp_valid = True
-
-    if not is_otp_valid:
+    if user.role == "admin":
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Kode OTP WhatsApp tidak valid. Periksa kembali kode 6 digit yang dikirim ke WhatsApp Anda."
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Pemulihan kata sandi ini khusus untuk akun pembeli."
         )
 
     user.password_terdaftar = new_pw
@@ -869,8 +737,6 @@ def reset_password(payload: schemas.ResetPasswordRequest, db: Session = Depends(
     user.hp_terverifikasi = 1
     user.terakhir_reset_at = datetime.utcnow()
     user.terakhir_login_at = datetime.utcnow()
-    if latest_log:
-        latest_log.status = "used"
 
     db.commit()
     db.refresh(user)
@@ -878,7 +744,7 @@ def reset_password(payload: schemas.ResetPasswordRequest, db: Session = Depends(
     token = auth.create_access_token({"sub": str(user.id), "role": user.role})
     return {
         "status": "password_reset_success",
-        "message": "Kata sandi Anda berhasil direset melalui verifikasi OTP WhatsApp.",
+        "message": "Kata sandi Anda berhasil diperbarui!",
         "access_token": token,
         "token_type": "bearer",
         "user": schemas.UserOut.model_validate(user) if hasattr(schemas.UserOut, "model_validate") else user,

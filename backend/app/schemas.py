@@ -79,7 +79,7 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     email: Optional[str] = None
     no_hp: Optional[str] = None
-    kode_otp: str
+    kode_otp: Optional[str] = None
     new_password: str = Field(..., min_length=6)
     confirm_password: Optional[str] = None
 
